@@ -92,7 +92,8 @@ export function StepCard({ task, runId, onSelect, isSelected, defaultExpanded = 
         {isBreakpointWaiting ? (
           <div className="flex items-center gap-1 mt-1.5 text-xs text-warning">
             <Hand className="h-3 w-3 shrink-0 drop-shadow-[var(--drop-glow-warning-sm)]" />
-            <span className="font-medium">Needs approval</span>
+            <span className="font-medium">Waiting for approval</span>
+            <span className="font-mono text-warning/70 animate-pulse">{formatDuration(elapsedMs)}</span>
           </div>
         ) : (task.duration || isRunning) ? (
           <div className="flex items-center gap-1 mt-1.5 text-xs text-foreground-muted">
@@ -134,7 +135,9 @@ export function StepCard({ task, runId, onSelect, isSelected, defaultExpanded = 
             </div>
             {task.duration != null && (
               <div className="flex items-center gap-2">
-                <span className="text-foreground-secondary font-medium">Duration:</span>
+                <span className="text-foreground-secondary font-medium">
+                  {task.kind === "breakpoint" ? "Wait time:" : "Duration:"}
+                </span>
                 <span>{formatDuration(task.duration)}</span>
               </div>
             )}

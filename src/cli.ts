@@ -37,7 +37,7 @@ function getVersion(): string {
 
 function printUsage(): void {
   const usage = `
-babysitter-observer — CLI for the observer dashboard
+babysitter-observer-dashboard — CLI for the observer dashboard
 
 Usage:
   observer [options]
@@ -141,7 +141,7 @@ function main(): void {
   const opts = parseArgs(process.argv);
 
   if (opts.version) {
-    console.log(`babysitter-observer v${getVersion()}`);
+    console.log(`babysitter-observer-dashboard v${getVersion()}`);
     process.exit(0);
   }
 

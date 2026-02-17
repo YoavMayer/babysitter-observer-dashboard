@@ -1,6 +1,6 @@
-# @a5c-ai/babysitter-observer
+# @a5c-ai/babysitter-observer-dashboard
 
-[![npm version](https://img.shields.io/npm/v/@a5c-ai/babysitter-observer.svg)](https://www.npmjs.com/package/@a5c-ai/babysitter-observer)
+[![npm version](https://img.shields.io/npm/v/@a5c-ai/babysitter-observer-dashboard.svg)](https://www.npmjs.com/package/@a5c-ai/babysitter-observer-dashboard)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
 
@@ -28,20 +28,20 @@ Real-time observability dashboard for [babysitter](https://github.com/a5c-ai/bab
 ### Option 1: Run directly with npx
 
 ```bash
-npx @a5c-ai/babysitter-observer
+npx @a5c-ai/babysitter-observer-dashboard
 ```
 
 ### Option 2: Install globally
 
 ```bash
-npm install -g @a5c-ai/babysitter-observer
-babysitter-observer
+npm install -g @a5c-ai/babysitter-observer-dashboard
+babysitter-observer-dashboard
 ```
 
 ### Option 3: Add as a dev dependency
 
 ```bash
-npm install --save-dev @a5c-ai/babysitter-observer
+npm install --save-dev @a5c-ai/babysitter-observer-dashboard
 ```
 
 Then add a script to your `package.json`:
@@ -49,7 +49,7 @@ Then add a script to your `package.json`:
 ```json
 {
   "scripts": {
-    "observe": "babysitter-observer --watch-dir ."
+    "observe": "babysitter-observer-dashboard --watch-dir ."
   }
 }
 ```
@@ -59,7 +59,7 @@ The dashboard opens at [http://localhost:3000](http://localhost:3000) by default
 ## CLI Reference
 
 ```
-babysitter-observer [options]
+babysitter-observer-dashboard [options]
 ```
 
 | Flag | Type | Default | Description |
@@ -76,13 +76,13 @@ babysitter-observer [options]
 
 ```bash
 # Watch a specific project directory on a custom port
-babysitter-observer --port 3002 --watch-dir /home/user/projects
+babysitter-observer-dashboard --port 3002 --watch-dir /home/user/projects
 
 # Production mode with light theme
-babysitter-observer --production --theme light
+babysitter-observer-dashboard --production --theme light
 
 # Fast polling for latency-sensitive workflows
-babysitter-observer --poll-interval 500
+babysitter-observer-dashboard --poll-interval 500
 ```
 
 ### Environment Variable Mapping
@@ -306,7 +306,7 @@ The Playwright configuration (`playwright.config.ts`) automatically starts a dev
 If you see `Error: listen EADDRINUSE :::3000`, another process is using the default port. Either stop the other process or start the observer on a different port:
 
 ```bash
-babysitter-observer --port 3001
+babysitter-observer-dashboard --port 3001
 ```
 
 ### No runs appearing in the dashboard
@@ -314,7 +314,7 @@ babysitter-observer --port 3001
 1. **Verify the watch directory.** The observer looks for `.a5c/runs/` subdirectories within the configured watch path. Run the observer with an explicit `--watch-dir` pointing to the parent of your project:
 
    ```bash
-   babysitter-observer --watch-dir /path/to/your/project
+   babysitter-observer-dashboard --watch-dir /path/to/your/project
    ```
 
 2. **Check directory structure.** The expected layout is:
@@ -335,7 +335,7 @@ babysitter-observer --port 3001
 When running the observer on Windows but watching files on a WSL2 filesystem (or vice versa), cross-filesystem events may be delayed or missed entirely. Workarounds:
 
 - Run the observer inside the same environment as your babysitter processes (both in WSL, or both on the Windows side).
-- Lower the poll interval to compensate: `babysitter-observer --poll-interval 1000`.
+- Lower the poll interval to compensate: `babysitter-observer-dashboard --poll-interval 1000`.
 
 ### Registry file permissions
 
@@ -350,7 +350,7 @@ mkdir -p ~/.a5c
 Breakpoint approval/rejection depends on the `babysitter` CLI being available on your PATH. If the CLI is installed elsewhere, set the `BABYSITTER_CLI` environment variable:
 
 ```bash
-BABYSITTER_CLI=/usr/local/bin/babysitter babysitter-observer
+BABYSITTER_CLI=/usr/local/bin/babysitter babysitter-observer-dashboard
 ```
 
 ## Known Limitations (Alpha)

@@ -248,7 +248,7 @@ describe('StepCard', () => {
       status: 'requested',
     });
     render(<StepCard {...defaultProps} task={task} />);
-    expect(screen.getByText('Needs approval')).toBeInTheDocument();
+    expect(screen.getByText('Waiting for approval')).toBeInTheDocument();
   });
 
   it('shows Hand icon for breakpoint waiting state', () => {
@@ -277,7 +277,7 @@ describe('StepCard', () => {
       status: 'resolved',
     });
     render(<StepCard {...defaultProps} task={task} />);
-    expect(screen.queryByText('Needs approval')).not.toBeInTheDocument();
+    expect(screen.queryByText('Waiting for approval')).not.toBeInTheDocument();
   });
 
   // -----------------------------------------------------------------------

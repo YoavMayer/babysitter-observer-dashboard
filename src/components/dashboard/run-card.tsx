@@ -69,7 +69,8 @@ export function RunCard({ run, selected }: RunCardProps) {
       )}>
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
+            {/* Row 1: Title on its own row for readability */}
+            <div className="flex items-center gap-2 mb-1.5">
               <span className={cn(
                 "h-2 w-2 rounded-full shrink-0",
                 isStale
@@ -82,6 +83,9 @@ export function RunCard({ run, selected }: RunCardProps) {
               <span className="text-base font-medium text-foreground truncate">
                 {friendlyProcessName(run.processId)}
               </span>
+            </div>
+            {/* Row 2: Status badges and tags */}
+            <div className="flex items-center gap-2 flex-wrap mb-1">
               <StatusBadge
                 status={run.status}
                 waitingKind={run.waitingKind}
@@ -92,6 +96,7 @@ export function RunCard({ run, selected }: RunCardProps) {
                   {formatStaleTime(run.updatedAt)}
                 </span>
               )}
+              <TruncatedId id={run.runId} chars={4} className="text-foreground-secondary" />
               {run.projectName && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-background-secondary px-2 py-0.5 text-[10px] leading-tight font-medium text-foreground-muted shrink-0">
                   <Tag className="h-2.5 w-2.5" />
@@ -103,9 +108,6 @@ export function RunCard({ run, selected }: RunCardProps) {
                   {run.sourceLabel}
                 </span>
               )}
-            </div>
-            <div className="flex items-center gap-2">
-              <TruncatedId id={run.runId} chars={4} className="text-foreground-secondary" />
             </div>
             {/* Inline failure point for failed runs */}
             {failedStep && (

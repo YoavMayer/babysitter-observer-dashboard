@@ -38,15 +38,11 @@ export async function GET(request: Request) {
     const search = searchParams.get("search") || "";
     const status = searchParams.get("status") || "";
 
-    // Mode: projects - return lightweight project summaries from cache
-    // Cache is populated by ensureInitialized() + watcher handles updates
-    // If cache is empty (after invalidation), re-discover
+    // Mode: projects - return lightweight project summaries
+    // Always re-discover to ensure all projects appear (debounced internally)
     if (mode === "projects") {
-      let projects = getProjectSummaries();
-      if (projects.length === 0) {
-        await discoverAndCacheAll();
-        projects = getProjectSummaries();
-      }
+      await discoverAndCacheAll();
+      const projects = getProjectSummaries();
 
       // Sort projects: active runs first, then by latest update
       projects.sort((a, b) => {

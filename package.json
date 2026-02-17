@@ -1,11 +1,11 @@
 {
-  "name": "@a5c-ai/babysitter-observer",
+  "name": "@a5c-ai/babysitter-observer-dashboard",
   "version": "0.1.0-alpha.0",
   "description": "Real-time observability dashboard for babysitter orchestration runs",
   "private": false,
   "license": "MIT",
   "bin": {
-    "babysitter-observer": "./dist/cli.js"
+    "babysitter-observer-dashboard": "./dist/cli.js"
   },
   "repository": {
     "type": "git",

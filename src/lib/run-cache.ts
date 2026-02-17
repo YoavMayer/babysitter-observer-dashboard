@@ -172,6 +172,7 @@ export function invalidateRun(runDir: string): void {
 
 export function invalidateAll(): void {
   getCache().clear();
+  lastDiscoveryTime = 0; // Force re-discovery on next request
 }
 
 export function getProjectSummaries(): ProjectSummary[] {
@@ -230,7 +231,17 @@ export function getProjectSummaries(): ProjectSummary[] {
   }));
 }
 
+// Debounce discovery to avoid scanning filesystem on every poll
+let lastDiscoveryTime = 0;
+const DISCOVERY_DEBOUNCE_MS = 10000; // 10 seconds
+
 export async function discoverAndCacheAll(): Promise<void> {
+  const now = Date.now();
+  if (now - lastDiscoveryTime < DISCOVERY_DEBOUNCE_MS) {
+    return; // Skip if we recently discovered
+  }
+  lastDiscoveryTime = now;
+
   const discovered = await discoverAllRunDirs();
 
   // Deduplicate by normalized runDir path - keep the first occurrence (most specific source)
@@ -242,20 +253,24 @@ export async function discoverAndCacheAll(): Promise<void> {
     return true;
   });
 
-  // Pre-populate cache with digests
-  await Promise.all(
-    unique.map(async (discoveredRun: DiscoveredRun) => {
-      try {
-        await getDigestCached(
-          discoveredRun.runDir,
-          discoveredRun.source,
-          discoveredRun.projectName
-        );
-      } catch (err) {
-        console.error(`Failed to cache run ${discoveredRun.runDir}:`, err);
-      }
-    })
-  );
+  // Pre-populate cache with digests in batches to avoid overwhelming filesystem
+  const BATCH_SIZE = 10;
+  for (let i = 0; i < unique.length; i += BATCH_SIZE) {
+    const batch = unique.slice(i, i + BATCH_SIZE);
+    await Promise.all(
+      batch.map(async (discoveredRun: DiscoveredRun) => {
+        try {
+          await getDigestCached(
+            discoveredRun.runDir,
+            discoveredRun.source,
+            discoveredRun.projectName
+          );
+        } catch (err) {
+          console.error(`Failed to cache run ${discoveredRun.runDir}:`, err);
+        }
+      })
+    );
+  }
 }
 
 // Export cache for debugging

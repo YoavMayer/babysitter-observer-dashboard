@@ -1,19 +1,21 @@
 import { NextResponse } from "next/server";
 import { discoverAllRunDirs } from "@/lib/config";
-import { getRunDigest } from "@/lib/parser";
+import { ensureInitialized } from "@/lib/server-init";
+import { getDigestCached, discoverAndCacheAll } from "@/lib/run-cache";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
+    await ensureInitialized();
+
+    // Use cached digests for consistent, fast responses
+    // This prevents notification spam from inconsistent fresh reads
     const allRuns = await discoverAllRunDirs();
 
     const runs = await Promise.all(
       allRuns.map(async ({ runDir, source, projectName }) => {
-        const digest = await getRunDigest(runDir);
-        digest.sourceLabel = source.label || source.path;
-        digest.projectName = projectName;
-        return digest;
+        return await getDigestCached(runDir, source, projectName);
       })
     );
 
