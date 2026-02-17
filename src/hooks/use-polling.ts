@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
+import { resilientFetch } from "@/lib/fetcher";
 
 interface UsePollingOptions {
   interval?: number;
@@ -15,23 +16,25 @@ export function usePolling<T>(
   const [loading, setLoading] = useState(enabled && !!url);
   const [error, setError] = useState<string | null>(null);
   const mountedRef = useRef(true);
+  const abortRef = useRef<AbortController | null>(null);
 
   const fetchData = useCallback(async () => {
     if (!url) return;
-    try {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
+    const result = await resilientFetch<T>(url, { signal: abortRef.current.signal });
+    if (!result.ok) {
+      if (result.error.isAborted) return;
       if (mountedRef.current) {
-        setData(json);
-        setError(null);
+        setError(result.error.message);
         setLoading(false);
       }
-    } catch (err) {
-      if (mountedRef.current) {
-        setError(err instanceof Error ? err.message : "Unknown error");
-        setLoading(false);
-      }
+      return;
+    }
+    if (mountedRef.current) {
+      setData(result.data);
+      setError(null);
+      setLoading(false);
     }
   }, [url]);
 
@@ -48,6 +51,7 @@ export function usePolling<T>(
 
     return () => {
       mountedRef.current = false;
+      abortRef.current?.abort();
       clearInterval(id);
     };
   }, [fetchData, interval, enabled, url]);

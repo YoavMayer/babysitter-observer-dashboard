@@ -73,6 +73,7 @@ export function ProjectHealthCard({ project, statusFilter }: ProjectHealthCardPr
   const [expanded, setExpanded] = useState(false);
   const [page, setPage] = useState(0);
   const [showCompleted, setShowCompleted] = useState(false);
+  const [showFailed, setShowFailed] = useState(false);
 
   const health = getHealthStatus(project);
   const config = healthConfig[health];
@@ -184,9 +185,11 @@ export function ProjectHealthCard({ project, statusFilter }: ProjectHealthCardPr
       {/* Expanded: runs list — split into active and completed */}
       {expanded && (() => {
         const activeRuns = runs.filter((r) => r.status === "waiting" || r.status === "pending" || r.isStale);
-        const completedRuns = runs.filter((r) => (r.status === "completed" || r.status === "failed") && !r.isStale);
+        const successRuns = runs.filter((r) => r.status === "completed" && !r.isStale);
+        const failedRuns = runs.filter((r) => r.status === "failed" && !r.isStale);
         const hasActiveRuns = activeRuns.length > 0;
-        const hasCompletedRuns = completedRuns.length > 0;
+        const hasSuccessRuns = successRuns.length > 0;
+        const hasFailedRuns = failedRuns.length > 0;
 
         return (
           <div className="border-t border-border px-4 pb-4 pt-3">
@@ -209,46 +212,79 @@ export function ProjectHealthCard({ project, statusFilter }: ProjectHealthCardPr
               <p className="text-xs text-foreground-muted text-center py-4">No matching runs</p>
             ) : (
               <div className="flex flex-col gap-3">
-                {/* Active runs — always visible */}
+                {/* Mini KPI Row */}
+                <div className={cn("grid gap-2 mb-3", project.staleRuns > 0 ? "grid-cols-4" : "grid-cols-3")}>
+                  <MiniKpiPill icon={<Activity className="h-3.5 w-3.5" />} count={project.activeRuns} label="Active" colorClass="text-warning" bgClass="bg-warning/10" pulse={project.activeRuns > 0} />
+                  {project.staleRuns > 0 && (
+                    <MiniKpiPill icon={<Pause className="h-3.5 w-3.5" />} count={project.staleRuns} label="Stale" colorClass="text-zinc-500" bgClass="bg-zinc-500/10" />
+                  )}
+                  <MiniKpiPill icon={<CheckCircle2 className="h-3.5 w-3.5" />} count={project.completedRuns} label="Completed" colorClass="text-success" bgClass="bg-success/10" />
+                  <MiniKpiPill icon={<AlertCircle className="h-3.5 w-3.5" />} count={project.failedRuns} label="Failed" colorClass="text-error" bgClass="bg-error/10" />
+                </div>
+
+                {/* Active runs — always visible with section header */}
                 {hasActiveRuns && (
-                  <div className="flex flex-col gap-2">
-                    {activeRuns.map((run) => (
-                      <RunCard key={run.runId} run={run} />
-                    ))}
+                  <div className="mb-2">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Activity className="h-3.5 w-3.5 text-warning animate-pulse-dot" />
+                      <span className="text-xs font-semibold text-foreground">Active Runs</span>
+                      <span className="rounded-full bg-warning/10 border border-warning/20 px-2 py-px text-[10px] font-semibold text-warning tabular-nums">
+                        {activeRuns.length}
+                      </span>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      {activeRuns.map((run) => (<RunCard key={run.runId} run={run} />))}
+                    </div>
                   </div>
                 )}
 
-                {/* Completed runs — collapsible when there are active runs */}
-                {hasCompletedRuns && (
+                {/* Failed runs — collapsible section */}
+                {hasFailedRuns && (
                   <div>
-                    {hasActiveRuns ? (
-                      <>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setShowCompleted((v) => !v); }}
-                          className="flex items-center gap-1.5 py-1.5 text-xs text-foreground-muted hover:text-foreground-secondary transition-colors group w-fit"
-                        >
-                          <History className="h-3 w-3" />
-                          <span>{completedRuns.length} completed run{completedRuns.length !== 1 ? "s" : ""}</span>
-                          {showCompleted ? (
-                            <ChevronUp className="h-3 w-3 text-foreground-muted/60 group-hover:text-foreground-muted" />
-                          ) : (
-                            <ChevronDown className="h-3 w-3 text-foreground-muted/60 group-hover:text-foreground-muted" />
-                          )}
-                        </button>
-                        {showCompleted && (
-                          <div className="flex flex-col gap-2 mt-1 opacity-60">
-                            {completedRuns.map((run) => (
-                              <RunCard key={run.runId} run={run} />
-                            ))}
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      /* No active runs — show completed runs directly */
-                      <div className="flex flex-col gap-2">
-                        {completedRuns.map((run) => (
-                          <RunCard key={run.runId} run={run} />
-                        ))}
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setShowFailed((v) => !v); }}
+                      className="flex items-center gap-2 py-1.5 text-xs group w-fit"
+                    >
+                      <AlertCircle className="h-3.5 w-3.5 text-error/70" />
+                      <span className="font-semibold text-error/80 group-hover:text-error transition-colors">Failed Runs</span>
+                      <span className="rounded-full bg-error/10 border border-error/20 px-2 py-px text-[10px] font-semibold text-error tabular-nums">
+                        {failedRuns.length}
+                      </span>
+                      {showFailed ? (
+                        <ChevronUp className="h-3 w-3 text-error/40 group-hover:text-error/60" />
+                      ) : (
+                        <ChevronDown className="h-3 w-3 text-error/40 group-hover:text-error/60" />
+                      )}
+                    </button>
+                    {showFailed && (
+                      <div className="flex flex-col gap-2 mt-1 opacity-70">
+                        {failedRuns.map((run) => (<RunCard key={run.runId} run={run} />))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Completed runs — collapsible section */}
+                {hasSuccessRuns && (
+                  <div>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setShowCompleted((v) => !v); }}
+                      className="flex items-center gap-2 py-1.5 text-xs group w-fit"
+                    >
+                      <History className="h-3.5 w-3.5 text-foreground-muted/70" />
+                      <span className="font-semibold text-foreground-muted group-hover:text-foreground-secondary transition-colors">Completed History</span>
+                      <span className="rounded-full bg-background-secondary border border-border px-2 py-px text-[10px] font-semibold text-foreground-muted tabular-nums">
+                        {successRuns.length}
+                      </span>
+                      {showCompleted ? (
+                        <ChevronUp className="h-3 w-3 text-foreground-muted/60 group-hover:text-foreground-muted" />
+                      ) : (
+                        <ChevronDown className="h-3 w-3 text-foreground-muted/60 group-hover:text-foreground-muted" />
+                      )}
+                    </button>
+                    {showCompleted && (
+                      <div className="flex flex-col gap-2 mt-1 opacity-60">
+                        {successRuns.map((run) => (<RunCard key={run.runId} run={run} />))}
                       </div>
                     )}
                   </div>
@@ -268,5 +304,19 @@ export function ProjectHealthCard({ project, statusFilter }: ProjectHealthCardPr
         );
       })()}
     </Card>
+  );
+}
+
+function MiniKpiPill({ icon, count, label, colorClass, bgClass, pulse }: {
+  icon: React.ReactNode; count: number; label: string; colorClass: string; bgClass: string; pulse?: boolean;
+}) {
+  return (
+    <div className={cn("rounded-md px-2.5 py-1.5 flex items-center gap-2", bgClass)}>
+      <span className={cn(colorClass, pulse && "animate-pulse")}>{icon}</span>
+      <div>
+        <p className={cn("text-sm font-bold tabular-nums leading-none", colorClass)}>{count}</p>
+        <p className="text-[9px] leading-tight text-foreground-muted uppercase tracking-wider">{label}</p>
+      </div>
+    </div>
   );
 }

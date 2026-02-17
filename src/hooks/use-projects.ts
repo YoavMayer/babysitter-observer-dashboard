@@ -4,6 +4,7 @@ import { ProjectSummary } from '@/types';
 
 interface ProjectsResponse {
   projects: ProjectSummary[];
+  recentCompletionWindowMs?: number;
 }
 
 export function useProjects(interval: number = 5000) {
@@ -16,6 +17,7 @@ export function useProjects(interval: number = 5000) {
   );
   return {
     projects: data?.projects || [],
+    recentCompletionWindowMs: data?.recentCompletionWindowMs ?? 14400000,
     loading,
     error,
     refresh

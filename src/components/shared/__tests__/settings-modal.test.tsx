@@ -53,7 +53,11 @@ describe('SettingsModal', () => {
   });
 
   it('shows fetch error when config load fails', async () => {
-    vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new Error('Network error'));
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      status: 400,
+      text: async () => 'Bad request',
+    } as Response);
 
     renderWithTheme(true);
 

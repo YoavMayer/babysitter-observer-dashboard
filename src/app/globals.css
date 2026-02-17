@@ -513,3 +513,14 @@ body {
 .bg-gradient-timeline {
   background: linear-gradient(90deg, var(--primary-muted) 0%, var(--secondary-muted) 100%);
 }
+
+/* Idle / wait time stripe pattern for timeline gaps */
+.bg-idle-stripes {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 3px,
+    var(--pending-muted) 3px,
+    var(--pending-muted) 5px
+  );
+}

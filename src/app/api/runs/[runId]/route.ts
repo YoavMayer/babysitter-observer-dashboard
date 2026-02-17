@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { findRunDir } from "@/lib/config";
 import { ensureInitialized } from "@/lib/server-init";
 import { getRunCached } from "@/lib/run-cache";
+import { normalizeError } from "@/lib/error-handler";
 
 export const dynamic = "force-dynamic";
 
@@ -45,9 +46,10 @@ export async function GET(
     });
   } catch (error) {
     console.error("Failed to read run:", error);
+    const normalized = normalizeError(error);
     return NextResponse.json(
-      { error: "Failed to read run", detail: String(error) },
-      { status: 500 }
+      { error: normalized.message, code: normalized.code },
+      { status: normalized.status }
     );
   }
 }

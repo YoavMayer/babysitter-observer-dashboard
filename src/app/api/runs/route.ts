@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
-import { discoverAllRunDirs } from "@/lib/config";
+import { discoverAllRunDirs, getConfig } from "@/lib/config";
 import { ensureInitialized } from "@/lib/server-init";
 import {
   getProjectSummaries,
   getRunCached,
   discoverAndCacheAll,
 } from "@/lib/run-cache";
+import { normalizeError } from "@/lib/error-handler";
 import type { Run } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -42,10 +43,19 @@ export async function GET(request: Request) {
     // Always re-discover to ensure all projects appear (debounced internally)
     if (mode === "projects") {
       await discoverAndCacheAll();
+      const config = await getConfig();
       const projects = getProjectSummaries();
 
+      // Apply retention filter: exclude projects whose latest update is older than retentionDays
+      const retentionCutoff = Date.now() - config.retentionDays * 24 * 60 * 60 * 1000;
+      const retainedProjects = projects.filter((p) =>
+        // Always keep projects with active or stale runs regardless of age
+        p.activeRuns > 0 || p.staleRuns > 0 ||
+        new Date(p.latestUpdate).getTime() >= retentionCutoff
+      );
+
       // Sort projects: active runs first, then by latest update
-      projects.sort((a, b) => {
+      retainedProjects.sort((a, b) => {
         // Prioritize projects with active runs
         if (a.activeRuns > 0 && b.activeRuns === 0) return -1;
         if (a.activeRuns === 0 && b.activeRuns > 0) return 1;
@@ -53,13 +63,17 @@ export async function GET(request: Request) {
         return b.latestUpdate.localeCompare(a.latestUpdate);
       });
 
-      return NextResponse.json({ projects }, {
+      return NextResponse.json({
+        projects: retainedProjects,
+        recentCompletionWindowMs: config.recentCompletionWindowMs,
+      }, {
         headers: { "Cache-Control": "no-cache, no-store" },
       });
     }
 
     // Mode: project - return paginated runs for a specific project
     if (project) {
+      const config = await getConfig();
       const allRuns = await discoverAllRunDirs();
 
       // Use cached runs for better performance
@@ -71,16 +85,24 @@ export async function GET(request: Request) {
           })
       );
 
+      // Apply retention filter: exclude runs older than retentionDays (keep active/stale always)
+      const retentionCutoff = Date.now() - config.retentionDays * 24 * 60 * 60 * 1000;
+      const retainedRuns = runs.filter((r) => {
+        const isActive = r.status === "waiting" || r.status === "pending" || r.isStale;
+        if (isActive) return true;
+        return new Date(r.updatedAt || "").getTime() >= retentionCutoff;
+      });
+
       // Sort by priority: active non-stale first, stale second, failed third, completed last
       // Within same priority, sort by updatedAt DESC
-      runs.sort((a, b) => {
+      retainedRuns.sort((a, b) => {
         const pa = runSortPriority(a);
         const pb = runSortPriority(b);
         if (pa !== pb) return pa - pb;
         return (b.updatedAt || "").localeCompare(a.updatedAt || "");
       });
 
-      let filteredRuns = runs;
+      let filteredRuns = retainedRuns;
 
       // Apply status filter if provided
       if (status) {
@@ -160,9 +182,10 @@ export async function GET(request: Request) {
     );
   } catch (error) {
     console.error("Failed to read runs:", error);
+    const normalized = normalizeError(error);
     return NextResponse.json(
-      { error: "Failed to read runs" },
-      { status: 500 }
+      { error: normalized.message, code: normalized.code },
+      { status: normalized.status }
     );
   }
 }

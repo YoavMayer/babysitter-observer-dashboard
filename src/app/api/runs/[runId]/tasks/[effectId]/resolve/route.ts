@@ -6,6 +6,7 @@ import os from "os";
 import { execFile } from "child_process";
 import { promisify } from "util";
 import type { BreakpointResolveRequest } from "@/types/breakpoint";
+import { normalizeError } from "@/lib/error-handler";
 
 export const dynamic = "force-dynamic";
 
@@ -92,9 +93,10 @@ export async function POST(
     );
   } catch (error) {
     console.error("Failed to resolve breakpoint:", error);
+    const normalized = normalizeError(error);
     return NextResponse.json(
-      { error: "Failed to resolve breakpoint", detail: String(error) },
-      { status: 500 }
+      { error: normalized.message, code: normalized.code },
+      { status: normalized.status }
     );
   } finally {
     // Clean up temp file

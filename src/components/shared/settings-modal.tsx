@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import {
   X,
   Settings,
@@ -10,8 +10,10 @@ import {
   Trash2,
   Loader2,
   Check,
+  CalendarDays,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { resilientFetch } from "@/lib/fetcher";
 import { useTheme } from "@/components/shared/theme-provider";
 
 interface WatchSource {
@@ -25,6 +27,7 @@ interface ConfigData {
   port: number;
   pollInterval: number;
   theme: "dark" | "light";
+  retentionDays: number;
 }
 
 interface SettingsModalProps {
@@ -44,11 +47,16 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
   const [sources, setSources] = useState<WatchSource[]>([]);
   const [pollInterval, setPollInterval] = useState(2000);
   const [selectedTheme, setSelectedTheme] = useState<"dark" | "light">("dark");
+  const [retentionDays, setRetentionDays] = useState(30);
 
   // Save state
   const [saving, setSaving] = useState(false);
   const [saveResult, setSaveResult] = useState<"success" | "error" | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Abort controllers for config fetch and save
+  const fetchAbortRef = useRef<AbortController | null>(null);
+  const saveAbortRef = useRef<AbortController | null>(null);
 
   // Fetch config on open
   useEffect(() => {
@@ -57,19 +65,30 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
     setFetchError(null);
     setSaveResult(null);
     setSaveError(null);
-    fetch("/api/config")
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((data: ConfigData) => {
+
+    fetchAbortRef.current?.abort();
+    fetchAbortRef.current = new AbortController();
+
+    resilientFetch<ConfigData>("/api/config", { signal: fetchAbortRef.current.signal })
+      .then((result) => {
+        if (!result.ok) {
+          if (result.error.isAborted) return;
+          setFetchError(result.error.message);
+          return;
+        }
+        const data = result.data;
         setServerConfig(data);
         setSources(data.sources.map((s) => ({ ...s })));
         setPollInterval(data.pollInterval);
         setSelectedTheme(data.theme);
+        setRetentionDays(data.retentionDays);
       })
-      .catch((err) => setFetchError(String(err)))
       .finally(() => setFetchLoading(false));
+
+    return () => {
+      fetchAbortRef.current?.abort();
+      saveAbortRef.current?.abort();
+    };
   }, [open]);
 
   // Escape key
@@ -106,6 +125,7 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
       setSources(serverConfig.sources.map((s) => ({ ...s })));
       setPollInterval(serverConfig.pollInterval);
       setSelectedTheme(serverConfig.theme);
+      setRetentionDays(serverConfig.retentionDays);
     }
     setSaveResult(null);
     setSaveError(null);
@@ -117,43 +137,46 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
     setSaveResult(null);
     setSaveError(null);
 
-    try {
-      const res = await fetch("/api/config", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sources: sources.filter((s) => s.path.trim()),
-          pollInterval,
-          theme: selectedTheme,
-        }),
-      });
+    saveAbortRef.current?.abort();
+    saveAbortRef.current = new AbortController();
 
-      if (!res.ok) {
-        const errBody = await res.json().catch(() => ({}));
-        throw new Error(errBody.error || `HTTP ${res.status}`);
-      }
+    const result = await resilientFetch<ConfigData>("/api/config", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sources: sources.filter((s) => s.path.trim()),
+        pollInterval,
+        theme: selectedTheme,
+        retentionDays,
+      }),
+      signal: saveAbortRef.current.signal,
+    });
 
-      const saved: ConfigData = await res.json();
-      setServerConfig(saved);
-      setSources(saved.sources.map((s) => ({ ...s })));
-      setPollInterval(saved.pollInterval);
-      setSelectedTheme(saved.theme);
-      setSaveResult("success");
-
-      // Apply theme change locally if it changed
-      if (saved.theme !== currentTheme) {
-        toggleTheme();
-      }
-
-      // Auto-dismiss success after 2s
-      setTimeout(() => setSaveResult(null), 2000);
-    } catch (err) {
+    if (!result.ok) {
+      if (result.error.isAborted) return;
       setSaveResult("error");
-      setSaveError(String(err));
-    } finally {
+      setSaveError(result.error.message);
       setSaving(false);
+      return;
     }
-  }, [sources, pollInterval, selectedTheme, currentTheme, toggleTheme]);
+
+    const saved = result.data;
+    setServerConfig(saved);
+    setSources(saved.sources.map((s) => ({ ...s })));
+    setPollInterval(saved.pollInterval);
+    setSelectedTheme(saved.theme);
+    setRetentionDays(saved.retentionDays);
+    setSaveResult("success");
+
+    // Apply theme change locally if it changed
+    if (saved.theme !== currentTheme) {
+      toggleTheme();
+    }
+
+    // Auto-dismiss success after 2s
+    setTimeout(() => setSaveResult(null), 2000);
+    setSaving(false);
+  }, [sources, pollInterval, selectedTheme, retentionDays, currentTheme, toggleTheme]);
 
   if (!open) return null;
 
@@ -162,7 +185,8 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
     (JSON.stringify(sources) !==
       JSON.stringify(serverConfig.sources) ||
       pollInterval !== serverConfig.pollInterval ||
-      selectedTheme !== serverConfig.theme);
+      selectedTheme !== serverConfig.theme ||
+      retentionDays !== serverConfig.retentionDays);
 
   return (
     <div className="fixed inset-0 z-50" onClick={onClose}>
@@ -332,6 +356,35 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
                       </button>
                     ))}
                   </div>
+                </section>
+
+                {/* Retention Window */}
+                <section>
+                  <div className="flex items-center gap-2 mb-2">
+                    <CalendarDays className="h-4 w-4 text-foreground-muted" />
+                    <span className="text-xs font-medium text-foreground-secondary">
+                      Run Retention
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-foreground-muted">Show runs from the last</span>
+                    <input
+                      type="number"
+                      value={retentionDays}
+                      onChange={(e) =>
+                        setRetentionDays(
+                          Math.max(1, Math.min(365, parseInt(e.target.value) || 30))
+                        )
+                      }
+                      min={1}
+                      max={365}
+                      className="w-20 rounded-md border border-border bg-background-secondary px-2.5 py-1.5 font-mono text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+                    />
+                    <span className="text-xs text-foreground-muted">days</span>
+                  </div>
+                  <p className="text-[10px] text-foreground-muted/60 mt-1.5">
+                    Older completed/failed runs are hidden from the dashboard. Active runs are always shown.
+                  </p>
                 </section>
 
                 {/* Save result feedback */}

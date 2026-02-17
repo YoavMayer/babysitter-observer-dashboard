@@ -104,7 +104,7 @@ export function LogViewer({ task }: { task: TaskDetail | null }) {
             icon={<Terminal className="h-3 w-3 text-success" />}
             text={task.stdout}
           />
-          <ScrollArea className="max-h-64">
+          <ScrollArea className="max-h-[60vh]">
             <NumberedPre text={task.stdout} colorClass="text-success" limit={LINE_LIMIT} />
           </ScrollArea>
         </div>
@@ -117,7 +117,7 @@ export function LogViewer({ task }: { task: TaskDetail | null }) {
             icon={<AlertTriangle className="h-3 w-3 text-error" />}
             text={task.stderr}
           />
-          <ScrollArea className="max-h-64">
+          <ScrollArea className="max-h-[60vh]">
             <NumberedPre text={task.stderr} colorClass="text-error" limit={LINE_LIMIT} />
           </ScrollArea>
         </div>
@@ -130,7 +130,7 @@ export function LogViewer({ task }: { task: TaskDetail | null }) {
             icon={<Info className="h-3 w-3 text-secondary" />}
             text={agentOutput}
           />
-          <ScrollArea className="max-h-64">
+          <ScrollArea className="max-h-[60vh]">
             <NumberedPre text={agentOutput} colorClass="text-secondary" limit={LINE_LIMIT} />
           </ScrollArea>
         </div>

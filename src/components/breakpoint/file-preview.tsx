@@ -1,6 +1,7 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { cn } from "@/lib/cn";
+import { resilientFetch } from "@/lib/fetcher";
 import { Badge } from "@/components/ui/badge";
 import {
   Accordion,
@@ -117,28 +118,43 @@ function FileContent({ content, format }: { content: string; format: string }) {
 export function FilePreview({ files, runId, effectId }: FilePreviewProps) {
   const [loadedContent, setLoadedContent] = useState<Record<string, string>>({});
   const [loadingFiles, setLoadingFiles] = useState<Record<string, boolean>>({});
+  const abortRefs = useRef<Record<string, AbortController>>({});
+
+  // Abort all in-flight file requests on unmount
+  useEffect(() => {
+    return () => {
+      for (const controller of Object.values(abortRefs.current)) {
+        controller.abort();
+      }
+    };
+  }, []);
 
   async function loadFileContent(filePath: string) {
     if (loadedContent[filePath] || loadingFiles[filePath]) return;
     setLoadingFiles((prev) => ({ ...prev, [filePath]: true }));
-    try {
-      const res = await fetch(
-        `/api/runs/${runId}/tasks/${effectId}?file=${encodeURIComponent(filePath)}`
-      );
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      setLoadedContent((prev) => ({
-        ...prev,
-        [filePath]: (data as { content?: string }).content || "// No content available",
-      }));
-    } catch {
+
+    // Abort any previous in-flight request for this file
+    abortRefs.current[filePath]?.abort();
+    abortRefs.current[filePath] = new AbortController();
+
+    const result = await resilientFetch<{ content?: string }>(
+      `/api/runs/${runId}/tasks/${effectId}?file=${encodeURIComponent(filePath)}`,
+      { signal: abortRefs.current[filePath].signal }
+    );
+
+    if (!result.ok) {
+      if (result.error.isAborted) return;
       setLoadedContent((prev) => ({
         ...prev,
         [filePath]: "// Failed to load file content",
       }));
-    } finally {
-      setLoadingFiles((prev) => ({ ...prev, [filePath]: false }));
+    } else {
+      setLoadedContent((prev) => ({
+        ...prev,
+        [filePath]: result.data.content || "// No content available",
+      }));
     }
+    setLoadingFiles((prev) => ({ ...prev, [filePath]: false }));
   }
 
   if (!files.length) return null;

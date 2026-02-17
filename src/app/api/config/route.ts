@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getConfig, invalidateConfigCache, writeConfig } from "@/lib/config";
 import { invalidateAll, discoverAndCacheAll } from "@/lib/run-cache";
+import { normalizeError } from "@/lib/error-handler";
 
 export const dynamic = "force-dynamic";
 
@@ -9,9 +10,10 @@ export async function GET() {
     const config = await getConfig();
     return NextResponse.json(config);
   } catch (err) {
+    const normalized = normalizeError(err);
     return NextResponse.json(
-      { error: "Failed to load config", detail: String(err) },
-      { status: 500 }
+      { error: normalized.message, code: normalized.code },
+      { status: normalized.status }
     );
   }
 }
@@ -74,6 +76,16 @@ export async function POST(request: Request) {
       }
     }
 
+    // Validate retentionDays
+    if (body.retentionDays !== undefined) {
+      if (typeof body.retentionDays !== "number" || body.retentionDays < 1 || body.retentionDays > 365) {
+        return NextResponse.json(
+          { error: "retentionDays must be a number between 1 and 365" },
+          { status: 400 }
+        );
+      }
+    }
+
     // Build config to save
     const configToSave = {
       sources: body.sources.map((s: { path: string; depth: number; label?: string }) => ({
@@ -84,6 +96,7 @@ export async function POST(request: Request) {
       ...(body.pollInterval !== undefined ? { pollInterval: body.pollInterval } : {}),
       ...(body.theme !== undefined ? { theme: body.theme } : {}),
       ...(body.staleThresholdMs !== undefined ? { staleThresholdMs: body.staleThresholdMs } : {}),
+      ...(body.retentionDays !== undefined ? { retentionDays: body.retentionDays } : {}),
     };
 
     // Write to disk
@@ -104,9 +117,10 @@ export async function POST(request: Request) {
     return NextResponse.json(savedConfig);
   } catch (err) {
     console.error("Failed to save config:", err);
+    const normalized = normalizeError(err);
     return NextResponse.json(
-      { error: "Failed to save config", detail: String(err) },
-      { status: 500 }
+      { error: normalized.message, code: normalized.code },
+      { status: normalized.status }
     );
   }
 }

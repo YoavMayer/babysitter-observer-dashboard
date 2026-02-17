@@ -21,15 +21,15 @@ vi.mock('lucide-react', () => {
     return Icon;
   };
 
-  // All icon names used in shared + ui components
+  // All icon names used across the codebase
   const iconNames = [
-    'Bot', 'Check', 'CheckCircle2', 'ChevronDown', 'ChevronRight', 'ChevronUp',
-    'Circle', 'Clock', 'Cog', 'FolderOpen', 'Hand', 'Inbox', 'Info',
-    'Loader2', 'Palette', 'Pause', 'Percent', 'Plus', 'Puzzle', 'RefreshCw',
-    'Settings', 'Terminal', 'Timer', 'Trash2', 'X', 'XCircle',
-    // Additional icons that might be used transitively
-    'AlertCircle', 'AlertTriangle', 'Bell', 'ChevronLeft', 'Code', 'Copy', 'FileJson',
-    'FileText', 'GitBranch', 'Layers', 'Search', 'Tag',
+    'Activity', 'AlertCircle', 'AlertTriangle', 'ArrowLeft', 'Bell', 'Bot',
+    'CalendarDays', 'Check', 'CheckCircle2', 'ChevronDown', 'ChevronLeft',
+    'ChevronRight', 'ChevronUp', 'Circle', 'Clock', 'Code', 'Cog', 'Copy',
+    'FileJson', 'FileText', 'FolderOpen', 'GitBranch', 'Hand', 'History',
+    'Inbox', 'Info', 'Layers', 'Loader2', 'Palette', 'Pause', 'Percent',
+    'Plus', 'Puzzle', 'RefreshCw', 'Search', 'Settings', 'Tag', 'Terminal',
+    'Timer', 'Trash2', 'X', 'XCircle',
   ];
 
   const mocks: Record<string, any> = {};

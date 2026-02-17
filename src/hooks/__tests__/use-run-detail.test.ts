@@ -79,7 +79,7 @@ describe('useRunDetail', () => {
       await vi.advanceTimersByTimeAsync(0);
     });
 
-    expect(fetch).toHaveBeenCalledWith('/api/runs/run-123?maxEvents=50');
+    expect(fetch).toHaveBeenCalledWith('/api/runs/run-123?maxEvents=50', expect.anything());
   });
 
   it('returns null run when data is not loaded', () => {
@@ -133,12 +133,13 @@ describe('useRunDetail', () => {
   });
 
   it('handles fetch error', async () => {
+    // Use a 4xx error to avoid retries from resilientFetch
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({
         ok: false,
         status: 404,
-        json: () => Promise.resolve({}),
+        text: () => Promise.resolve('HTTP 404'),
       })
     );
 
@@ -226,7 +227,7 @@ describe('useTaskDetail', () => {
       await vi.advanceTimersByTimeAsync(0);
     });
 
-    expect(fetch).toHaveBeenCalledWith('/api/runs/run-123/tasks/eff-42');
+    expect(fetch).toHaveBeenCalledWith('/api/runs/run-123/tasks/eff-42', expect.anything());
   });
 
   it('does not fetch when effectId is null', async () => {
@@ -247,12 +248,13 @@ describe('useTaskDetail', () => {
   });
 
   it('handles fetch error', async () => {
+    // Use a 4xx error to avoid retries from resilientFetch
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({
         ok: false,
-        status: 500,
-        json: () => Promise.resolve({}),
+        status: 404,
+        text: () => Promise.resolve('HTTP 404'),
       })
     );
 
@@ -262,7 +264,7 @@ describe('useTaskDetail', () => {
       await vi.advanceTimersByTimeAsync(0);
     });
 
-    expect(result.current.error).toBe('HTTP 500');
+    expect(result.current.error).toBe('HTTP 404');
     expect(result.current.task).toBeNull();
   });
 });

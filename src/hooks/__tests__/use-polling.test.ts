@@ -12,7 +12,7 @@ function mockFetchFailure(status: number) {
   return vi.fn().mockResolvedValue({
     ok: false,
     status,
-    json: () => Promise.resolve({}),
+    text: () => Promise.resolve(`HTTP ${status}`),
   });
 }
 
@@ -41,7 +41,7 @@ describe('usePolling', () => {
     expect(result.current.data).toEqual({ items: [1, 2, 3] });
     expect(result.current.loading).toBe(false);
     expect(result.current.error).toBeNull();
-    expect(fetch).toHaveBeenCalledWith('/api/data');
+    expect(fetch).toHaveBeenCalledWith('/api/data', expect.anything());
   });
 
   it('polls at the specified interval', async () => {
@@ -107,7 +107,8 @@ describe('usePolling', () => {
   });
 
   it('handles fetch error', async () => {
-    vi.stubGlobal('fetch', mockFetchFailure(500));
+    // Use a 4xx error to avoid retries (resilientFetch only retries 5xx)
+    vi.stubGlobal('fetch', mockFetchFailure(404));
 
     const { result } = renderHook(() => usePolling('/api/data'));
 
@@ -115,7 +116,7 @@ describe('usePolling', () => {
       await vi.advanceTimersByTimeAsync(0);
     });
 
-    expect(result.current.error).toBe('HTTP 500');
+    expect(result.current.error).toBe('HTTP 404');
     expect(result.current.loading).toBe(false);
     expect(result.current.data).toBeNull();
   });
@@ -123,10 +124,13 @@ describe('usePolling', () => {
   it('handles network error', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network error')));
 
-    const { result } = renderHook(() => usePolling('/api/data'));
+    // Use a long interval so the poll timer doesn't abort in-progress retries
+    // resilientFetch retries network errors: attempt 0 + sleep(1s) + attempt 1 + sleep(2s) + attempt 2 = ~3s
+    const { result } = renderHook(() => usePolling('/api/data', { interval: 30000 }));
 
+    // Advance enough time for all retries to complete
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(0);
+      await vi.advanceTimersByTimeAsync(4000);
     });
 
     expect(result.current.error).toBe('Network error');
@@ -134,8 +138,14 @@ describe('usePolling', () => {
   });
 
   it('clears error on successful fetch after error', async () => {
+    // Use a 4xx error (non-retryable) so the first call fails immediately,
+    // then subsequent calls succeed
     const fetchMock = vi.fn()
-      .mockRejectedValueOnce(new Error('Network error'))
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        text: () => Promise.resolve('Bad request'),
+      })
       .mockResolvedValue({
         ok: true,
         json: () => Promise.resolve({ ok: true }),
@@ -146,13 +156,13 @@ describe('usePolling', () => {
       usePolling('/api/data', { interval: 1000 })
     );
 
-    // First fetch fails
+    // First fetch fails (4xx, no retry)
     await act(async () => {
       await vi.advanceTimersByTimeAsync(0);
     });
-    expect(result.current.error).toBe('Network error');
+    expect(result.current.error).toBe('Bad request');
 
-    // Second fetch succeeds
+    // Second fetch succeeds on next poll
     await act(async () => {
       await vi.advanceTimersByTimeAsync(1000);
     });
@@ -203,14 +213,14 @@ describe('usePolling', () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(0);
     });
-    expect(fetch).toHaveBeenLastCalledWith('/api/data1');
+    expect(fetch).toHaveBeenLastCalledWith('/api/data1', expect.anything());
 
     rerender({ url: '/api/data2' });
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(0);
     });
-    expect(fetch).toHaveBeenLastCalledWith('/api/data2');
+    expect(fetch).toHaveBeenLastCalledWith('/api/data2', expect.anything());
   });
 
   it('restarts polling when enabled toggles', async () => {

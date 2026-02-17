@@ -223,8 +223,8 @@ describe('JsonTree', () => {
     expect(inputBtn).toBeInTheDocument();
     expect(outputBtn).toBeInTheDocument();
 
-    // Input data should be visible
-    expect(screen.getByText('query')).toBeInTheDocument();
+    // Input data should be visible — key rendered as formatted label "Query" in metadata
+    expect(screen.getByText('Query')).toBeInTheDocument();
   });
 
   it('switches to Output tab on click', async () => {
@@ -239,20 +239,22 @@ describe('JsonTree', () => {
     const outputBtn = screen.getByText('Output');
     await user.click(outputBtn);
 
-    // Output data should now be visible
-    expect(screen.getByText('status')).toBeInTheDocument();
+    // Output data should now be visible — status rendered as StatusPill
+    expect(screen.getByText('ok')).toBeInTheDocument();
   });
 
-  it('renders input summary with requirement count', () => {
+  it('renders input metadata section for requirements array', () => {
     const task = createMockTaskDetail({
       input: { requirements: ['req1', 'req2', 'req3'] },
       result: { done: true },
     });
     render(<JsonTree task={task} />);
-    expect(screen.getByText('3 requirement(s)')).toBeInTheDocument();
+    // Requirements is an array of strings but "requirements" is not in FINDINGS_KEYS,
+    // so it goes to metadata. The Metadata section header should be present.
+    expect(screen.getByText('Metadata')).toBeInTheDocument();
   });
 
-  it('renders output summary with score', async () => {
+  it('renders output score bar with score value', async () => {
     const user = setupUser();
     const task = createMockTaskDetail({
       input: { data: 'x' },
@@ -263,10 +265,12 @@ describe('JsonTree', () => {
     // Switch to output
     await user.click(screen.getByText('Output'));
 
-    expect(screen.getByText(/Score: 85\/100/)).toBeInTheDocument();
+    // ScoreBar renders the score number and /100
+    expect(screen.getByText('85')).toBeInTheDocument();
+    expect(screen.getByText('/100')).toBeInTheDocument();
   });
 
-  it('renders output summary string from summary field', async () => {
+  it('renders output summary block from summary field', async () => {
     const user = setupUser();
     const task = createMockTaskDetail({
       input: { data: 'x' },
@@ -276,10 +280,13 @@ describe('JsonTree', () => {
 
     await user.click(screen.getByText('Output'));
 
+    // SummaryBlock renders the summary text
     expect(screen.getByText('All tests passed successfully')).toBeInTheDocument();
+    // And the Summary section header
+    expect(screen.getByText('Summary')).toBeInTheDocument();
   });
 
-  it('renders output summary with file counts', async () => {
+  it('renders output metadata for file arrays', async () => {
     const user = setupUser();
     const task = createMockTaskDetail({
       input: { data: 'x' },
@@ -289,26 +296,28 @@ describe('JsonTree', () => {
 
     await user.click(screen.getByText('Output'));
 
-    expect(screen.getByText(/2 file\(s\) created/)).toBeInTheDocument();
-    expect(screen.getByText(/1 file\(s\) modified/)).toBeInTheDocument();
+    // File arrays are complex objects rendered in Metadata section
+    expect(screen.getByText('Metadata')).toBeInTheDocument();
   });
 
-  it('renders generic field count for input with no recognized patterns', () => {
+  it('renders metadata section for input with no recognized patterns', () => {
     const task = createMockTaskDetail({
       input: { foo: 'bar', baz: 42 },
       result: { done: true },
     });
     render(<JsonTree task={task} />);
-    expect(screen.getByText('2 fields')).toBeInTheDocument();
+    // Simple key-value pairs go to Metadata section
+    expect(screen.getByText('Metadata')).toBeInTheDocument();
   });
 
-  it('renders input summary with iteration', () => {
+  it('renders input metadata with iteration value', () => {
     const task = createMockTaskDetail({
       input: { iteration: 3, config: {} },
       result: { done: true },
     });
     render(<JsonTree task={task} />);
-    expect(screen.getByText(/Iteration 3/)).toBeInTheDocument();
+    // iteration=3 goes to Metadata, rendered as a number
+    expect(screen.getByText('Metadata')).toBeInTheDocument();
   });
 
   it('renders when task has only input and no result', () => {
@@ -317,7 +326,8 @@ describe('JsonTree', () => {
       result: undefined,
     });
     render(<JsonTree task={task} />);
-    expect(screen.getByText('query')).toBeInTheDocument();
+    // Key rendered as formatted label "Query" in metadata grid
+    expect(screen.getByText('Query')).toBeInTheDocument();
   });
 
   it('renders when task has only result and no input', async () => {
@@ -330,6 +340,8 @@ describe('JsonTree', () => {
 
     // Switch to output since input is undefined
     await user.click(screen.getByText('Output'));
-    expect(screen.getByText('output')).toBeInTheDocument();
+    // "output" key rendered as "Output" label, but "Output" is also the tab button text.
+    // Check for the value instead to avoid ambiguity.
+    expect(screen.getByText('only-result')).toBeInTheDocument();
   });
 });

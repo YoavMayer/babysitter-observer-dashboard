@@ -119,6 +119,21 @@ export function TimingPanel({ task, runDuration, allTasks }: TimingPanelProps) {
     };
   });
 
+  // Compute idle gap segments between consecutive tasks
+  const idleSegments: { start: number; width: number; duration: number }[] = [];
+  if (segments.length > 1) {
+    for (let i = 0; i < segments.length - 1; i++) {
+      const currentEnd = segments[i].start + segments[i].width;
+      const nextStart = segments[i + 1].start;
+      const gapWidth = nextStart - currentEnd;
+      if (gapWidth > 0.5) { // Only show gaps > 0.5% of timeline
+        const gapDuration = (gapWidth / 100) * effectiveRunDuration;
+        idleSegments.push({ start: currentEnd, width: gapWidth, duration: gapDuration });
+      }
+    }
+  }
+  const totalIdleDuration = idleSegments.reduce((sum, g) => sum + g.duration, 0);
+
   // Current task's segment
   const currentIdx = sortedTasks.findIndex((t) => t.effectId === task.effectId);
   const currentSegment = currentIdx >= 0 ? segments[currentIdx] : null;
@@ -146,7 +161,7 @@ export function TimingPanel({ task, runDuration, allTasks }: TimingPanelProps) {
           </div>
 
           {/* Full timeline bar with neon gradient fill */}
-          <div className="w-full h-4 bg-gradient-timeline rounded-full overflow-hidden relative">
+          <div className="w-full h-4 bg-muted/30 rounded-full overflow-hidden relative">
             {segments.map((seg) => (
               <div
                 key={seg.taskId}
@@ -158,6 +173,17 @@ export function TimingPanel({ task, runDuration, allTasks }: TimingPanelProps) {
                   width: `${Math.max(seg.width, 0.5)}%`,
                 }}
                 title={`${seg.title}: ${formatDuration(seg.duration)} (${seg.width.toFixed(1)}%)`}
+              />
+            ))}
+            {idleSegments.map((gap, i) => (
+              <div
+                key={`idle-${i}`}
+                className="absolute top-0 h-full bg-idle-stripes opacity-40"
+                style={{
+                  left: `${gap.start}%`,
+                  width: `${Math.max(gap.width, 0.5)}%`,
+                }}
+                title={`Idle: ${formatDuration(gap.duration)} (${gap.width.toFixed(1)}%)`}
               />
             ))}
           </div>
@@ -192,6 +218,13 @@ export function TimingPanel({ task, runDuration, allTasks }: TimingPanelProps) {
                   <span className={`font-mono shrink-0 ${seg.width >= 25 ? "text-warning" : ""}`}>{formatDuration(seg.duration)}</span>
                 </div>
               ))}
+              {totalIdleDuration > 0 && (
+                <div className="flex items-center gap-2 text-[10px] leading-tight text-foreground-muted">
+                  <div className="w-2 h-2 rounded-sm shrink-0 bg-idle-stripes border border-border" />
+                  <span className="truncate flex-1">Idle / Wait</span>
+                  <span className="font-mono shrink-0">{formatDuration(totalIdleDuration)}</span>
+                </div>
+              )}
             </div>
           )}
         </div>

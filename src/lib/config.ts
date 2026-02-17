@@ -14,6 +14,8 @@ export interface ObserverConfig {
   pollInterval: number;
   theme: "dark" | "light";
   staleThresholdMs: number;
+  recentCompletionWindowMs: number;
+  retentionDays: number;
 }
 
 // Default registry path
@@ -37,6 +39,8 @@ export async function writeConfig(data: {
   pollInterval?: number;
   theme?: string;
   staleThresholdMs?: number;
+  recentCompletionWindowMs?: number;
+  retentionDays?: number;
 }): Promise<void> {
   const dir = path.dirname(REGISTRY_PATH);
   await fs.mkdir(dir, { recursive: true });
@@ -56,6 +60,8 @@ export async function writeConfig(data: {
     ...(data.pollInterval !== undefined ? { pollInterval: data.pollInterval } : {}),
     ...(data.theme !== undefined ? { theme: data.theme } : {}),
     ...(data.staleThresholdMs !== undefined ? { staleThresholdMs: data.staleThresholdMs } : {}),
+    ...(data.recentCompletionWindowMs !== undefined ? { recentCompletionWindowMs: data.recentCompletionWindowMs } : {}),
+    ...(data.retentionDays !== undefined ? { retentionDays: data.retentionDays } : {}),
   };
 
   await fs.writeFile(REGISTRY_PATH, JSON.stringify(merged, null, 2) + "\n", "utf-8");
@@ -66,6 +72,8 @@ interface RegistryData {
   pollInterval?: number;
   theme?: "dark" | "light";
   staleThresholdMs?: number;
+  recentCompletionWindowMs?: number;
+  retentionDays?: number;
 }
 
 async function loadRegistry(): Promise<RegistryData> {
@@ -84,6 +92,8 @@ async function loadRegistry(): Promise<RegistryData> {
       pollInterval: typeof parsed.pollInterval === "number" ? parsed.pollInterval : undefined,
       theme: parsed.theme === "dark" || parsed.theme === "light" ? parsed.theme : undefined,
       staleThresholdMs: typeof parsed.staleThresholdMs === "number" ? parsed.staleThresholdMs : undefined,
+      recentCompletionWindowMs: typeof parsed.recentCompletionWindowMs === "number" ? parsed.recentCompletionWindowMs : undefined,
+      retentionDays: typeof parsed.retentionDays === "number" ? parsed.retentionDays : undefined,
     };
   } catch {
     return { sources: [] };
@@ -147,6 +157,8 @@ export async function getConfig(): Promise<ObserverConfig> {
   const envPollInterval = process.env.OBSERVER_POLL_INTERVAL || process.env.POLL_INTERVAL;
   const envTheme = process.env.OBSERVER_DEFAULT_THEME || process.env.THEME;
   const envStaleThreshold = process.env.OBSERVER_STALE_THRESHOLD_MS;
+  const envRecentWindow = process.env.OBSERVER_RECENT_WINDOW_MS;
+  const envRetentionDays = process.env.OBSERVER_RETENTION_DAYS;
 
   cachedConfig = {
     sources,
@@ -154,6 +166,8 @@ export async function getConfig(): Promise<ObserverConfig> {
     pollInterval: registry.pollInterval ?? (envPollInterval ? parseInt(envPollInterval, 10) : 2000),
     theme: registry.theme ?? ((envTheme === "dark" || envTheme === "light" ? envTheme : "dark") as "dark" | "light"),
     staleThresholdMs: registry.staleThresholdMs ?? (envStaleThreshold ? parseInt(envStaleThreshold, 10) : 3600000),
+    recentCompletionWindowMs: registry.recentCompletionWindowMs ?? (envRecentWindow ? parseInt(envRecentWindow, 10) : 14400000),
+    retentionDays: registry.retentionDays ?? (envRetentionDays ? parseInt(envRetentionDays, 10) : 30),
   };
   cacheTime = now;
 
@@ -297,7 +311,30 @@ export async function discoverAllRunDirs(): Promise<DiscoveredRun[]> {
     }
   }
 
-  return allRuns;
+  // Deduplicate by runId (basename of runDir). When the same run ID appears
+  // under multiple .a5c/runs/ directories (e.g. a "ghost" .a5c created by a
+  // task execution in a subdirectory), keep the first occurrence — which is
+  // the shallowest/earliest discovered and typically the one with full data
+  // (run.json + journal).
+  const seenRunIds = new Map<string, DiscoveredRun>();
+  for (const run of allRuns) {
+    const runId = path.basename(run.runDir);
+    if (!seenRunIds.has(runId)) {
+      seenRunIds.set(runId, run);
+    } else {
+      // Prefer the run directory that has a run.json (i.e. the real one)
+      const existing = seenRunIds.get(runId)!;
+      const existingHasRunJson = await fs.access(path.join(existing.runDir, "run.json")).then(() => true, () => false);
+      if (!existingHasRunJson) {
+        const candidateHasRunJson = await fs.access(path.join(run.runDir, "run.json")).then(() => true, () => false);
+        if (candidateHasRunJson) {
+          seenRunIds.set(runId, run);
+        }
+      }
+    }
+  }
+
+  return Array.from(seenRunIds.values());
 }
 
 // Find a specific run directory by runId across all sources

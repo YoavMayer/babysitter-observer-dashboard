@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { subscribe, StreamEvent } from "./use-event-stream";
+import { resilientFetch } from "@/lib/fetcher";
 
 interface UseSmartPollingOptions {
   interval?: number;
@@ -21,23 +22,25 @@ export function useSmartPolling<T>(
   sseFilterRef.current = sseFilter;
   const sseConnected = useRef(false);
   const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   const fetchData = useCallback(async () => {
     if (!url || !enabled) return;
-    try {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
+    const result = await resilientFetch<T>(url, { signal: abortRef.current.signal });
+    if (!result.ok) {
+      if (result.error.isAborted) return;
       if (mountedRef.current) {
-        setData(json);
-        setError(null);
+        setError(result.error.message);
         setLoading(false);
       }
-    } catch (err) {
-      if (mountedRef.current) {
-        setError(err instanceof Error ? err.message : "Unknown error");
-        setLoading(false);
-      }
+      return;
+    }
+    if (mountedRef.current) {
+      setData(result.data);
+      setError(null);
+      setLoading(false);
     }
   }, [url, enabled]);
 
@@ -63,6 +66,7 @@ export function useSmartPolling<T>(
 
     return () => {
       mountedRef.current = false;
+      abortRef.current?.abort();
       if (pollTimerRef.current) {
         clearInterval(pollTimerRef.current);
         pollTimerRef.current = null;

@@ -5,6 +5,7 @@ function mockFetchSuccess(data: unknown) {
   return vi.fn().mockResolvedValue({
     ok: true,
     json: () => Promise.resolve(data),
+    text: () => Promise.resolve(JSON.stringify(data)),
   });
 }
 
@@ -42,11 +43,11 @@ describe('useBreakpointResolve', () => {
 
     expect(fetch).toHaveBeenCalledWith(
       '/api/runs/run-1/tasks/eff-1/resolve',
-      {
+      expect.objectContaining({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ approved: true, value: 'yes please' }),
-      }
+      })
     );
     expect(result.current.resolved).toBe(true);
     expect(result.current.loading).toBe(false);
@@ -94,6 +95,7 @@ describe('useBreakpointResolve', () => {
       resolveFetch({
         ok: true,
         json: () => Promise.resolve({ success: true }),
+        text: () => Promise.resolve(JSON.stringify({ success: true })),
       });
       await resolvePromise!;
     });
@@ -103,13 +105,14 @@ describe('useBreakpointResolve', () => {
 
   it('handles HTTP 400 error without retry when no custom error message', async () => {
     // When server returns no custom error body, the hook falls back to "HTTP 400"
-    // which matches the "HTTP 4" check and breaks immediately (no retries)
+    // resilientFetch reads response.text() for errors; empty text falls back to "HTTP 400"
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({
         ok: false,
         status: 400,
         json: () => Promise.resolve({}),
+        text: () => Promise.resolve(''),
       })
     );
 
@@ -139,6 +142,7 @@ describe('useBreakpointResolve', () => {
         ok: false,
         status: 404,
         json: () => Promise.resolve({}),
+        text: () => Promise.resolve(''),
       })
     );
 
@@ -166,6 +170,7 @@ describe('useBreakpointResolve', () => {
         ok: false,
         status: 500,
         json: () => Promise.resolve({ error: 'Server error' }),
+        text: () => Promise.resolve('Server error'),
       })
     );
 
@@ -196,10 +201,12 @@ describe('useBreakpointResolve', () => {
         ok: false,
         status: 500,
         json: () => Promise.resolve({ error: 'Server error' }),
+        text: () => Promise.resolve('Server error'),
       })
       .mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve({ success: true }),
+        text: () => Promise.resolve(JSON.stringify({ success: true })),
       });
     vi.stubGlobal('fetch', fetchMock);
 
@@ -220,6 +227,7 @@ describe('useBreakpointResolve', () => {
       vi.fn().mockResolvedValue({
         ok: true,
         json: () => Promise.resolve({ success: false, error: 'Resolution failed' }),
+        text: () => Promise.resolve(JSON.stringify({ success: false, error: 'Resolution failed' })),
       })
     );
 
@@ -246,6 +254,7 @@ describe('useBreakpointResolve', () => {
         ok: false,
         status: 400,
         json: () => Promise.resolve({ error: 'Bad request' }),
+        text: () => Promise.resolve('Bad request'),
       })
     );
 

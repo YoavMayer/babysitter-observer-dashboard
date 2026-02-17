@@ -24,6 +24,7 @@ import {
   ChevronUp,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { ErrorBoundary } from "@/components/shared/error-boundary";
 import type { RunStatus } from "@/types";
 
 const filters: { label: string; value: RunStatus | "all" | "stale" }[] = [
@@ -35,7 +36,7 @@ const filters: { label: string; value: RunStatus | "all" | "stale" }[] = [
 ];
 
 export default function DashboardPage() {
-  const { projects, loading, error } = useProjects();
+  const { projects, recentCompletionWindowMs, loading, error } = useProjects();
   const { theme, toggle: toggleTheme } = useTheme();
   const { connected: sseConnected } = useEventStream();
   const { notifications, dismiss } = useNotificationContext();
@@ -89,12 +90,19 @@ export default function DashboardPage() {
   // Determine the status filter to pass to ProjectHealthCard (map "stale" to "all" since it's not a RunStatus)
   const cardStatusFilter: RunStatus | "all" = statusFilter === "stale" ? "all" : statusFilter;
 
-  // Split filtered projects into active (has active/stale runs) and history (only completed/failed)
+  // Split filtered projects into active (has active/stale runs or recently completed) and history
   const { activeProjects, historyProjects } = useMemo(() => {
-    const active = filteredProjects.filter((p) => p.activeRuns > 0 || p.staleRuns > 0);
-    const history = filteredProjects.filter((p) => p.activeRuns === 0 && p.staleRuns === 0);
+    const now = Date.now();
+    const active = filteredProjects.filter((p) =>
+      p.activeRuns > 0 || p.staleRuns > 0 ||
+      (now - new Date(p.latestUpdate).getTime() < recentCompletionWindowMs)
+    );
+    const history = filteredProjects.filter((p) =>
+      p.activeRuns === 0 && p.staleRuns === 0 &&
+      (now - new Date(p.latestUpdate).getTime() >= recentCompletionWindowMs)
+    );
     return { activeProjects: active, historyProjects: history };
-  }, [filteredProjects]);
+  }, [filteredProjects, recentCompletionWindowMs]);
 
   const [historyCollapsed, setHistoryCollapsed] = useState(() => historyProjects.length > 5);
 
@@ -110,6 +118,9 @@ export default function DashboardPage() {
           <Eye className="h-5 w-5 text-primary" />
           <h1 className="text-base font-semibold text-foreground">Babysitter Observer</h1>
           <span className="text-[10px] leading-tight font-medium text-primary/60 tracking-wide hidden sm:block">a5c.ai</span>
+          <span className="rounded-full bg-primary/10 border border-primary/20 px-1.5 py-px text-[10px] leading-tight font-medium text-primary tabular-nums hidden sm:block">
+            v0.1.0
+          </span>
           <span className="text-xs text-foreground-muted hidden sm:block">
             Real-time orchestration dashboard
           </span>
@@ -147,46 +158,48 @@ export default function DashboardPage() {
       <div className="mx-auto max-w-[1600px] px-6 py-6">
         {/* KPI Metrics Row */}
         {!loading && !error && projects.length > 0 && (
-          <div data-testid="kpi-grid" className={cn("grid gap-3 mb-6", kpiCols)}>
-            <MetricTile
-              label="Total Runs"
-              value={metrics.totalRuns}
-              icon={<Layers className="h-4 w-4" />}
-              color="primary"
-              testId="metric-tile-total-runs"
-            />
-            <MetricTile
-              label="Active"
-              value={metrics.activeRuns}
-              icon={<Activity className="h-4 w-4" />}
-              color="warning"
-              pulse={metrics.activeRuns > 0}
-              testId="metric-tile-active"
-            />
-            {hasStaleRuns && (
+          <ErrorBoundary section="KPI Metrics">
+            <div data-testid="kpi-grid" className={cn("grid gap-3 mb-6", kpiCols)}>
               <MetricTile
-                label="Stale"
-                value={metrics.staleRuns}
-                icon={<Pause className="h-4 w-4" />}
-                color="muted"
-                testId="metric-tile-stale"
+                label="Total Runs"
+                value={metrics.totalRuns}
+                icon={<Layers className="h-4 w-4" />}
+                color="primary"
+                testId="metric-tile-total-runs"
               />
-            )}
-            <MetricTile
-              label="Completed"
-              value={metrics.completedRuns}
-              icon={<CheckCircle2 className="h-4 w-4" />}
-              color="success"
-              testId="metric-tile-completed"
-            />
-            <MetricTile
-              label="Failed"
-              value={metrics.failedRuns}
-              icon={<AlertCircle className="h-4 w-4" />}
-              color="error"
-              testId="metric-tile-failed"
-            />
-          </div>
+              <MetricTile
+                label="Active"
+                value={metrics.activeRuns}
+                icon={<Activity className="h-4 w-4" />}
+                color="warning"
+                pulse={metrics.activeRuns > 0}
+                testId="metric-tile-active"
+              />
+              {hasStaleRuns && (
+                <MetricTile
+                  label="Stale"
+                  value={metrics.staleRuns}
+                  icon={<Pause className="h-4 w-4" />}
+                  color="muted"
+                  testId="metric-tile-stale"
+                />
+              )}
+              <MetricTile
+                label="Completed"
+                value={metrics.completedRuns}
+                icon={<CheckCircle2 className="h-4 w-4" />}
+                color="success"
+                testId="metric-tile-completed"
+              />
+              <MetricTile
+                label="Failed"
+                value={metrics.failedRuns}
+                icon={<AlertCircle className="h-4 w-4" />}
+                color="error"
+                testId="metric-tile-failed"
+              />
+            </div>
+          </ErrorBoundary>
         )}
 
         {/* Filter pills */}
@@ -235,7 +248,7 @@ export default function DashboardPage() {
 
         {/* Content */}
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
             {[1, 2, 3].map((i) => (
               <div key={i} className="rounded-lg border border-border bg-card p-4 animate-pulse">
                 <div className="flex items-center gap-2 mb-3">
@@ -293,16 +306,35 @@ export default function DashboardPage() {
 
             {/* Active Runs section */}
             {activeProjects.length > 0 && (statusFilter === "all" || statusFilter === "stale" || statusFilter === "waiting") && (
-              <section data-testid="active-runs-section">
-                <div className="flex items-center gap-2 mb-3">
-                  <Activity className="h-4 w-4 text-warning animate-pulse" />
-                  <h2 className="text-sm font-semibold text-foreground">Active Runs</h2>
-                  <span className="rounded-full bg-warning/10 border border-warning/20 px-2 py-px text-[10px] font-semibold text-warning tabular-nums">
-                    {activeProjects.length}
-                  </span>
-                </div>
-                <div data-testid="project-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {activeProjects.map((project) => (
+              <ErrorBoundary section="Active Runs">
+                <section data-testid="active-runs-section">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Activity className="h-4 w-4 text-warning animate-pulse-dot" />
+                    <h2 className="text-sm font-semibold text-foreground">Active Runs</h2>
+                    <span className="rounded-full bg-warning/10 border border-warning/20 px-2 py-px text-[10px] font-semibold text-warning tabular-nums">
+                      {activeProjects.length}
+                    </span>
+                  </div>
+                  <div data-testid="project-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
+                    {activeProjects.map((project) => (
+                      <ProjectHealthCard
+                        key={project.projectName}
+                        project={project}
+                        statusFilter={cardStatusFilter}
+                      />
+                    ))}
+                  </div>
+                </section>
+              </ErrorBoundary>
+            )}
+
+            {/* When filter is "waiting", show all filteredProjects (already filtered to active) — handled above */}
+
+            {/* When filter is "completed" or "failed", show filteredProjects directly without sectioning */}
+            {(statusFilter === "completed" || statusFilter === "failed") && (
+              <ErrorBoundary section="Filtered Results">
+                <div data-testid="project-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
+                  {filteredProjects.map((project) => (
                     <ProjectHealthCard
                       key={project.projectName}
                       project={project}
@@ -310,58 +342,45 @@ export default function DashboardPage() {
                     />
                   ))}
                 </div>
-              </section>
-            )}
-
-            {/* When filter is "waiting", show all filteredProjects (already filtered to active) — handled above */}
-
-            {/* When filter is "completed" or "failed", show filteredProjects directly without sectioning */}
-            {(statusFilter === "completed" || statusFilter === "failed") && (
-              <div data-testid="project-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredProjects.map((project) => (
-                  <ProjectHealthCard
-                    key={project.projectName}
-                    project={project}
-                    statusFilter={cardStatusFilter}
-                  />
-                ))}
-              </div>
+              </ErrorBoundary>
             )}
 
             {/* Recent History section */}
             {historyProjects.length > 0 && (statusFilter === "all" || statusFilter === "stale") && (
-              <section data-testid="recent-history-section">
-                <button
-                  onClick={() => setHistoryCollapsed((v) => !v)}
-                  className="flex items-center gap-2 mb-3 group w-fit"
-                >
-                  <History className="h-4 w-4 text-foreground-muted/70" />
-                  <h2 className="text-sm font-semibold text-foreground-muted group-hover:text-foreground-secondary transition-colors">
-                    Recent History
-                  </h2>
-                  <span className="rounded-full bg-background-secondary border border-border px-2 py-px text-[10px] font-semibold text-foreground-muted tabular-nums">
-                    {historyProjects.length}
-                  </span>
-                  {historyCollapsed ? (
-                    <ChevronDown className="h-3.5 w-3.5 text-foreground-muted/60 group-hover:text-foreground-muted transition-colors" />
-                  ) : (
-                    <ChevronUp className="h-3.5 w-3.5 text-foreground-muted/60 group-hover:text-foreground-muted transition-colors" />
-                  )}
-                </button>
-                {!historyCollapsed && (
-                  <div className="opacity-70">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {historyProjects.map((project) => (
-                        <ProjectHealthCard
-                          key={project.projectName}
-                          project={project}
-                          statusFilter={cardStatusFilter}
-                        />
-                      ))}
+              <ErrorBoundary section="Recent History">
+                <section data-testid="recent-history-section">
+                  <button
+                    onClick={() => setHistoryCollapsed((v) => !v)}
+                    className="flex items-center gap-2 mb-3 group w-fit"
+                  >
+                    <History className="h-4 w-4 text-foreground-muted/70" />
+                    <h2 className="text-sm font-semibold text-foreground-muted group-hover:text-foreground-secondary transition-colors">
+                      Recent History
+                    </h2>
+                    <span className="rounded-full bg-background-secondary border border-border px-2 py-px text-[10px] font-semibold text-foreground-muted tabular-nums">
+                      {historyProjects.length}
+                    </span>
+                    {historyCollapsed ? (
+                      <ChevronDown className="h-3.5 w-3.5 text-foreground-muted/60 group-hover:text-foreground-muted transition-colors" />
+                    ) : (
+                      <ChevronUp className="h-3.5 w-3.5 text-foreground-muted/60 group-hover:text-foreground-muted transition-colors" />
+                    )}
+                  </button>
+                  {!historyCollapsed && (
+                    <div className="opacity-70">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
+                        {historyProjects.map((project) => (
+                          <ProjectHealthCard
+                            key={project.projectName}
+                            project={project}
+                            statusFilter={cardStatusFilter}
+                          />
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </section>
+                  )}
+                </section>
+              </ErrorBoundary>
             )}
           </div>
         )}

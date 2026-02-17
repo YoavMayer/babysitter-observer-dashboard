@@ -167,6 +167,7 @@ describe('FilePreview', () => {
     // Verify fetch was called with the correct URL
     expect(fetch).toHaveBeenCalledWith(
       '/api/runs/run-1/tasks/eff-1?file=src%2Findex.ts',
+      expect.anything(),
     );
   });
 
@@ -174,7 +175,8 @@ describe('FilePreview', () => {
     const user = setupUser();
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: false,
-      status: 500,
+      status: 404,
+      text: () => Promise.resolve('Not Found'),
     }));
 
     const files: BreakpointFile[] = [

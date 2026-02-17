@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { findRunDir } from "@/lib/config";
 import { parseTaskDetail } from "@/lib/parser";
+import { normalizeError } from "@/lib/error-handler";
 
 export const dynamic = "force-dynamic";
 
@@ -34,9 +35,10 @@ export async function GET(
     });
   } catch (error) {
     console.error("Failed to read task:", error);
+    const normalized = normalizeError(error);
     return NextResponse.json(
-      { error: "Failed to read task" },
-      { status: 500 }
+      { error: normalized.message, code: normalized.code },
+      { status: normalized.status }
     );
   }
 }

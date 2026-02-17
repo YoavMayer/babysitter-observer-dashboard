@@ -11,15 +11,19 @@ Real-time observability dashboard for [babysitter](https://github.com/a5c-ai/bab
 ## Features
 
 - **Multi-project dashboard** -- auto-discovers `.a5c/runs/` directories across multiple projects and groups runs by project
+- **Smart layout** -- active runs shown prominently; recently completed projects stay visible for a configurable recency window before moving to collapsible "Recent History"
 - **Health cards** -- at-a-glance status cards showing active, completed, and failed runs per project with KPI metrics
+- **Expanded project mini-dashboard** -- drill into any project to see runs organized into Active, Failed, and Completed sections with mini KPI pills
 - **Pipeline visualization** -- step-by-step view of task pipelines with parallel group rendering, duration tracking, and error details
 - **Real-time event stream** -- Server-Sent Events (SSE) push updates to the browser the instant a journal file changes on disk
 - **Breakpoint UI** -- approve or reject breakpoints directly from the dashboard without touching the terminal
 - **Run detail view** -- deep-dive into any run with agent details, timing breakdowns, logs, and raw JSON inspection
+- **Run retention** -- configurable retention window (default 30 days) filters old runs from the dashboard for performance at scale
 - **Keyboard shortcuts** -- navigate between runs and projects without leaving the keyboard
 - **Dark and light themes** -- toggle between dark and light mode; persisted in the registry file
 - **Configurable polling** -- adaptive smart-polling with backoff; poll interval is tunable via CLI, environment, or the settings panel
-- **Editable settings panel** -- add or remove watch sources, change poll interval, and switch themes from the UI (persisted to `~/.a5c/observer.json`)
+- **Editable settings panel** -- add or remove watch sources, change poll interval, set retention window, and switch themes from the UI (persisted to `~/.a5c/observer.json`)
+- **Resilient networking** -- automatic retry with exponential backoff for transient API failures and AbortSignal integration
 - **CLI launcher** -- single command to start the dashboard pointing at any directory
 - **Lightweight digest endpoint** -- efficient polling endpoint that returns only run metadata, avoiding full payload transfers
 
@@ -124,6 +128,8 @@ cp .env.example .env
 | `OBSERVER_POLL_INTERVAL` | -- | Poll interval override (takes priority over `POLL_INTERVAL`) |
 | `OBSERVER_DEFAULT_THEME` | -- | Theme override (takes priority over `THEME`) |
 | `OBSERVER_STALE_THRESHOLD_MS` | `3600000` | Time in milliseconds after which an inactive run is considered stale |
+| `OBSERVER_RECENT_WINDOW_MS` | `14400000` | Time in milliseconds that recently completed projects stay in the Active section (default: 4 hours) |
+| `OBSERVER_RETENTION_DAYS` | `30` | Number of days to retain completed/failed runs in the dashboard (1-365) |
 | `BABYSITTER_CLI` | `babysitter` | Path to the babysitter CLI binary (used for breakpoint resolution) |
 
 ### Registry File
@@ -134,6 +140,8 @@ The observer persists user-configured settings to `~/.a5c/observer.json`. This f
 - **pollInterval** -- polling interval override
 - **theme** -- color theme preference
 - **staleThresholdMs** -- time (in milliseconds) after which an inactive run is marked stale (default: 3600000)
+- **recentCompletionWindowMs** -- time (in milliseconds) that recently completed projects stay in the Active section (default: 14400000 / 4 hours)
+- **retentionDays** -- number of days to retain completed/failed runs in the dashboard (default: 30)
 
 ## How It Works
 
@@ -247,8 +255,10 @@ src/
   lib/
     cn.ts                       # Tailwind class merge utility
     config.ts                   # Server-side config loading and discovery
+    error-handler.ts            # Centralized error normalization
+    fetcher.ts                  # Resilient fetch with retry and abort
     parser.ts                   # Journal event parsing
-    run-cache.ts                # In-memory run cache
+    run-cache.ts                # In-memory run cache with retention filtering
     server-init.ts              # Server initialization (watcher + cache)
     utils.ts                    # Formatting helpers (duration, timestamps, IDs)
     watcher.ts                  # File-system watcher for run directories
@@ -350,42 +360,18 @@ BABYSITTER_CLI=/usr/local/bin/babysitter babysitter-observer-dashboard
 
 ## Known Limitations (Alpha)
 
-This package is in **alpha** (`0.1.0-alpha.0`). Expect breaking changes between releases.
+This is version `0.1.0`. The API and configuration format may change between minor versions.
 
 - **Local only** -- The observer reads run data from the local filesystem. There is no remote/cloud mode.
 - **No authentication** -- The dashboard and API endpoints are unauthenticated. Do not expose to untrusted networks.
 - **No persistent storage** -- All run state is held in an in-memory cache rebuilt from journal files on startup. Restarting the server reloads from disk.
 - **WSL2 file-watching latency** -- On Windows Subsystem for Linux 2, cross-filesystem file-system events may be delayed. The observer compensates with polling but updates may lag behind native Linux or macOS.
 - **Single-instance only** -- Running multiple observer instances watching the same directories is untested and may produce duplicate SSE events.
-- **Large run directories** -- Discovery scans directories up to the configured depth on every poll cycle. Thousands of run directories may cause noticeable latency.
+- **Large run directories** -- Discovery scans directories up to the configured depth on every poll cycle. The configurable retention window (default 30 days) helps keep the dashboard responsive, but thousands of active run directories may still cause latency.
 - **No run deletion or archival** -- The observer is read-only (except for breakpoint resolution). There is no UI to delete, archive, or export runs.
 - **Browser notifications** -- Notification support depends on browser permissions and may not work in all environments.
 
-## Roadmap
 
-### Alpha (current)
-
-- Core dashboard with multi-project support
-- Real-time SSE streaming and adaptive polling
-- Breakpoint approval/rejection from the UI
-- CLI launcher with environment-variable configuration
-- Unit and E2E test foundations
-
-### Beta
-
-- Remote run ingestion (HTTP push or S3 sync)
-- Authentication and role-based access
-- Persistent storage backend (SQLite or PostgreSQL)
-- Run archival, search, and retention policies
-- Performance improvements for large-scale deployments
-- Webhook and Slack/Teams notifications
-
-### Stable (1.0)
-
-- Stable public API with semantic versioning guarantees
-- Plugin system for custom visualizations
-- Multi-tenant support
-- Comprehensive documentation site
 
 ## License
 

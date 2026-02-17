@@ -81,7 +81,7 @@ describe('useProjects', () => {
       await vi.advanceTimersByTimeAsync(0);
     });
 
-    expect(fetch).toHaveBeenCalledWith('/api/runs?mode=projects');
+    expect(fetch).toHaveBeenCalledWith('/api/runs?mode=projects', expect.anything());
   });
 
   it('uses custom interval', async () => {
@@ -117,12 +117,13 @@ describe('useProjects', () => {
   });
 
   it('handles fetch error', async () => {
+    // Use 4xx error to avoid retries from resilientFetch
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({
         ok: false,
-        status: 503,
-        json: () => Promise.resolve({}),
+        status: 400,
+        text: () => Promise.resolve('HTTP 400'),
       })
     );
 
@@ -132,7 +133,7 @@ describe('useProjects', () => {
       await vi.advanceTimersByTimeAsync(0);
     });
 
-    expect(result.current.error).toBe('HTTP 503');
+    expect(result.current.error).toBe('HTTP 400');
     expect(result.current.projects).toEqual([]);
   });
 

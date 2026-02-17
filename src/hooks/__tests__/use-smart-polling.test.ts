@@ -104,9 +104,14 @@ describe('useSmartPolling', () => {
   });
 
   it('handles fetch errors', async () => {
+    // Use a 4xx error to avoid retries
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({ ok: false, status: 500, json: () => Promise.resolve({}) })
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+        text: () => Promise.resolve('HTTP 404'),
+      })
     );
 
     const { result } = renderHook(() =>
@@ -117,7 +122,7 @@ describe('useSmartPolling', () => {
       await vi.advanceTimersByTimeAsync(0);
     });
 
-    expect(result.current.error).toBe('HTTP 500');
+    expect(result.current.error).toBe('HTTP 404');
     expect(result.current.loading).toBe(false);
   });
 

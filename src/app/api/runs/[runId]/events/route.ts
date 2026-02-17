@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import path from "path";
 import { findRunDir } from "@/lib/config";
 import { parseJournalDir } from "@/lib/parser";
+import { normalizeError } from "@/lib/error-handler";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,13 @@ export async function GET(
     const limit = parseInt(url.searchParams.get("limit") || "50", 10);
     const offset = parseInt(url.searchParams.get("offset") || "0", 10);
 
+    if (isNaN(limit) || isNaN(offset) || limit < 0 || offset < 0) {
+      return NextResponse.json(
+        { error: "Invalid pagination parameters", code: "INVALID_INPUT" },
+        { status: 400 }
+      );
+    }
+
     const allEvents = await parseJournalDir(journalPath);
     const total = allEvents.length;
     const events = allEvents.slice(offset, offset + limit);
@@ -39,9 +47,10 @@ export async function GET(
     });
   } catch (error) {
     console.error("Failed to read events:", error);
+    const normalized = normalizeError(error);
     return NextResponse.json(
-      { error: "Failed to read events" },
-      { status: 500 }
+      { error: normalized.message, code: normalized.code },
+      { status: normalized.status }
     );
   }
 }

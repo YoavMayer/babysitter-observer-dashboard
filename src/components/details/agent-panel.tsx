@@ -114,7 +114,7 @@ function ResultOutput({ value }: { value: unknown }) {
         <SectionHeader>Output</SectionHeader>
         <CopyButton text={fullText} />
       </div>
-      <pre className="rounded-md bg-background-secondary border border-border/50 p-3 text-xs font-mono text-secondary overflow-x-auto max-h-64 overflow-y-auto">
+      <pre className="rounded-md bg-background-secondary border border-border/50 p-3 text-xs font-mono text-secondary overflow-x-auto max-h-[60vh] overflow-y-auto">
         {displayText}
       </pre>
       {isLong && (

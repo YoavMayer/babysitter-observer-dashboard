@@ -244,14 +244,29 @@ export async function discoverAndCacheAll(): Promise<void> {
 
   const discovered = await discoverAllRunDirs();
 
-  // Deduplicate by normalized runDir path - keep the first occurrence (most specific source)
+  // Deduplicate by run ID (basename) — discoverAllRunDirs already deduplicates
+  // by run ID preferring directories with run.json, but guard here too in case
+  // the same run ID somehow appears from different sources.
   const seen = new Set<string>();
   const unique = discovered.filter((d: DiscoveredRun) => {
-    const normalized = path.resolve(d.runDir);
-    if (seen.has(normalized)) return false;
-    seen.add(normalized);
+    const runId = path.basename(d.runDir);
+    if (seen.has(runId)) return false;
+    seen.add(runId);
     return true;
   });
+
+  // Build the set of valid runDir paths from discovery
+  const validRunDirs = new Set(unique.map((d: DiscoveredRun) => d.runDir));
+
+  // Prune cache entries whose runDir is no longer in the discovered set.
+  // This removes ghost entries that were cached before dedup was applied
+  // (e.g. a duplicate run discovered at a different path).
+  const cache = getCache();
+  for (const [runDir] of cache) {
+    if (!validRunDirs.has(runDir)) {
+      cache.delete(runDir);
+    }
+  }
 
   // Pre-populate cache with digests in batches to avoid overwhelming filesystem
   const BATCH_SIZE = 10;
