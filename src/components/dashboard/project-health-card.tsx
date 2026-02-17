@@ -16,6 +16,7 @@ import {
   ChevronUp,
   Clock,
   Pause,
+  History,
 } from "lucide-react";
 
 interface ProjectHealthCardProps {
@@ -71,6 +72,7 @@ const PAGE_SIZE = 5;
 export function ProjectHealthCard({ project, statusFilter }: ProjectHealthCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [page, setPage] = useState(0);
+  const [showCompleted, setShowCompleted] = useState(false);
 
   const health = getHealthStatus(project);
   const config = healthConfig[health];
@@ -179,44 +181,92 @@ export function ProjectHealthCard({ project, statusFilter }: ProjectHealthCardPr
         )}
       </button>
 
-      {/* Expanded: runs list */}
-      {expanded && (
-        <div className="border-t border-border px-4 pb-4 pt-3">
-          {loading && runs.length === 0 ? (
-            <div className="flex flex-col gap-2">
-              {[1, 2].map((i) => (
-                <div
-                  key={i}
-                  className="rounded-lg border border-border bg-background p-3 animate-pulse"
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="h-2 w-2 rounded-full bg-foreground-muted/20" />
-                    <div className="h-3 w-32 rounded bg-foreground-muted/10" />
+      {/* Expanded: runs list — split into active and completed */}
+      {expanded && (() => {
+        const activeRuns = runs.filter((r) => r.status === "waiting" || r.status === "pending" || r.isStale);
+        const completedRuns = runs.filter((r) => (r.status === "completed" || r.status === "failed") && !r.isStale);
+        const hasActiveRuns = activeRuns.length > 0;
+        const hasCompletedRuns = completedRuns.length > 0;
+
+        return (
+          <div className="border-t border-border px-4 pb-4 pt-3">
+            {loading && runs.length === 0 ? (
+              <div className="flex flex-col gap-2">
+                {[1, 2].map((i) => (
+                  <div
+                    key={i}
+                    className="rounded-lg border border-border bg-background p-3 animate-pulse"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="h-2 w-2 rounded-full bg-foreground-muted/20" />
+                      <div className="h-3 w-32 rounded bg-foreground-muted/10" />
+                    </div>
+                    <div className="h-2 w-full rounded bg-foreground-muted/10" />
                   </div>
-                  <div className="h-2 w-full rounded bg-foreground-muted/10" />
-                </div>
-              ))}
-            </div>
-          ) : runs.length === 0 ? (
-            <p className="text-xs text-foreground-muted text-center py-4">No matching runs</p>
-          ) : (
-            <div className="flex flex-col gap-2">
-              {runs.map((run) => (
-                <RunCard key={run.runId} run={run} />
-              ))}
-            </div>
-          )}
-          {totalCount > PAGE_SIZE && (
-            <PaginationControls
-              currentPage={page}
-              totalItems={totalCount}
-              itemsPerPage={PAGE_SIZE}
-              onPageChange={setPage}
-              className="mt-3"
-            />
-          )}
-        </div>
-      )}
+                ))}
+              </div>
+            ) : runs.length === 0 ? (
+              <p className="text-xs text-foreground-muted text-center py-4">No matching runs</p>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {/* Active runs — always visible */}
+                {hasActiveRuns && (
+                  <div className="flex flex-col gap-2">
+                    {activeRuns.map((run) => (
+                      <RunCard key={run.runId} run={run} />
+                    ))}
+                  </div>
+                )}
+
+                {/* Completed runs — collapsible when there are active runs */}
+                {hasCompletedRuns && (
+                  <div>
+                    {hasActiveRuns ? (
+                      <>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setShowCompleted((v) => !v); }}
+                          className="flex items-center gap-1.5 py-1.5 text-xs text-foreground-muted hover:text-foreground-secondary transition-colors group w-fit"
+                        >
+                          <History className="h-3 w-3" />
+                          <span>{completedRuns.length} completed run{completedRuns.length !== 1 ? "s" : ""}</span>
+                          {showCompleted ? (
+                            <ChevronUp className="h-3 w-3 text-foreground-muted/60 group-hover:text-foreground-muted" />
+                          ) : (
+                            <ChevronDown className="h-3 w-3 text-foreground-muted/60 group-hover:text-foreground-muted" />
+                          )}
+                        </button>
+                        {showCompleted && (
+                          <div className="flex flex-col gap-2 mt-1 opacity-60">
+                            {completedRuns.map((run) => (
+                              <RunCard key={run.runId} run={run} />
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      /* No active runs — show completed runs directly */
+                      <div className="flex flex-col gap-2">
+                        {completedRuns.map((run) => (
+                          <RunCard key={run.runId} run={run} />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+            {totalCount > PAGE_SIZE && (
+              <PaginationControls
+                currentPage={page}
+                totalItems={totalCount}
+                itemsPerPage={PAGE_SIZE}
+                onPageChange={setPage}
+                className="mt-3"
+              />
+            )}
+          </div>
+        );
+      })()}
     </Card>
   );
 }

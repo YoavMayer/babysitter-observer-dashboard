@@ -19,6 +19,9 @@ import {
   AlertCircle,
   Layers,
   Pause,
+  History,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { RunStatus } from "@/types";
@@ -85,6 +88,15 @@ export default function DashboardPage() {
 
   // Determine the status filter to pass to ProjectHealthCard (map "stale" to "all" since it's not a RunStatus)
   const cardStatusFilter: RunStatus | "all" = statusFilter === "stale" ? "all" : statusFilter;
+
+  // Split filtered projects into active (has active/stale runs) and history (only completed/failed)
+  const { activeProjects, historyProjects } = useMemo(() => {
+    const active = filteredProjects.filter((p) => p.activeRuns > 0 || p.staleRuns > 0);
+    const history = filteredProjects.filter((p) => p.activeRuns === 0 && p.staleRuns === 0);
+    return { activeProjects: active, historyProjects: history };
+  }, [filteredProjects]);
+
+  const [historyCollapsed, setHistoryCollapsed] = useState(() => historyProjects.length > 5);
 
   // How many KPI columns: 4 base + 1 if stale > 0
   const hasStaleRuns = metrics.staleRuns > 0;
@@ -259,14 +271,98 @@ export default function DashboardPage() {
             </p>
           </div>
         ) : (
-          <div data-testid="project-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredProjects.map((project) => (
-              <ProjectHealthCard
-                key={project.projectName}
-                project={project}
-                statusFilter={cardStatusFilter}
-              />
-            ))}
+          <div className="flex flex-col gap-8">
+            {/* Idle empty state: no active and no history runs at all */}
+            {activeProjects.length === 0 && historyProjects.length === 0 && (
+              <div data-testid="idle-empty-state" className="text-center py-16">
+                <Eye className="h-10 w-10 text-foreground-muted/30 mx-auto mb-3" />
+                <p className="text-sm text-foreground-muted mb-1">All quiet — no active orchestration runs</p>
+                <p className="text-xs text-foreground-muted/60">
+                  Runs will appear here when babysitter processes are started
+                </p>
+              </div>
+            )}
+
+            {/* Idle with history: no active runs but has history */}
+            {activeProjects.length === 0 && historyProjects.length > 0 && (statusFilter === "all" || statusFilter === "stale") && (
+              <div data-testid="idle-with-history-banner" className="flex items-center gap-2 px-3 py-2 rounded-md bg-background-secondary/50 border border-border w-fit">
+                <Activity className="h-3.5 w-3.5 text-foreground-muted/50" />
+                <span className="text-xs text-foreground-muted">No active runs</span>
+              </div>
+            )}
+
+            {/* Active Runs section */}
+            {activeProjects.length > 0 && (statusFilter === "all" || statusFilter === "stale" || statusFilter === "waiting") && (
+              <section data-testid="active-runs-section">
+                <div className="flex items-center gap-2 mb-3">
+                  <Activity className="h-4 w-4 text-warning animate-pulse" />
+                  <h2 className="text-sm font-semibold text-foreground">Active Runs</h2>
+                  <span className="rounded-full bg-warning/10 border border-warning/20 px-2 py-px text-[10px] font-semibold text-warning tabular-nums">
+                    {activeProjects.length}
+                  </span>
+                </div>
+                <div data-testid="project-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {activeProjects.map((project) => (
+                    <ProjectHealthCard
+                      key={project.projectName}
+                      project={project}
+                      statusFilter={cardStatusFilter}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* When filter is "waiting", show all filteredProjects (already filtered to active) — handled above */}
+
+            {/* When filter is "completed" or "failed", show filteredProjects directly without sectioning */}
+            {(statusFilter === "completed" || statusFilter === "failed") && (
+              <div data-testid="project-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredProjects.map((project) => (
+                  <ProjectHealthCard
+                    key={project.projectName}
+                    project={project}
+                    statusFilter={cardStatusFilter}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Recent History section */}
+            {historyProjects.length > 0 && (statusFilter === "all" || statusFilter === "stale") && (
+              <section data-testid="recent-history-section">
+                <button
+                  onClick={() => setHistoryCollapsed((v) => !v)}
+                  className="flex items-center gap-2 mb-3 group w-fit"
+                >
+                  <History className="h-4 w-4 text-foreground-muted/70" />
+                  <h2 className="text-sm font-semibold text-foreground-muted group-hover:text-foreground-secondary transition-colors">
+                    Recent History
+                  </h2>
+                  <span className="rounded-full bg-background-secondary border border-border px-2 py-px text-[10px] font-semibold text-foreground-muted tabular-nums">
+                    {historyProjects.length}
+                  </span>
+                  {historyCollapsed ? (
+                    <ChevronDown className="h-3.5 w-3.5 text-foreground-muted/60 group-hover:text-foreground-muted transition-colors" />
+                  ) : (
+                    <ChevronUp className="h-3.5 w-3.5 text-foreground-muted/60 group-hover:text-foreground-muted transition-colors" />
+                  )}
+                </button>
+                {!historyCollapsed && (
+                  <div className="opacity-70">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {historyProjects.map((project) => (
+                        <ProjectHealthCard
+                          key={project.projectName}
+                          project={project}
+                          statusFilter={cardStatusFilter}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </section>
+            )}
           </div>
         )}
       </div>
