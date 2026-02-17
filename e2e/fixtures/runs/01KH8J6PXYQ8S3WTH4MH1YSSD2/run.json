@@ -1,0 +1,14 @@
+{
+  "runId": "01KH8J6PXYQ8S3WTH4MH1YSSD2",
+  "request": "podcast-intel/publish",
+  "processId": "podcast-intel/publish",
+  "entrypoint": {
+    "importPath": "../../processes/podcast-intel-publish.js",
+    "exportName": "process"
+  },
+  "processPath": "../../processes/podcast-intel-publish.js",
+  "layoutVersion": "2026.01-storage-preview",
+  "createdAt": "2026-02-12T09:16:37.694Z",
+  "completionSecret": "dfb3ab73d9fcc53549c17ff7679878a6",
+  "projectName": "podcast-intel"
+}

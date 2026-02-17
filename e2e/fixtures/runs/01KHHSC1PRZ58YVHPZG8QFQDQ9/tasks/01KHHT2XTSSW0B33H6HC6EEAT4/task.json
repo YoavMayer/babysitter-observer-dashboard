@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHHT2XTSSW0B33H6HC6EEAT4",
+  "taskId": "enrich-metadata",
+  "invocationKey": "hockey/stats-ingest:S000022:enrich-metadata",
+  "stepId": "S000022",
+  "kind": "node",
+  "title": "Enrich metadata",
+  "io": {
+    "inputJsonPath": "tasks/01KHHT2XTSSW0B33H6HC6EEAT4/input.json",
+    "outputJsonPath": "tasks/01KHHT2XTSSW0B33H6HC6EEAT4/result.json"
+  },
+  "inputs": {
+    "records": 2175,
+    "batchSize": 219,
+    "source": "redis",
+    "destination": "s3"
+  }
+}

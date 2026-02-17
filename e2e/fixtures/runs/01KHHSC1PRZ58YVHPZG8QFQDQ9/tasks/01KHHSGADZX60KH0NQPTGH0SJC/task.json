@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHHSGADZX60KH0NQPTGH0SJC",
+  "taskId": "write-test-specifications",
+  "invocationKey": "hockey/stats-ingest:S000005:write-test-specifications",
+  "stepId": "S000005",
+  "kind": "agent",
+  "title": "Write test specifications",
+  "io": {
+    "inputJsonPath": "tasks/01KHHSGADZX60KH0NQPTGH0SJC/input.json",
+    "outputJsonPath": "tasks/01KHHSGADZX60KH0NQPTGH0SJC/result.json"
+  },
+  "inputs": {
+    "context": "Process hockey/stats-ingest step S000005",
+    "maxTokens": 1307,
+    "temperature": 0.55,
+    "model": "claude-opus-4-20250514"
+  },
+  "agent": {
+    "name": "write-test-specifications",
+    "prompt": {
+      "role": "reviewer",
+      "task": "Write test specifications",
+      "instructions": [
+        "Analyze the provided data for hockey-7-shifts",
+        "Follow the project coding standards",
+        "Return structured JSON output",
+        "Include confidence scores"
+      ]
+    }
+  }
+}

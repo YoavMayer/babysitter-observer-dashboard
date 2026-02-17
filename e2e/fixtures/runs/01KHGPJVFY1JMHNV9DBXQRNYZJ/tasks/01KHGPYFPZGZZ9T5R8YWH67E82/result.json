@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHGPYFPZGZZ9T5R8YWH67E82",
+  "taskId": "compute-aggregates",
+  "invocationKey": "hockey/stats-ingest:S000012:compute-aggregates",
+  "status": "ok",
+  "startedAt": "2026-02-15T13:13:27.297Z",
+  "finishedAt": "2026-02-15T13:13:49.071Z",
+  "result": {
+    "processed": 1527,
+    "failed": 58,
+    "skipped": 28,
+    "duration_ms": 21774,
+    "outputPath": "output/compute-aggregates-H67E82.json"
+  },
+  "value": {
+    "processed": 1527,
+    "failed": 58,
+    "skipped": 28,
+    "duration_ms": 21774,
+    "outputPath": "output/compute-aggregates-H67E82.json"
+  }
+}

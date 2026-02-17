@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHH6JN170X7GXVTD8H0GEXTQ",
+  "taskId": "run-lint-checks",
+  "invocationKey": "podcast-intel/summarize:S000007:run-lint-checks",
+  "status": "ok",
+  "startedAt": "2026-02-15T17:46:37.342Z",
+  "finishedAt": "2026-02-15T17:46:43.560Z",
+  "result": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 28 items",
+    "stderr": "",
+    "duration_ms": 6218
+  },
+  "value": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 28 items",
+    "stderr": "",
+    "duration_ms": 6218
+  }
+}

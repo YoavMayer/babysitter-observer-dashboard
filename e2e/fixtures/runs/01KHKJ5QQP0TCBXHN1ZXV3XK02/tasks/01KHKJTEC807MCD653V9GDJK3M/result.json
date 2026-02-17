@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHKJTEC807MCD653V9GDJK3M",
+  "taskId": "create-architecture-spec",
+  "invocationKey": "podcast-intel/transcribe:S000023:create-architecture-spec",
+  "status": "error",
+  "startedAt": "2026-02-16T15:59:04.545Z",
+  "finishedAt": "2026-02-16T15:59:05.718Z",
+  "error": {
+    "name": "NetworkError",
+    "message": "ECONNREFUSED: Connection refused to upstream API",
+    "stack": "NetworkError: ECONNREFUSED: Connection refused to upstream API\n    at processTask (tasks/01KHKJTEC807MCD653V9GDJK3M/handler.js:42:11)\n    at async runStep (lib/runner.js:187:5)"
+  }
+}

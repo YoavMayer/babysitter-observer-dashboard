@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHHT28JW17X2R2NK0NF71M4T",
+  "taskId": "index-search-documents",
+  "invocationKey": "hockey/stats-ingest:S000021:index-search-documents",
+  "status": "ok",
+  "startedAt": "2026-02-15T23:27:10.981Z",
+  "finishedAt": "2026-02-15T23:27:27.842Z",
+  "result": {
+    "processed": 9193,
+    "failed": 77,
+    "skipped": 62,
+    "duration_ms": 16861,
+    "outputPath": "output/index-search-documents-F71M4T.json"
+  },
+  "value": {
+    "processed": 9193,
+    "failed": 77,
+    "skipped": 62,
+    "duration_ms": 16861,
+    "outputPath": "output/index-search-documents-F71M4T.json"
+  }
+}

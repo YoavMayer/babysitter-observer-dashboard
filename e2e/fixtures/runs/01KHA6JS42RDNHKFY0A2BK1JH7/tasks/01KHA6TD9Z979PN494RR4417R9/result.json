@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHA6TD9Z979PN494RR4417R9",
+  "taskId": "synthesize-user-feedback",
+  "invocationKey": "podcast-intel/publish:S000009:synthesize-user-feedback",
+  "status": "ok",
+  "startedAt": "2026-02-13T00:36:09.554Z",
+  "finishedAt": "2026-02-13T00:36:52.847Z",
+  "result": {
+    "summary": "Generated review for Synthesize user feedback",
+    "sections": 3,
+    "wordCount": 2478,
+    "confidence": 0.924,
+    "recommendations": [
+      "Add input validation for user-facing fields",
+      "Consider caching for frequently accessed data",
+      "Consider caching for frequently accessed data",
+      "Implement retry logic for external API calls"
+    ]
+  },
+  "value": {
+    "summary": "Generated review for Synthesize user feedback",
+    "sections": 3,
+    "wordCount": 2478,
+    "confidence": 0.924,
+    "recommendations": [
+      "Add input validation for user-facing fields",
+      "Consider caching for frequently accessed data",
+      "Consider caching for frequently accessed data",
+      "Implement retry logic for external API calls"
+    ]
+  }
+}

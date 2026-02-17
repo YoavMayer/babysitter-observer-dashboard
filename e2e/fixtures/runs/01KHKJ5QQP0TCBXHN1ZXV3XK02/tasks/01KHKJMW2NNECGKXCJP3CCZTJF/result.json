@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHKJMW2NNECGKXCJP3CCZTJF",
+  "taskId": "call-translation-api",
+  "invocationKey": "podcast-intel/transcribe:S000017:call-translation-api",
+  "status": "ok",
+  "startedAt": "2026-02-16T15:56:02.146Z",
+  "finishedAt": "2026-02-16T15:56:42.165Z",
+  "result": {
+    "invocations": 14,
+    "successRate": 0.954,
+    "resultCount": 101
+  },
+  "value": {
+    "invocations": 14,
+    "successRate": 0.954,
+    "resultCount": 101
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHHVB3FFNFN1Z36MBDNS1HV5",
+  "taskId": "filter-duplicates",
+  "invocationKey": "podcast-intel/transcribe:S000006:filter-duplicates",
+  "stepId": "S000006",
+  "kind": "node",
+  "title": "Filter duplicates",
+  "io": {
+    "inputJsonPath": "tasks/01KHHVB3FFNFN1Z36MBDNS1HV5/input.json",
+    "outputJsonPath": "tasks/01KHHVB3FFNFN1Z36MBDNS1HV5/result.json"
+  },
+  "inputs": {
+    "records": 7094,
+    "batchSize": 193,
+    "source": "redis",
+    "destination": "s3"
+  }
+}

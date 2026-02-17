@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-17T06:56:56.876Z",
+  "data": {
+    "effectId": "01KHN66HHC2A2A5M6G2Y1JBX82",
+    "invocationKey": "hockey/schedule-sync:S000008:parse-xml-feed",
+    "invocationHash": "b90dbdbaaf7d5cb617486d244aa62af66136023c3d5469b829479242b8ef1fc0",
+    "stepId": "S000008",
+    "taskId": "parse-xml-feed",
+    "kind": "node",
+    "label": "Parse XML feed",
+    "taskDefRef": "tasks/01KHN66HHC2A2A5M6G2Y1JBX82/task.json"
+  },
+  "checksum": "d057f9d00de5abd9c36f0f03e21662a8430a12572aa0f348cb76bc4558811719"
+}

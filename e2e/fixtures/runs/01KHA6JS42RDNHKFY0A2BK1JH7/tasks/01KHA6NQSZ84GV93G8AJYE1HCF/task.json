@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHA6NQSZ84GV93G8AJYE1HCF",
+  "taskId": "execute-ocr-pipeline",
+  "invocationKey": "podcast-intel/publish:S000004:execute-ocr-pipeline",
+  "stepId": "S000004",
+  "kind": "skill",
+  "title": "Execute OCR pipeline",
+  "io": {
+    "inputJsonPath": "tasks/01KHA6NQSZ84GV93G8AJYE1HCF/input.json",
+    "outputJsonPath": "tasks/01KHA6NQSZ84GV93G8AJYE1HCF/result.json"
+  },
+  "inputs": {
+    "skillName": "execute-ocr-pipeline",
+    "version": "1.6.2",
+    "config": {
+      "retries": 1,
+      "backoff": "exponential"
+    }
+  }
+}

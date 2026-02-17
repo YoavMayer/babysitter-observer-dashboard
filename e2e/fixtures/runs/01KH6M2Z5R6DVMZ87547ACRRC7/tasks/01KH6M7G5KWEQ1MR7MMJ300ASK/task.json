@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KH6M7G5KWEQ1MR7MMJ300ASK",
+  "taskId": "synthesize-user-feedback",
+  "invocationKey": "hockey/stats-ingest:S000004:synthesize-user-feedback",
+  "stepId": "S000004",
+  "kind": "agent",
+  "title": "Synthesize user feedback",
+  "io": {
+    "inputJsonPath": "tasks/01KH6M7G5KWEQ1MR7MMJ300ASK/input.json",
+    "outputJsonPath": "tasks/01KH6M7G5KWEQ1MR7MMJ300ASK/result.json"
+  },
+  "inputs": {
+    "context": "Process hockey/stats-ingest step S000004",
+    "maxTokens": 1465,
+    "temperature": 0.14,
+    "model": "claude-opus-4-20250514"
+  },
+  "agent": {
+    "name": "synthesize-user-feedback",
+    "prompt": {
+      "role": "analyst",
+      "task": "Synthesize user feedback",
+      "instructions": [
+        "Analyze the provided data for hockey-7-shifts",
+        "Follow the project coding standards",
+        "Return structured JSON output",
+        "Prioritize accuracy over speed"
+      ]
+    }
+  }
+}

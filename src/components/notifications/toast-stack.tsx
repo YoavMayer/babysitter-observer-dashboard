@@ -1,0 +1,66 @@
+"use client";
+import { useRouter } from "next/navigation";
+import { cn } from "@/lib/cn";
+import { X, CheckCircle2, XCircle, AlertTriangle, Info } from "lucide-react";
+import type { AppNotification } from "@/hooks/use-notifications";
+
+const iconMap: Record<AppNotification["type"], React.ReactNode> = {
+  success: <CheckCircle2 className="h-4 w-4 text-success drop-shadow-[var(--drop-glow-success)]" />,
+  error: <XCircle className="h-4 w-4 text-error drop-shadow-[var(--drop-glow-error)]" />,
+  warning: <AlertTriangle className="h-4 w-4 text-warning drop-shadow-[var(--drop-glow-warning)]" />,
+  info: <Info className="h-4 w-4 text-info drop-shadow-[var(--drop-glow-cyan)]" />,
+};
+
+const borderMap: Record<AppNotification["type"], string> = {
+  success: "border-l-success shadow-toast-glow-success",
+  error: "border-l-error shadow-toast-glow-error",
+  warning: "border-l-warning shadow-toast-glow-warning",
+  info: "border-l-info shadow-toast-glow-cyan",
+};
+
+interface ToastStackProps {
+  notifications: AppNotification[];
+  onDismiss: (id: string) => void;
+}
+
+export function ToastStack({ notifications, onDismiss }: ToastStackProps) {
+  const router = useRouter();
+
+  const handleClick = (notif: AppNotification) => {
+    if (notif.href) {
+      router.push(notif.href);
+      onDismiss(notif.id);
+    }
+  };
+
+  return (
+    <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm">
+      {notifications.map((notif) => (
+        <div
+          key={notif.id}
+          className={cn(
+            "rounded-lg border border-[var(--glass-border-subtle)] bg-[var(--glass-bg-heavy)] backdrop-blur-sm p-3 shadow-lg border-l-2",
+            "animate-slide-in-right",
+            notif.href && "cursor-pointer hover:bg-card-hover",
+            borderMap[notif.type]
+          )}
+          onClick={() => handleClick(notif)}
+        >
+          <div className="flex items-start gap-2">
+            <div className="shrink-0 mt-0.5">{iconMap[notif.type]}</div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground">{notif.title}</p>
+              <p className="text-xs text-foreground-muted mt-0.5 truncate">{notif.body}</p>
+            </div>
+            <button
+              onClick={(e) => { e.stopPropagation(); onDismiss(notif.id); }}
+              className="shrink-0 text-foreground-muted hover:text-primary transition-colors"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}

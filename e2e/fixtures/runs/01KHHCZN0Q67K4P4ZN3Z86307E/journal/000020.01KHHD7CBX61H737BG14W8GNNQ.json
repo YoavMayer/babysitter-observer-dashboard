@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T19:42:46.653Z",
+  "data": {
+    "effectId": "01KHHD7CBXDA5RKA74MJAT1G1W",
+    "invocationKey": "hockey/roster-update:S000010:parse-xml-feed",
+    "invocationHash": "7822224a89a9eb278a17199d4468cede87e8790b8186b3a66b4123a4ef2d1d7d",
+    "stepId": "S000010",
+    "taskId": "parse-xml-feed",
+    "kind": "node",
+    "label": "Parse XML feed",
+    "taskDefRef": "tasks/01KHHD7CBXDA5RKA74MJAT1G1W/task.json"
+  },
+  "checksum": "4bdf252c45e2ab879d9e311c17605ea964802fe7eb11546461db321da5df5cbf"
+}

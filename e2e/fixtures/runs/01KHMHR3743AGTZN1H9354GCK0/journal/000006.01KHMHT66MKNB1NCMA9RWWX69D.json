@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-17T01:00:40.532Z",
+  "data": {
+    "effectId": "01KHMHT66MKSXQVZR3522B0CJF",
+    "invocationKey": "hockey/roster-update:S000003:create-architecture-spec",
+    "invocationHash": "e4ac912150a24252395893c747fffb2e44bcbdebfea98159dbae3bbf6d9f517f",
+    "stepId": "S000003",
+    "taskId": "create-architecture-spec",
+    "kind": "agent",
+    "label": "Create architecture spec",
+    "taskDefRef": "tasks/01KHMHT66MKSXQVZR3522B0CJF/task.json"
+  },
+  "checksum": "6c391ed11002f710c9c0b3090ff2a26acd14fd41cbd1e759812b6be6804a946a"
+}

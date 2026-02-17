@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-16T21:32:33.958Z",
+  "data": {
+    "effectId": "01KHM5X496YF8EHGS4MMYEYMEE",
+    "invocationKey": "hockey/roster-update:S000023:generate-api-documentation",
+    "invocationHash": "0c90c1c036b9b544abe85bfd1ca3ee137807b9ab02016ffe5bf9138fe49e8e25",
+    "stepId": "S000023",
+    "taskId": "generate-api-documentation",
+    "kind": "agent",
+    "label": "Generate API documentation",
+    "taskDefRef": "tasks/01KHM5X496YF8EHGS4MMYEYMEE/task.json"
+  },
+  "checksum": "a1d31f96da5aca30ef195f2050bf78f29b61e592eec5b1826f9ab0e1108f5217"
+}

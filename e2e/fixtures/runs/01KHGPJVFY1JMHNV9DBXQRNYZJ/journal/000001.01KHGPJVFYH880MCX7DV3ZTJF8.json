@@ -1,0 +1,14 @@
+{
+  "type": "RUN_CREATED",
+  "recordedAt": "2026-02-15T13:07:05.342Z",
+  "data": {
+    "runId": "01KHGPJVFY1JMHNV9DBXQRNYZJ",
+    "processId": "hockey/stats-ingest",
+    "entrypoint": {
+      "importPath": "../../processes/hockey-stats-ingest.js",
+      "exportName": "process"
+    },
+    "inputsRef": "inputs.json"
+  },
+  "checksum": "1af7cb721defb51064511324719a1413823f9a1edac552d87d60a1293c531486"
+}

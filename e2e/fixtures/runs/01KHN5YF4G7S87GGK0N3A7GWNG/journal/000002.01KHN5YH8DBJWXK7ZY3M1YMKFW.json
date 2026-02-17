@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-17T06:52:34.445Z",
+  "data": {
+    "effectId": "01KHN5YH8DDYE71ZXVM4P1YEAF",
+    "invocationKey": "hockey/schedule-sync:S000001:clear-cache",
+    "invocationHash": "0fe441ec0843ad345902433da98c34a8f8b874800e0cebf45f5d14fd66081550",
+    "stepId": "S000001",
+    "taskId": "clear-cache",
+    "kind": "shell",
+    "label": "Clear cache",
+    "taskDefRef": "tasks/01KHN5YH8DDYE71ZXVM4P1YEAF/task.json"
+  },
+  "checksum": "42f6394a9843c0b7014fa56399bf80559c07fcd908f6fdaf0bda58f5737fa5a2"
+}

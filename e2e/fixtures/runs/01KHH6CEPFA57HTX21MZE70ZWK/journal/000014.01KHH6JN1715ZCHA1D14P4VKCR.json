@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T17:46:35.943Z",
+  "data": {
+    "effectId": "01KHH6JN170X7GXVTD8H0GEXTQ",
+    "invocationKey": "podcast-intel/summarize:S000007:run-lint-checks",
+    "invocationHash": "bb2e749225eaf310e968117bdab9e99904c810824cc95adb6ffd1e912e07b4bc",
+    "stepId": "S000007",
+    "taskId": "run-lint-checks",
+    "kind": "shell",
+    "label": "Run lint checks",
+    "taskDefRef": "tasks/01KHH6JN170X7GXVTD8H0GEXTQ/task.json"
+  },
+  "checksum": "1295c75f1a60c45e0703271cf63a9f252771a48927d18792ece57540863f8dce"
+}

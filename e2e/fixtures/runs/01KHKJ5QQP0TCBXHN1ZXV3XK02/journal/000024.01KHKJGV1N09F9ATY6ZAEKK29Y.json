@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-16T15:53:48.341Z",
+  "data": {
+    "effectId": "01KHKJGV1N0Y14WB7XTR04KNCH",
+    "invocationKey": "podcast-intel/transcribe:S000012:generate-coverage-report",
+    "invocationHash": "accc332860c09c179a53a525e3c5628b0380d2d9b5567a0813acc63c485b150f",
+    "stepId": "S000012",
+    "taskId": "generate-coverage-report",
+    "kind": "shell",
+    "label": "Generate coverage report",
+    "taskDefRef": "tasks/01KHKJGV1N0Y14WB7XTR04KNCH/task.json"
+  },
+  "checksum": "3093b3dfbf6636aa0e557597b1535e5aaff6e5939b77a0a90295773b745c0fa7"
+}

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHKJ6TGMVVZJ3TTNEVNWAAZY",
+  "taskId": "filter-duplicates",
+  "invocationKey": "podcast-intel/transcribe:S000002:filter-duplicates",
+  "status": "ok",
+  "startedAt": "2026-02-16T15:48:20.697Z",
+  "finishedAt": "2026-02-16T15:48:26.451Z",
+  "result": {
+    "processed": 6618,
+    "failed": 201,
+    "skipped": 75,
+    "duration_ms": 5754,
+    "outputPath": "output/filter-duplicates-NWAAZY.json"
+  },
+  "value": {
+    "processed": 6618,
+    "failed": 201,
+    "skipped": 75,
+    "duration_ms": 5754,
+    "outputPath": "output/filter-duplicates-NWAAZY.json"
+  }
+}

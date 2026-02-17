@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHHQG3NXEYX1BG7F9R1T9PSR",
+  "taskId": "run-sentiment-analysis",
+  "invocationKey": "hockey/roster-update:S000001:run-sentiment-analysis",
+  "stepId": "S000001",
+  "kind": "skill",
+  "title": "Run sentiment analysis",
+  "io": {
+    "inputJsonPath": "tasks/01KHHQG3NXEYX1BG7F9R1T9PSR/input.json",
+    "outputJsonPath": "tasks/01KHHQG3NXEYX1BG7F9R1T9PSR/result.json"
+  },
+  "inputs": {
+    "skillName": "run-sentiment-analysis",
+    "version": "3.5.10",
+    "config": {
+      "retries": 4,
+      "backoff": "linear"
+    }
+  }
+}

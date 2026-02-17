@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHN60YX55GYBX2B04VN3AM7Q",
+  "taskId": "research-market-trends",
+  "invocationKey": "hockey/schedule-sync:S000003:research-market-trends",
+  "status": "ok",
+  "startedAt": "2026-02-17T06:53:54.224Z",
+  "finishedAt": "2026-02-17T06:54:02.687Z",
+  "result": {
+    "summary": "Generated review for Research market trends",
+    "sections": 8,
+    "wordCount": 728,
+    "confidence": 0.99,
+    "recommendations": [
+      "Review error handling in async paths"
+    ]
+  },
+  "value": {
+    "summary": "Generated review for Research market trends",
+    "sections": 8,
+    "wordCount": 728,
+    "confidence": 0.99,
+    "recommendations": [
+      "Review error handling in async paths"
+    ]
+  }
+}

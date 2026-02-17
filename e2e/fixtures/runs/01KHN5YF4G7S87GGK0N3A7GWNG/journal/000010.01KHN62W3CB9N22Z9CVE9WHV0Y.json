@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-17T06:54:56.620Z",
+  "data": {
+    "effectId": "01KHN62W3CYAEAJWJW9RTYQ813",
+    "invocationKey": "hockey/schedule-sync:S000005:pause-before-retry",
+    "invocationHash": "10e887ef1c97ba902e48dd63854cff664156bb3cbd32615ae44a0c7e42eaf193",
+    "stepId": "S000005",
+    "taskId": "pause-before-retry",
+    "kind": "sleep",
+    "label": "Pause before retry",
+    "taskDefRef": "tasks/01KHN62W3CYAEAJWJW9RTYQ813/task.json"
+  },
+  "checksum": "20c26aec448478f4903ec52a7c74339b1dd443d97ec94588b836912ea68b5a3e"
+}

@@ -1,0 +1,419 @@
+{
+  "generatedAt": "2026-02-17T06:03:05.367Z",
+  "runCount": 50,
+  "totalTasks": 584,
+  "statusCounts": {
+    "failed": 8,
+    "waiting": 10,
+    "completed": 28,
+    "pending": 4
+  },
+  "projectCounts": {
+    "podcast-intel": 13,
+    "hockey-7-shifts": 14,
+    "content-scheduler": 13,
+    "sales-pipeline": 10
+  },
+  "runs": [
+    {
+      "runId": "01KH45VA2ZEEE8XDMEVMKCGA35",
+      "processId": "podcast-intel/publish",
+      "projectName": "podcast-intel",
+      "status": "failed",
+      "taskCount": 24,
+      "createdAt": "2026-02-10T16:23:43.455Z"
+    },
+    {
+      "runId": "01KH47FK2MGMMB37B17PE3Z91Z",
+      "processId": "hockey/roster-update",
+      "projectName": "hockey-7-shifts",
+      "status": "waiting",
+      "taskCount": 22,
+      "createdAt": "2026-02-10T16:52:16.596Z"
+    },
+    {
+      "runId": "01KH507H054PWCPV0ZM3AAMM5J",
+      "processId": "content/draft-review",
+      "projectName": "content-scheduler",
+      "status": "completed",
+      "taskCount": 7,
+      "createdAt": "2026-02-11T00:04:46.725Z"
+    },
+    {
+      "runId": "01KH6HKNFCXVSH1PYG9PWXSTDD",
+      "processId": "sales/lead-scoring",
+      "projectName": "sales-pipeline",
+      "status": "completed",
+      "taskCount": 25,
+      "createdAt": "2026-02-11T14:27:44.748Z"
+    },
+    {
+      "runId": "01KH6M2Z5R6DVMZ87547ACRRC7",
+      "processId": "hockey/stats-ingest",
+      "projectName": "hockey-7-shifts",
+      "status": "waiting",
+      "taskCount": 7,
+      "createdAt": "2026-02-11T15:11:03.352Z"
+    },
+    {
+      "runId": "01KH8J6PXYQ8S3WTH4MH1YSSD2",
+      "processId": "podcast-intel/publish",
+      "projectName": "podcast-intel",
+      "status": "completed",
+      "taskCount": 13,
+      "createdAt": "2026-02-12T09:16:37.694Z"
+    },
+    {
+      "runId": "01KH90R4D1CAQNWSN49XPDWJH0",
+      "processId": "hockey/schedule-sync",
+      "projectName": "hockey-7-shifts",
+      "status": "completed",
+      "taskCount": 13,
+      "createdAt": "2026-02-12T13:30:48.609Z"
+    },
+    {
+      "runId": "01KH9HF9QEARQKPN6XSRVYBAQE",
+      "processId": "content/publish-queue",
+      "projectName": "content-scheduler",
+      "status": "completed",
+      "taskCount": 6,
+      "createdAt": "2026-02-12T18:23:04.942Z"
+    },
+    {
+      "runId": "01KH9MAHQEQVPEZPA7TKACWKV0",
+      "processId": "podcast-intel/transcribe",
+      "projectName": "podcast-intel",
+      "status": "completed",
+      "taskCount": 8,
+      "createdAt": "2026-02-12T19:12:55.022Z"
+    },
+    {
+      "runId": "01KHA6JS42RDNHKFY0A2BK1JH7",
+      "processId": "podcast-intel/publish",
+      "projectName": "podcast-intel",
+      "status": "completed",
+      "taskCount": 10,
+      "createdAt": "2026-02-13T00:31:59.106Z"
+    },
+    {
+      "runId": "01KHATV59ARSCHP43Z99JN930K",
+      "processId": "sales/deal-sync",
+      "projectName": "sales-pipeline",
+      "status": "completed",
+      "taskCount": 14,
+      "createdAt": "2026-02-13T06:26:05.226Z"
+    },
+    {
+      "runId": "01KHB7NJZ4DKBFXH8TA5ZHD4GT",
+      "processId": "hockey/stats-ingest",
+      "projectName": "hockey-7-shifts",
+      "status": "completed",
+      "taskCount": 8,
+      "createdAt": "2026-02-13T10:10:14.116Z"
+    },
+    {
+      "runId": "01KHBT44C1972KQX3EV7Y57J9B",
+      "processId": "podcast-intel/transcribe",
+      "projectName": "podcast-intel",
+      "status": "failed",
+      "taskCount": 11,
+      "createdAt": "2026-02-13T15:32:45.057Z"
+    },
+    {
+      "runId": "01KHC0E5NYF0CXD0RH5NY7NXBS",
+      "processId": "podcast-intel/publish",
+      "projectName": "podcast-intel",
+      "status": "pending",
+      "taskCount": 1,
+      "createdAt": "2026-02-13T17:23:05.534Z"
+    },
+    {
+      "runId": "01KHCH3T7GTBKSG8ENFAPTVKEJ",
+      "processId": "sales/lead-scoring",
+      "projectName": "sales-pipeline",
+      "status": "failed",
+      "taskCount": 5,
+      "createdAt": "2026-02-13T22:14:31.920Z"
+    },
+    {
+      "runId": "01KHCHFRW3PR5VSRF06CR4GNMY",
+      "processId": "content/draft-review",
+      "projectName": "content-scheduler",
+      "status": "waiting",
+      "taskCount": 15,
+      "createdAt": "2026-02-13T22:21:03.747Z"
+    },
+    {
+      "runId": "01KHCS79KQKZ3FDVVGHWEWMQH2",
+      "processId": "sales/lead-scoring",
+      "projectName": "sales-pipeline",
+      "status": "completed",
+      "taskCount": 14,
+      "createdAt": "2026-02-14T00:36:14.583Z"
+    },
+    {
+      "runId": "01KHE1YK7YQ7XK9P5085TZ3NDV",
+      "processId": "podcast-intel/transcribe",
+      "projectName": "podcast-intel",
+      "status": "pending",
+      "taskCount": 1,
+      "createdAt": "2026-02-14T12:28:01.150Z"
+    },
+    {
+      "runId": "01KHEJQ8E5A74K3SEBXP252XGZ",
+      "processId": "podcast-intel/publish",
+      "projectName": "podcast-intel",
+      "status": "completed",
+      "taskCount": 6,
+      "createdAt": "2026-02-14T17:21:06.501Z"
+    },
+    {
+      "runId": "01KHENGRPGKMZYB1MNYF9HVK2H",
+      "processId": "hockey/roster-update",
+      "projectName": "hockey-7-shifts",
+      "status": "completed",
+      "taskCount": 11,
+      "createdAt": "2026-02-14T18:09:59.504Z"
+    },
+    {
+      "runId": "01KHF4MKBVS7DP356Q69SW7NNV",
+      "processId": "hockey/stats-ingest",
+      "projectName": "hockey-7-shifts",
+      "status": "waiting",
+      "taskCount": 7,
+      "createdAt": "2026-02-14T22:34:13.755Z"
+    },
+    {
+      "runId": "01KHFC5YBTKE8D38ZZBWEV5PF9",
+      "processId": "content/publish-queue",
+      "projectName": "content-scheduler",
+      "status": "completed",
+      "taskCount": 14,
+      "createdAt": "2026-02-15T00:46:02.106Z"
+    },
+    {
+      "runId": "01KHG150P3D0448ANB8WP708PW",
+      "processId": "sales/deal-sync",
+      "projectName": "sales-pipeline",
+      "status": "completed",
+      "taskCount": 11,
+      "createdAt": "2026-02-15T06:52:31.811Z"
+    },
+    {
+      "runId": "01KHG59AHVJ62D0P2J98SHCEM4",
+      "processId": "hockey/schedule-sync",
+      "projectName": "hockey-7-shifts",
+      "status": "waiting",
+      "taskCount": 14,
+      "createdAt": "2026-02-15T08:04:47.291Z"
+    },
+    {
+      "runId": "01KHGHBHAJP1PTB62E4S53QK5H",
+      "processId": "content/analytics-roll",
+      "projectName": "content-scheduler",
+      "status": "waiting",
+      "taskCount": 21,
+      "createdAt": "2026-02-15T11:35:42.674Z"
+    },
+    {
+      "runId": "01KHGPJVFY1JMHNV9DBXQRNYZJ",
+      "processId": "hockey/stats-ingest",
+      "projectName": "hockey-7-shifts",
+      "status": "completed",
+      "taskCount": 15,
+      "createdAt": "2026-02-15T13:07:05.342Z"
+    },
+    {
+      "runId": "01KHGW3SSF1H3SJ5096R8RPW2P",
+      "processId": "podcast-intel/transcribe",
+      "projectName": "podcast-intel",
+      "status": "failed",
+      "taskCount": 10,
+      "createdAt": "2026-02-15T14:43:43.535Z"
+    },
+    {
+      "runId": "01KHH4E4NC9QYN1NWXJJVH8KHJ",
+      "processId": "sales/outreach-gen",
+      "projectName": "sales-pipeline",
+      "status": "failed",
+      "taskCount": 9,
+      "createdAt": "2026-02-15T17:09:10.956Z"
+    },
+    {
+      "runId": "01KHH4RBP906FEG6DB14SB1RHZ",
+      "processId": "content/publish-queue",
+      "projectName": "content-scheduler",
+      "status": "completed",
+      "taskCount": 11,
+      "createdAt": "2026-02-15T17:14:45.833Z"
+    },
+    {
+      "runId": "01KHH6CEPFA57HTX21MZE70ZWK",
+      "processId": "podcast-intel/summarize",
+      "projectName": "podcast-intel",
+      "status": "waiting",
+      "taskCount": 10,
+      "createdAt": "2026-02-15T17:43:12.847Z"
+    },
+    {
+      "runId": "01KHHCZN0Q67K4P4ZN3Z86307E",
+      "processId": "hockey/roster-update",
+      "projectName": "hockey-7-shifts",
+      "status": "completed",
+      "taskCount": 12,
+      "createdAt": "2026-02-15T19:38:33.367Z"
+    },
+    {
+      "runId": "01KHHN8629ZBWX36309H65P2K4",
+      "processId": "sales/outreach-gen",
+      "projectName": "sales-pipeline",
+      "status": "completed",
+      "taskCount": 12,
+      "createdAt": "2026-02-15T22:03:01.577Z"
+    },
+    {
+      "runId": "01KHHN94VGAEPAMSTM8BMJA511",
+      "processId": "podcast-intel/summarize",
+      "projectName": "podcast-intel",
+      "status": "completed",
+      "taskCount": 6,
+      "createdAt": "2026-02-15T22:03:33.104Z"
+    },
+    {
+      "runId": "01KHHQG1VV4N0DQJGN1QYXSVR3",
+      "processId": "hockey/roster-update",
+      "projectName": "hockey-7-shifts",
+      "status": "pending",
+      "taskCount": 1,
+      "createdAt": "2026-02-15T22:42:16.571Z"
+    },
+    {
+      "runId": "01KHHSC1PRZ58YVHPZG8QFQDQ9",
+      "processId": "hockey/stats-ingest",
+      "projectName": "hockey-7-shifts",
+      "status": "completed",
+      "taskCount": 22,
+      "createdAt": "2026-02-15T23:15:02.488Z"
+    },
+    {
+      "runId": "01KHHV4GSQGM1PMBM5A1QM869B",
+      "processId": "podcast-intel/transcribe",
+      "projectName": "podcast-intel",
+      "status": "completed",
+      "taskCount": 14,
+      "createdAt": "2026-02-15T23:45:52.951Z"
+    },
+    {
+      "runId": "01KHJJJWXGEP32Z81FG4RJHKYW",
+      "processId": "content/draft-review",
+      "projectName": "content-scheduler",
+      "status": "completed",
+      "taskCount": 21,
+      "createdAt": "2026-02-16T06:35:41.360Z"
+    },
+    {
+      "runId": "01KHK04VT25SK8N8G2XMM029PB",
+      "processId": "content/publish-queue",
+      "projectName": "content-scheduler",
+      "status": "completed",
+      "taskCount": 5,
+      "createdAt": "2026-02-16T10:32:41.538Z"
+    },
+    {
+      "runId": "01KHKBK3PWXAECSXS7GX9G7MRN",
+      "processId": "content/analytics-roll",
+      "projectName": "content-scheduler",
+      "status": "completed",
+      "taskCount": 22,
+      "createdAt": "2026-02-16T13:52:42.716Z"
+    },
+    {
+      "runId": "01KHKJ5QQP0TCBXHN1ZXV3XK02",
+      "processId": "podcast-intel/transcribe",
+      "projectName": "podcast-intel",
+      "status": "failed",
+      "taskCount": 23,
+      "createdAt": "2026-02-16T15:47:44.502Z"
+    },
+    {
+      "runId": "01KHM571CPKGNCNJ1AFVGXGFPR",
+      "processId": "hockey/roster-update",
+      "projectName": "hockey-7-shifts",
+      "status": "failed",
+      "taskCount": 23,
+      "createdAt": "2026-02-16T21:20:30.102Z"
+    },
+    {
+      "runId": "01KHMHR3743AGTZN1H9354GCK0",
+      "processId": "hockey/roster-update",
+      "projectName": "hockey-7-shifts",
+      "status": "waiting",
+      "taskCount": 10,
+      "createdAt": "2026-02-17T00:59:31.940Z"
+    },
+    {
+      "runId": "01KHMM2R2PNG6QTNSTMM0GWEEJ",
+      "processId": "content/publish-queue",
+      "projectName": "content-scheduler",
+      "status": "completed",
+      "taskCount": 15,
+      "createdAt": "2026-02-17T01:40:18.134Z"
+    },
+    {
+      "runId": "01KHMMFWZGFQXXJCVVQ78RNQJ7",
+      "processId": "sales/lead-scoring",
+      "projectName": "sales-pipeline",
+      "status": "completed",
+      "taskCount": 5,
+      "createdAt": "2026-02-17T01:47:29.136Z"
+    },
+    {
+      "runId": "01KHMSKVEZEP15QA1D9H09QP27",
+      "processId": "content/draft-review",
+      "projectName": "content-scheduler",
+      "status": "completed",
+      "taskCount": 10,
+      "createdAt": "2026-02-17T03:17:01.535Z"
+    },
+    {
+      "runId": "01KHMW0HRN3T2Y6SB4E6SEG66X",
+      "processId": "sales/deal-sync",
+      "projectName": "sales-pipeline",
+      "status": "failed",
+      "taskCount": 7,
+      "createdAt": "2026-02-17T03:58:54.741Z"
+    },
+    {
+      "runId": "01KHN5YF4G7S87GGK0N3A7GWNG",
+      "processId": "hockey/schedule-sync",
+      "projectName": "hockey-7-shifts",
+      "status": "completed",
+      "taskCount": 12,
+      "createdAt": "2026-02-17T06:52:32.272Z"
+    },
+    {
+      "runId": "01KHN9XSHN59TPR76DNSHD699R",
+      "processId": "content/draft-review",
+      "projectName": "content-scheduler",
+      "status": "waiting",
+      "taskCount": 8,
+      "createdAt": "2026-02-17T08:02:04.469Z"
+    },
+    {
+      "runId": "01KHNDJ7M21A9S06YJKAD9XMHN",
+      "processId": "sales/outreach-gen",
+      "projectName": "sales-pipeline",
+      "status": "pending",
+      "taskCount": 1,
+      "createdAt": "2026-02-17T09:05:39.970Z"
+    },
+    {
+      "runId": "01KHNPFSFS95XZV2HKG5X5HFGK",
+      "processId": "content/publish-queue",
+      "projectName": "content-scheduler",
+      "status": "waiting",
+      "taskCount": 12,
+      "createdAt": "2026-02-17T11:41:37.145Z"
+    }
+  ]
+}

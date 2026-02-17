@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHH6JN170X7GXVTD8H0GEXTQ",
+  "taskId": "run-lint-checks",
+  "invocationKey": "podcast-intel/summarize:S000007:run-lint-checks",
+  "stepId": "S000007",
+  "kind": "shell",
+  "title": "Run lint checks",
+  "io": {
+    "inputJsonPath": "tasks/01KHH6JN170X7GXVTD8H0GEXTQ/input.json",
+    "outputJsonPath": "tasks/01KHH6JN170X7GXVTD8H0GEXTQ/result.json"
+  },
+  "inputs": {
+    "command": "aws",
+    "args": [
+      "build",
+      "--env=staging"
+    ],
+    "cwd": "/workspace/podcast-intel",
+    "timeout": 101000
+  }
+}

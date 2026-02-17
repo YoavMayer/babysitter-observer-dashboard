@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-16T15:56:00.469Z",
+  "data": {
+    "effectId": "01KHKJMW2NNECGKXCJP3CCZTJF",
+    "invocationKey": "podcast-intel/transcribe:S000017:call-translation-api",
+    "invocationHash": "b0c9b8bd7dd3b24c476fed79a1c131deaeaf1d1c9d5a98c71a0872f9599e748d",
+    "stepId": "S000017",
+    "taskId": "call-translation-api",
+    "kind": "skill",
+    "label": "Call translation API",
+    "taskDefRef": "tasks/01KHKJMW2NNECGKXCJP3CCZTJF/task.json"
+  },
+  "checksum": "10f782dc9be719812a8ba476da810685de9b53a711cf886d86ae40c65a966ff2"
+}

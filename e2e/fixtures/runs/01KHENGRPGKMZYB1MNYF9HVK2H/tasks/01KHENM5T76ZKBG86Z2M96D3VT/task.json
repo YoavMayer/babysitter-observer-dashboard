@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHENM5T76ZKBG86Z2M96D3VT",
+  "taskId": "compress-assets",
+  "invocationKey": "hockey/roster-update:S000004:compress-assets",
+  "stepId": "S000004",
+  "kind": "shell",
+  "title": "Compress assets",
+  "io": {
+    "inputJsonPath": "tasks/01KHENM5T76ZKBG86Z2M96D3VT/input.json",
+    "outputJsonPath": "tasks/01KHENM5T76ZKBG86Z2M96D3VT/result.json"
+  },
+  "inputs": {
+    "command": "aws",
+    "args": [
+      "sync",
+      "--env=dev"
+    ],
+    "cwd": "/workspace/hockey-7-shifts",
+    "timeout": 140000
+  }
+}

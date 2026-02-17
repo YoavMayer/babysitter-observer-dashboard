@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHHN97MQ6ZW5FVQM43MY1ZPW",
+  "taskId": "approve-budget-allocation",
+  "invocationKey": "podcast-intel/summarize:S000001:approve-budget-allocation",
+  "status": "ok",
+  "startedAt": "2026-02-15T22:03:37.407Z",
+  "finishedAt": "2026-02-15T22:04:30.055Z",
+  "result": {
+    "approved": true,
+    "approvedBy": "user",
+    "approvedAt": "2026-02-15T22:04:30.055Z"
+  },
+  "value": {
+    "approved": true,
+    "approvedBy": "user",
+    "approvedAt": "2026-02-15T22:04:30.055Z"
+  }
+}

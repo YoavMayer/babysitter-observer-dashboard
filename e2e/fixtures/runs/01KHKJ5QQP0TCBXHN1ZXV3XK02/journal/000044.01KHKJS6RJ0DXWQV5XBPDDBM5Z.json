@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-16T15:58:22.482Z",
+  "data": {
+    "effectId": "01KHKJS6RJ6ZWJJ82N6V6GFW5N",
+    "invocationKey": "podcast-intel/transcribe:S000022:run-database-migration",
+    "invocationHash": "1025d5deb9e9d08d93f022623131aabe5b2cc8c084fb8979380ad0c076d20b62",
+    "stepId": "S000022",
+    "taskId": "run-database-migration",
+    "kind": "shell",
+    "label": "Run database migration",
+    "taskDefRef": "tasks/01KHKJS6RJ6ZWJJ82N6V6GFW5N/task.json"
+  },
+  "checksum": "667e3e9d34676507df56c084f536e6f9b9faf345ab0b21c5f69a8fb5993b3fa3"
+}

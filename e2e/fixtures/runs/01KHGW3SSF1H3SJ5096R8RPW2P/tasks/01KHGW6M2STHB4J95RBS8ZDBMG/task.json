@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHGW6M2STHB4J95RBS8ZDBMG",
+  "taskId": "delay-for-webhook-callback",
+  "invocationKey": "podcast-intel/transcribe:S000005:delay-for-webhook-callback",
+  "stepId": "S000005",
+  "kind": "sleep",
+  "title": "Delay for webhook callback",
+  "io": {
+    "inputJsonPath": "tasks/01KHGW6M2STHB4J95RBS8ZDBMG/input.json",
+    "outputJsonPath": "tasks/01KHGW6M2STHB4J95RBS8ZDBMG/result.json"
+  },
+  "inputs": {
+    "durationMs": 26732,
+    "reason": "Delay for webhook callback"
+  }
+}

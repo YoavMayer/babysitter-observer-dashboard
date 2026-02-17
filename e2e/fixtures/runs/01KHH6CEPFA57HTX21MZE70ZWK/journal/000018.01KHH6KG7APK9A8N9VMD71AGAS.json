@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T17:47:03.786Z",
+  "data": {
+    "effectId": "01KHH6KG7AD3PN5BTDQY0SH1G4",
+    "invocationKey": "podcast-intel/summarize:S000009:verify-outreach-email-before-s",
+    "invocationHash": "caeca1e11d2b39161fa0ac5852a8dfb77d458b96887a73f83718983981448a3c",
+    "stepId": "S000009",
+    "taskId": "verify-outreach-email-before-s",
+    "kind": "breakpoint",
+    "label": "Verify outreach email before sending?",
+    "taskDefRef": "tasks/01KHH6KG7AD3PN5BTDQY0SH1G4/task.json"
+  },
+  "checksum": "daf7d685e5668aca75ea8e5910c89ae3b31b9b8929ca2ac5ab6f2cd79e4db5d0"
+}

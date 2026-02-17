@@ -1,0 +1,17 @@
+{
+  "type": "EFFECT_RESOLVED",
+  "recordedAt": "2026-02-15T14:48:42.246Z",
+  "data": {
+    "effectId": "01KHGWCRXBWJFRHM5VDZA4CMMH",
+    "status": "error",
+    "resultRef": "tasks/01KHGWCRXBWJFRHM5VDZA4CMMH/result.json",
+    "startedAt": "2026-02-15T14:48:38.555Z",
+    "finishedAt": "2026-02-15T14:48:42.018Z",
+    "error": {
+      "name": "RateLimitError",
+      "message": "429 Too Many Requests: retry after 60s",
+      "stack": "RateLimitError: 429 Too Many Requests: retry after 60s\n    at processTask (tasks/01KHGWCRXBWJFRHM5VDZA4CMMH/handler.js:42:11)\n    at async runStep (lib/runner.js:187:5)"
+    }
+  },
+  "checksum": "2663a3019d227a3c54712f75a3e92a4e1c62c9d8c8196a4ce92adf94cace9209"
+}

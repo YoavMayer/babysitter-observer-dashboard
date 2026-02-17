@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHHD8XJVNFRJDNE0N4PBCWRN",
+  "taskId": "deploy-to-staging",
+  "invocationKey": "hockey/roster-update:S000011:deploy-to-staging",
+  "status": "ok",
+  "startedAt": "2026-02-15T19:43:38.468Z",
+  "finishedAt": "2026-02-15T19:44:32.288Z",
+  "result": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 19 items",
+    "stderr": "",
+    "duration_ms": 53820
+  },
+  "value": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 19 items",
+    "stderr": "",
+    "duration_ms": 53820
+  }
+}

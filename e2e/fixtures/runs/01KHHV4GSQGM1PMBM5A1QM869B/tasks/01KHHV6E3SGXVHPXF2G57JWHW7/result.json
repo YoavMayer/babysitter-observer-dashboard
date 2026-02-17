@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHHV6E3SGXVHPXF2G57JWHW7",
+  "taskId": "sync-s3-bucket",
+  "invocationKey": "podcast-intel/transcribe:S000003:sync-s3-bucket",
+  "status": "ok",
+  "startedAt": "2026-02-15T23:46:57.259Z",
+  "finishedAt": "2026-02-15T23:47:52.531Z",
+  "result": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 73 items",
+    "stderr": "",
+    "duration_ms": 55272
+  },
+  "value": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 73 items",
+    "stderr": "",
+    "duration_ms": 55272
+  }
+}

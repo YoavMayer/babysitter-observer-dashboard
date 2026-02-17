@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHHD7CBXDA5RKA74MJAT1G1W",
+  "taskId": "parse-xml-feed",
+  "invocationKey": "hockey/roster-update:S000010:parse-xml-feed",
+  "status": "ok",
+  "startedAt": "2026-02-15T19:42:47.250Z",
+  "finishedAt": "2026-02-15T19:43:34.311Z",
+  "result": {
+    "processed": 1959,
+    "failed": 81,
+    "skipped": 23,
+    "duration_ms": 47061,
+    "outputPath": "output/parse-xml-feed-AT1G1W.json"
+  },
+  "value": {
+    "processed": 1959,
+    "failed": 81,
+    "skipped": 23,
+    "duration_ms": 47061,
+    "outputPath": "output/parse-xml-feed-AT1G1W.json"
+  }
+}

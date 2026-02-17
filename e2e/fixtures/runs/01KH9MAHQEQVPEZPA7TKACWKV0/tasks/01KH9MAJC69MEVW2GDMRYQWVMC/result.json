@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KH9MAJC69MEVW2GDMRYQWVMC",
+  "taskId": "invoke-web-scraper",
+  "invocationKey": "podcast-intel/transcribe:S000001:invoke-web-scraper",
+  "status": "ok",
+  "startedAt": "2026-02-12T19:12:55.831Z",
+  "finishedAt": "2026-02-12T19:13:08.109Z",
+  "result": {
+    "invocations": 17,
+    "successRate": 0.989,
+    "resultCount": 159
+  },
+  "value": {
+    "invocations": 17,
+    "successRate": 0.989,
+    "resultCount": 159
+  }
+}

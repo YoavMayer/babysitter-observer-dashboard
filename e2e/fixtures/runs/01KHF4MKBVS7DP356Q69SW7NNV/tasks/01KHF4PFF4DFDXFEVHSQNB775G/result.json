@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHF4PFF4DFDXFEVHSQNB775G",
+  "taskId": "draft-release-notes",
+  "invocationKey": "hockey/stats-ingest:S000004:draft-release-notes",
+  "status": "ok",
+  "startedAt": "2026-02-14T22:35:15.903Z",
+  "finishedAt": "2026-02-14T22:36:00.375Z",
+  "result": {
+    "summary": "Generated report for Draft release notes",
+    "sections": 5,
+    "wordCount": 442,
+    "confidence": 0.871,
+    "recommendations": [
+      "Increase test coverage for edge cases"
+    ]
+  },
+  "value": {
+    "summary": "Generated report for Draft release notes",
+    "sections": 5,
+    "wordCount": 442,
+    "confidence": 0.871,
+    "recommendations": [
+      "Increase test coverage for edge cases"
+    ]
+  }
+}

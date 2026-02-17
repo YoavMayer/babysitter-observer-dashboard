@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-16T15:54:41.916Z",
+  "data": {
+    "effectId": "01KHKJJFBWCKQ448JYXNNMJ4AD",
+    "invocationKey": "podcast-intel/transcribe:S000014:confirm-data-migration-changes",
+    "invocationHash": "964c758923c59ff780b8260a9febbeadc22ac14747d4a2bd97cfd80b8c796629",
+    "stepId": "S000014",
+    "taskId": "confirm-data-migration-changes",
+    "kind": "breakpoint",
+    "label": "Confirm data migration changes?",
+    "taskDefRef": "tasks/01KHKJJFBWCKQ448JYXNNMJ4AD/task.json"
+  },
+  "checksum": "079eb28e6fb60c084638a9ad69376ccc2fa84dce629175dfd360e43b2dee9eef"
+}

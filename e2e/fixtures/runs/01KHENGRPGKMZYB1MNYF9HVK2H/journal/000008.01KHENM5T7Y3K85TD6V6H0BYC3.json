@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-14T18:11:51.239Z",
+  "data": {
+    "effectId": "01KHENM5T76ZKBG86Z2M96D3VT",
+    "invocationKey": "hockey/roster-update:S000004:compress-assets",
+    "invocationHash": "aed72a9b3fb4050e740c113b9670e014e7a4fcdd528f14b8fba999d41a3c9f33",
+    "stepId": "S000004",
+    "taskId": "compress-assets",
+    "kind": "shell",
+    "label": "Compress assets",
+    "taskDefRef": "tasks/01KHENM5T76ZKBG86Z2M96D3VT/task.json"
+  },
+  "checksum": "0a80a397bb66c8afb45ecfe9a6cf69fb7aeaf15253bdbd1790142000096d6f21"
+}

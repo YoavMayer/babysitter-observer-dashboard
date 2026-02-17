@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHG5HHDKBSEZFVN6449CQK46",
+  "taskId": "run-lint-checks",
+  "invocationKey": "hockey/schedule-sync:S000009:run-lint-checks",
+  "stepId": "S000009",
+  "kind": "shell",
+  "title": "Run lint checks",
+  "io": {
+    "inputJsonPath": "tasks/01KHG5HHDKBSEZFVN6449CQK46/input.json",
+    "outputJsonPath": "tasks/01KHG5HHDKBSEZFVN6449CQK46/result.json"
+  },
+  "inputs": {
+    "command": "redis-cli",
+    "args": [
+      "build",
+      "--env=prod"
+    ],
+    "cwd": "/workspace/hockey-7-shifts",
+    "timeout": 103000
+  }
+}

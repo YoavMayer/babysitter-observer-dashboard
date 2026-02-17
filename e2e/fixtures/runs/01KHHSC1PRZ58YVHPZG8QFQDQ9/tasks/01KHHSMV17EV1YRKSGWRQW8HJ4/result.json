@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHHSMV17EV1YRKSGWRQW8HJ4",
+  "taskId": "invoke-web-scraper",
+  "invocationKey": "hockey/stats-ingest:S000009:invoke-web-scraper",
+  "status": "ok",
+  "startedAt": "2026-02-15T23:19:52.412Z",
+  "finishedAt": "2026-02-15T23:20:18.467Z",
+  "result": {
+    "invocations": 9,
+    "successRate": 0.917,
+    "resultCount": 295
+  },
+  "value": {
+    "invocations": 9,
+    "successRate": 0.917,
+    "resultCount": 295
+  }
+}

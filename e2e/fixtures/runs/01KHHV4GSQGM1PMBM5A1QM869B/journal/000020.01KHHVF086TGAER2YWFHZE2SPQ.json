@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T23:51:36.454Z",
+  "data": {
+    "effectId": "01KHHVF08659PRZSNHX7WA0VBF",
+    "invocationKey": "podcast-intel/transcribe:S000010:draft-outreach-email",
+    "invocationHash": "5df375a9139a72e4fb01f5ccdd3a13794655bdf6dd65c08241341b1991a8717b",
+    "stepId": "S000010",
+    "taskId": "draft-outreach-email",
+    "kind": "agent",
+    "label": "Draft outreach email",
+    "taskDefRef": "tasks/01KHHVF08659PRZSNHX7WA0VBF/task.json"
+  },
+  "checksum": "4e2e001d8a0fe1d6a54c697366c5eb4cf4547b8010ffe59d6158130e5d8cc0df"
+}

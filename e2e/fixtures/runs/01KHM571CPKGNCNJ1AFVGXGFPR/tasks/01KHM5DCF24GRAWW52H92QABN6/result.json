@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHM5DCF24GRAWW52H92QABN6",
+  "taskId": "normalize-timestamps",
+  "invocationKey": "hockey/roster-update:S000008:normalize-timestamps",
+  "status": "ok",
+  "startedAt": "2026-02-16T21:23:59.542Z",
+  "finishedAt": "2026-02-16T21:24:36.224Z",
+  "result": {
+    "processed": 3776,
+    "failed": 51,
+    "skipped": 34,
+    "duration_ms": 36682,
+    "outputPath": "output/normalize-timestamps-2QABN6.json"
+  },
+  "value": {
+    "processed": 3776,
+    "failed": 51,
+    "skipped": 34,
+    "duration_ms": 36682,
+    "outputPath": "output/normalize-timestamps-2QABN6.json"
+  }
+}

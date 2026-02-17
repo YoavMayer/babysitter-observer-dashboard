@@ -1,0 +1,14 @@
+{
+  "runId": "01KHHN94VGAEPAMSTM8BMJA511",
+  "request": "podcast-intel/summarize",
+  "processId": "podcast-intel/summarize",
+  "entrypoint": {
+    "importPath": "../../processes/podcast-intel-summarize.js",
+    "exportName": "process"
+  },
+  "processPath": "../../processes/podcast-intel-summarize.js",
+  "layoutVersion": "2026.01-storage-preview",
+  "createdAt": "2026-02-15T22:03:33.104Z",
+  "completionSecret": "1f6e7168e43d447ace5f793c74030445",
+  "projectName": "podcast-intel"
+}

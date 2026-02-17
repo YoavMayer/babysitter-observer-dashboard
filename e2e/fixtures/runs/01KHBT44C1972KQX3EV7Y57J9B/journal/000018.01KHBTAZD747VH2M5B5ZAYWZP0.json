@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-13T15:36:29.351Z",
+  "data": {
+    "effectId": "01KHBTAZD7M7GVXS0QZ0M3WNBJ",
+    "invocationKey": "podcast-intel/transcribe:S000009:index-search-documents",
+    "invocationHash": "b4e3439c47feddc38519f38812deb3e20adc25e31e360241e542ea8f22f62490",
+    "stepId": "S000009",
+    "taskId": "index-search-documents",
+    "kind": "node",
+    "label": "Index search documents",
+    "taskDefRef": "tasks/01KHBTAZD7M7GVXS0QZ0M3WNBJ/task.json"
+  },
+  "checksum": "2f783bd0e200a96ed1c70964c13ba6b035bc683f5e3f465657cd5cec47a0bc52"
+}

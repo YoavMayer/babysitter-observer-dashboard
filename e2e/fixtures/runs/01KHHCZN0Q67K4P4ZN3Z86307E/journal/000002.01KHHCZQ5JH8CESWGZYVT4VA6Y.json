@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T19:38:35.570Z",
+  "data": {
+    "effectId": "01KHHCZQ5JSNGXQ08D133EDH1T",
+    "invocationKey": "hockey/roster-update:S000001:research-market-trends",
+    "invocationHash": "758b2d1cb5238aef8e74bf42db9fae108a9509c887b9f0357a967eeb0d4be419",
+    "stepId": "S000001",
+    "taskId": "research-market-trends",
+    "kind": "agent",
+    "label": "Research market trends",
+    "taskDefRef": "tasks/01KHHCZQ5JSNGXQ08D133EDH1T/task.json"
+  },
+  "checksum": "9a4e0ef2fe0c9cf6d8a7b2f92c6ed007cf1d34fb264055d389c1763e7762e9be"
+}

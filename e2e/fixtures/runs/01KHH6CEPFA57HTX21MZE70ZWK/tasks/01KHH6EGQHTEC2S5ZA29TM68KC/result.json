@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHH6EGQHTEC2S5ZA29TM68KC",
+  "taskId": "research-market-trends",
+  "invocationKey": "podcast-intel/summarize:S000003:research-market-trends",
+  "status": "ok",
+  "startedAt": "2026-02-15T17:44:21.920Z",
+  "finishedAt": "2026-02-15T17:44:34.434Z",
+  "result": {
+    "summary": "Generated report for Research market trends",
+    "sections": 4,
+    "wordCount": 1390,
+    "confidence": 0.988,
+    "recommendations": [
+      "Implement retry logic for external API calls",
+      "Review error handling in async paths"
+    ]
+  },
+  "value": {
+    "summary": "Generated report for Research market trends",
+    "sections": 4,
+    "wordCount": 1390,
+    "confidence": 0.988,
+    "recommendations": [
+      "Implement retry logic for external API calls",
+      "Review error handling in async paths"
+    ]
+  }
+}

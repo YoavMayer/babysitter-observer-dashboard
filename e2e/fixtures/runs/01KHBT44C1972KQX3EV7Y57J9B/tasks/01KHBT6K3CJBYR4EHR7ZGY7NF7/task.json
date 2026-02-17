@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHBT6K3CJBYR4EHR7ZGY7NF7",
+  "taskId": "analyze-competitor-data",
+  "invocationKey": "podcast-intel/transcribe:S000004:analyze-competitor-data",
+  "stepId": "S000004",
+  "kind": "agent",
+  "title": "Analyze competitor data",
+  "io": {
+    "inputJsonPath": "tasks/01KHBT6K3CJBYR4EHR7ZGY7NF7/input.json",
+    "outputJsonPath": "tasks/01KHBT6K3CJBYR4EHR7ZGY7NF7/result.json"
+  },
+  "inputs": {
+    "context": "Process podcast-intel/transcribe step S000004",
+    "maxTokens": 1968,
+    "temperature": 0.85,
+    "model": "claude-opus-4-20250514"
+  },
+  "agent": {
+    "name": "analyze-competitor-data",
+    "prompt": {
+      "role": "reviewer",
+      "task": "Analyze competitor data",
+      "instructions": [
+        "Analyze the provided data for podcast-intel",
+        "Follow the project coding standards",
+        "Return structured JSON output",
+        "Prioritize accuracy over speed"
+      ]
+    }
+  }
+}

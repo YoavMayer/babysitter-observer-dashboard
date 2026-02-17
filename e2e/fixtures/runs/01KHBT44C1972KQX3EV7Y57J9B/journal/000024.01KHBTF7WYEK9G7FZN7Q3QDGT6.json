@@ -1,0 +1,14 @@
+{
+  "type": "RUN_FAILED",
+  "recordedAt": "2026-02-13T15:38:49.118Z",
+  "data": {
+    "runId": "01KHBT44C1972KQX3EV7Y57J9B",
+    "status": "failed",
+    "error": {
+      "name": "TimeoutError",
+      "message": "Task exceeded 120s timeout",
+      "stack": "TimeoutError: Task exceeded 120s timeout\n    at processTask (tasks/01KHBTED0PFPN02WNSCSJJ2KED/handler.js:42:11)\n    at async runStep (lib/runner.js:187:5)"
+    }
+  },
+  "checksum": "35c1d0b23985ef56296426d6a517c87ddf7560bb3471e3c8e217c62d7126e15e"
+}

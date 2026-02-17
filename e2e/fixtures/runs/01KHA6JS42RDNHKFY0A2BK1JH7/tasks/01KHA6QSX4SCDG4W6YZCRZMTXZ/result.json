@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHA6QSX4SCDG4W6YZCRZMTXZ",
+  "taskId": "process-payment-webhook",
+  "invocationKey": "podcast-intel/publish:S000006:process-payment-webhook",
+  "status": "ok",
+  "startedAt": "2026-02-13T00:34:44.030Z",
+  "finishedAt": "2026-02-13T00:35:40.767Z",
+  "result": {
+    "invocations": 5,
+    "successRate": 0.957,
+    "resultCount": 355
+  },
+  "value": {
+    "invocations": 5,
+    "successRate": 0.957,
+    "resultCount": 355
+  }
+}

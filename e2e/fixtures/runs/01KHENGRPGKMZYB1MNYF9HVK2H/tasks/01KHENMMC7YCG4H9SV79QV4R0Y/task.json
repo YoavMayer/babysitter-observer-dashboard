@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHENMMC7YCG4H9SV79QV4R0Y",
+  "taskId": "analyze-competitor-data",
+  "invocationKey": "hockey/roster-update:S000005:analyze-competitor-data",
+  "stepId": "S000005",
+  "kind": "agent",
+  "title": "Analyze competitor data",
+  "io": {
+    "inputJsonPath": "tasks/01KHENMMC7YCG4H9SV79QV4R0Y/input.json",
+    "outputJsonPath": "tasks/01KHENMMC7YCG4H9SV79QV4R0Y/result.json"
+  },
+  "inputs": {
+    "context": "Process hockey/roster-update step S000005",
+    "maxTokens": 7242,
+    "temperature": 0.4,
+    "model": "claude-haiku-235-20250227"
+  },
+  "agent": {
+    "name": "analyze-competitor-data",
+    "prompt": {
+      "role": "writer",
+      "task": "Analyze competitor data",
+      "instructions": [
+        "Analyze the provided data for hockey-7-shifts",
+        "Follow the project coding standards",
+        "Return structured JSON output",
+        "Prioritize accuracy over speed"
+      ]
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHHNF39JC19M2P7RKVZ5SVGQ",
+  "taskId": "compute-aggregates",
+  "invocationKey": "podcast-intel/summarize:S000005:compute-aggregates",
+  "stepId": "S000005",
+  "kind": "node",
+  "title": "Compute aggregates",
+  "io": {
+    "inputJsonPath": "tasks/01KHHNF39JC19M2P7RKVZ5SVGQ/input.json",
+    "outputJsonPath": "tasks/01KHHNF39JC19M2P7RKVZ5SVGQ/result.json"
+  },
+  "inputs": {
+    "records": 4609,
+    "batchSize": 447,
+    "source": "postgres",
+    "destination": "s3"
+  }
+}

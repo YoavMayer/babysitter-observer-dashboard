@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-16T21:28:38.995Z",
+  "data": {
+    "effectId": "01KHM5NYTK2NE14FVAS8NQ6KMQ",
+    "invocationKey": "hockey/roster-update:S000017:draft-release-notes",
+    "invocationHash": "469fcba3a2ac88eec4140277d4e736555be3b7fdb14e34ea83a35cc0c62d2c56",
+    "stepId": "S000017",
+    "taskId": "draft-release-notes",
+    "kind": "agent",
+    "label": "Draft release notes",
+    "taskDefRef": "tasks/01KHM5NYTK2NE14FVAS8NQ6KMQ/task.json"
+  },
+  "checksum": "bacdf6d0100e19b064d5a4ba65d95c49d3a7ce387f08bd7b57e4ed3166cb4a65"
+}

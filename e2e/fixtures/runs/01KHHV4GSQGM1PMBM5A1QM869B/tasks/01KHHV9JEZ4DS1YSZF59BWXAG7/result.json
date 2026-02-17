@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHHV9JEZ4DS1YSZF59BWXAG7",
+  "taskId": "build-docker-image",
+  "invocationKey": "podcast-intel/transcribe:S000005:build-docker-image",
+  "status": "ok",
+  "startedAt": "2026-02-15T23:48:39.994Z",
+  "finishedAt": "2026-02-15T23:49:26.570Z",
+  "result": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 198 items",
+    "stderr": "",
+    "duration_ms": 46576
+  },
+  "value": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 198 items",
+    "stderr": "",
+    "duration_ms": 46576
+  }
+}

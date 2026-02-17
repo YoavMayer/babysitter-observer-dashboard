@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T23:23:57.928Z",
+  "data": {
+    "effectId": "01KHHSWCK8342512YTPNFN272C",
+    "invocationKey": "hockey/stats-ingest:S000016:approve-deployment-to-producti",
+    "invocationHash": "1102d6ae9064338b9f63c813d798a6ef8f31ce0941308829990ec74496d4a772",
+    "stepId": "S000016",
+    "taskId": "approve-deployment-to-producti",
+    "kind": "breakpoint",
+    "label": "Approve deployment to production?",
+    "taskDefRef": "tasks/01KHHSWCK8342512YTPNFN272C/task.json"
+  },
+  "checksum": "9440bf5515a2e621fec138b010fc06a99437ae25b6c968043bae80309c60375c"
+}

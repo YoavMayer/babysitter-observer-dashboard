@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T08:08:17.739Z",
+  "data": {
+    "effectId": "01KHG5FR2B4T5ESJTVA8NZVJTQ",
+    "invocationKey": "hockey/schedule-sync:S000007:approve-deployment-to-producti",
+    "invocationHash": "74d387a67bbd049e388469566ae1b3aed7e0ec2f8c19336f66dad8380f0970b9",
+    "stepId": "S000007",
+    "taskId": "approve-deployment-to-producti",
+    "kind": "breakpoint",
+    "label": "Approve deployment to production?",
+    "taskDefRef": "tasks/01KHG5FR2B4T5ESJTVA8NZVJTQ/task.json"
+  },
+  "checksum": "99df2f1ffcac93a8f4dbe34d4c3ade62666f9932202910fe6cf5e90b3d21c085"
+}

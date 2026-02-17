@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHM5S6JHCYH4C15S93E5SMS9",
+  "taskId": "write-test-specifications",
+  "invocationKey": "hockey/roster-update:S000019:write-test-specifications",
+  "status": "ok",
+  "startedAt": "2026-02-16T21:30:27.014Z",
+  "finishedAt": "2026-02-16T21:31:19.291Z",
+  "result": {
+    "summary": "Generated analysis for Write test specifications",
+    "sections": 4,
+    "wordCount": 3963,
+    "confidence": 0.822,
+    "recommendations": [
+      "Increase test coverage for edge cases",
+      "Consider caching for frequently accessed data"
+    ]
+  },
+  "value": {
+    "summary": "Generated analysis for Write test specifications",
+    "sections": 4,
+    "wordCount": 3963,
+    "confidence": 0.822,
+    "recommendations": [
+      "Increase test coverage for edge cases",
+      "Consider caching for frequently accessed data"
+    ]
+  }
+}

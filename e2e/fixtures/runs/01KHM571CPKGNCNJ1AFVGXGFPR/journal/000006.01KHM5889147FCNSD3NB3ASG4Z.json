@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-16T21:21:09.921Z",
+  "data": {
+    "effectId": "01KHM58891W3Y9B8CJS03QZGJ1",
+    "invocationKey": "hockey/roster-update:S000003:index-search-documents",
+    "invocationHash": "e98e2c99159cafe4d68efa6c341bcc01a90cf867969a3670c5cc3d5b27756ca2",
+    "stepId": "S000003",
+    "taskId": "index-search-documents",
+    "kind": "node",
+    "label": "Index search documents",
+    "taskDefRef": "tasks/01KHM58891W3Y9B8CJS03QZGJ1/task.json"
+  },
+  "checksum": "8efa391222f4c851b650099408b885748c155444447a5950fa67b5f773b95d3d"
+}

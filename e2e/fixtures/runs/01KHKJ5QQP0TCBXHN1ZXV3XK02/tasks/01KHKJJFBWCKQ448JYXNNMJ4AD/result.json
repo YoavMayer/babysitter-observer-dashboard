@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHKJJFBWCKQ448JYXNNMJ4AD",
+  "taskId": "confirm-data-migration-changes",
+  "invocationKey": "podcast-intel/transcribe:S000014:confirm-data-migration-changes",
+  "status": "ok",
+  "startedAt": "2026-02-16T15:54:42.137Z",
+  "finishedAt": "2026-02-16T15:55:14.474Z",
+  "result": {
+    "approved": true,
+    "approvedBy": "user",
+    "approvedAt": "2026-02-16T15:55:14.474Z"
+  },
+  "value": {
+    "approved": true,
+    "approvedBy": "user",
+    "approvedAt": "2026-02-16T15:55:14.474Z"
+  }
+}

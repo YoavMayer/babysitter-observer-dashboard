@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHENMMC7YCG4H9SV79QV4R0Y",
+  "taskId": "analyze-competitor-data",
+  "invocationKey": "hockey/roster-update:S000005:analyze-competitor-data",
+  "status": "ok",
+  "startedAt": "2026-02-14T18:12:07.629Z",
+  "finishedAt": "2026-02-14T18:12:38.939Z",
+  "result": {
+    "summary": "Generated draft for Analyze competitor data",
+    "sections": 2,
+    "wordCount": 4369,
+    "confidence": 0.703,
+    "recommendations": [
+      "Add structured logging for debugging",
+      "Add structured logging for debugging",
+      "Implement retry logic for external API calls",
+      "Add input validation for user-facing fields",
+      "Add input validation for user-facing fields"
+    ]
+  },
+  "value": {
+    "summary": "Generated draft for Analyze competitor data",
+    "sections": 2,
+    "wordCount": 4369,
+    "confidence": 0.703,
+    "recommendations": [
+      "Add structured logging for debugging",
+      "Add structured logging for debugging",
+      "Implement retry logic for external API calls",
+      "Add input validation for user-facing fields",
+      "Add input validation for user-facing fields"
+    ]
+  }
+}

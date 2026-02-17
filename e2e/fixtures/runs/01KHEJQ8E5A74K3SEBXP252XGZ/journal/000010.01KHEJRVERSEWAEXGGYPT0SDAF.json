@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-14T17:21:58.744Z",
+  "data": {
+    "effectId": "01KHEJRVERN8RNHQ2ENETC1SV1",
+    "invocationKey": "podcast-intel/publish:S000005:draft-release-notes",
+    "invocationHash": "871a050a3e71326b30a174b954722fa80b7053f98e2e5393143bfb1c4a9092bf",
+    "stepId": "S000005",
+    "taskId": "draft-release-notes",
+    "kind": "agent",
+    "label": "Draft release notes",
+    "taskDefRef": "tasks/01KHEJRVERN8RNHQ2ENETC1SV1/task.json"
+  },
+  "checksum": "412245cb472f6601e563ec319517a6c93d14188f7cce72bb0716e4e4fdf83443"
+}

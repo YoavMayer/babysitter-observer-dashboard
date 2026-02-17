@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHHT0H8S21RGWGAE3AX7K4YV",
+  "taskId": "generate-executive-summary",
+  "invocationKey": "hockey/stats-ingest:S000020:generate-executive-summary",
+  "status": "ok",
+  "startedAt": "2026-02-15T23:26:15.714Z",
+  "finishedAt": "2026-02-15T23:27:09.217Z",
+  "result": {
+    "summary": "Generated analysis for Generate executive summary",
+    "sections": 3,
+    "wordCount": 1223,
+    "confidence": 0.744,
+    "recommendations": [
+      "Increase test coverage for edge cases",
+      "Add input validation for user-facing fields",
+      "Add structured logging for debugging"
+    ]
+  },
+  "value": {
+    "summary": "Generated analysis for Generate executive summary",
+    "sections": 3,
+    "wordCount": 1223,
+    "confidence": 0.744,
+    "recommendations": [
+      "Increase test coverage for edge cases",
+      "Add input validation for user-facing fields",
+      "Add structured logging for debugging"
+    ]
+  }
+}

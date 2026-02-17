@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHKJMCPWM1BXBJ95KV52MFR7",
+  "taskId": "analyze-competitor-data",
+  "invocationKey": "podcast-intel/transcribe:S000016:analyze-competitor-data",
+  "status": "ok",
+  "startedAt": "2026-02-16T15:55:46.558Z",
+  "finishedAt": "2026-02-16T15:55:57.116Z",
+  "result": {
+    "summary": "Generated analysis for Analyze competitor data",
+    "sections": 2,
+    "wordCount": 2881,
+    "confidence": 0.942,
+    "recommendations": [
+      "Review error handling in async paths",
+      "Consider caching for frequently accessed data",
+      "Increase test coverage for edge cases"
+    ]
+  },
+  "value": {
+    "summary": "Generated analysis for Analyze competitor data",
+    "sections": 2,
+    "wordCount": 2881,
+    "confidence": 0.942,
+    "recommendations": [
+      "Review error handling in async paths",
+      "Consider caching for frequently accessed data",
+      "Increase test coverage for edge cases"
+    ]
+  }
+}

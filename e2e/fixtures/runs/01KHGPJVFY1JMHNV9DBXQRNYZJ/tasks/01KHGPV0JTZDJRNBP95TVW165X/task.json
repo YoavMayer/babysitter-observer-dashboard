@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHGPV0JTZDJRNBP95TVW165X",
+  "taskId": "merge-datasets",
+  "invocationKey": "hockey/stats-ingest:S000009:merge-datasets",
+  "stepId": "S000009",
+  "kind": "node",
+  "title": "Merge datasets",
+  "io": {
+    "inputJsonPath": "tasks/01KHGPV0JTZDJRNBP95TVW165X/input.json",
+    "outputJsonPath": "tasks/01KHGPV0JTZDJRNBP95TVW165X/result.json"
+  },
+  "inputs": {
+    "records": 7236,
+    "batchSize": 267,
+    "source": "redis",
+    "destination": "webhook"
+  }
+}

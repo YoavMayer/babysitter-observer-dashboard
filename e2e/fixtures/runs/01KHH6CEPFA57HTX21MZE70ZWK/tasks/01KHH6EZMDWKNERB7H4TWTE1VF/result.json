@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHH6EZMDWKNERB7H4TWTE1VF",
+  "taskId": "enrich-metadata",
+  "invocationKey": "podcast-intel/summarize:S000004:enrich-metadata",
+  "status": "ok",
+  "startedAt": "2026-02-15T17:44:35.842Z",
+  "finishedAt": "2026-02-15T17:45:33.200Z",
+  "result": {
+    "processed": 2683,
+    "failed": 118,
+    "skipped": 36,
+    "duration_ms": 57358,
+    "outputPath": "output/enrich-metadata-WTE1VF.json"
+  },
+  "value": {
+    "processed": 2683,
+    "failed": 118,
+    "skipped": 36,
+    "duration_ms": 57358,
+    "outputPath": "output/enrich-metadata-WTE1VF.json"
+  }
+}

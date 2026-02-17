@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHHV865V9XPJ5HG5B89SQDN3",
+  "taskId": "clear-cache",
+  "invocationKey": "podcast-intel/transcribe:S000004:clear-cache",
+  "status": "ok",
+  "startedAt": "2026-02-15T23:47:54.622Z",
+  "finishedAt": "2026-02-15T23:48:33.494Z",
+  "result": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 195 items",
+    "stderr": "",
+    "duration_ms": 38872
+  },
+  "value": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 195 items",
+    "stderr": "",
+    "duration_ms": 38872
+  }
+}

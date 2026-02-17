@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHHSYJJES16KQPM74ZGCGASH",
+  "taskId": "parse-xml-feed",
+  "invocationKey": "hockey/stats-ingest:S000018:parse-xml-feed",
+  "stepId": "S000018",
+  "kind": "node",
+  "title": "Parse XML feed",
+  "io": {
+    "inputJsonPath": "tasks/01KHHSYJJES16KQPM74ZGCGASH/input.json",
+    "outputJsonPath": "tasks/01KHHSYJJES16KQPM74ZGCGASH/result.json"
+  },
+  "inputs": {
+    "records": 4234,
+    "batchSize": 346,
+    "source": "csv",
+    "destination": "s3"
+  }
+}

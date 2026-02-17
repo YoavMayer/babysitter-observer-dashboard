@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHG5GKJ4HH6BPFBW456GWFTH",
+  "taskId": "compress-assets",
+  "invocationKey": "hockey/schedule-sync:S000008:compress-assets",
+  "status": "ok",
+  "startedAt": "2026-02-15T08:08:47.625Z",
+  "finishedAt": "2026-02-15T08:09:14.211Z",
+  "result": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 52 items",
+    "stderr": "",
+    "duration_ms": 26586
+  },
+  "value": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 52 items",
+    "stderr": "",
+    "duration_ms": 26586
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHG59BZERETCGJ6527B01WWK",
+  "taskId": "draft-release-notes",
+  "invocationKey": "hockey/schedule-sync:S000001:draft-release-notes",
+  "status": "ok",
+  "startedAt": "2026-02-15T08:04:50.168Z",
+  "finishedAt": "2026-02-15T08:05:12.409Z",
+  "result": {
+    "summary": "Generated report for Draft release notes",
+    "sections": 7,
+    "wordCount": 1063,
+    "confidence": 0.72,
+    "recommendations": [
+      "Add structured logging for debugging",
+      "Add input validation for user-facing fields",
+      "Review error handling in async paths",
+      "Add input validation for user-facing fields"
+    ]
+  },
+  "value": {
+    "summary": "Generated report for Draft release notes",
+    "sections": 7,
+    "wordCount": 1063,
+    "confidence": 0.72,
+    "recommendations": [
+      "Add structured logging for debugging",
+      "Add input validation for user-facing fields",
+      "Review error handling in async paths",
+      "Add input validation for user-facing fields"
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T23:23:10.866Z",
+  "data": {
+    "effectId": "01KHHSTYMJYM406RWBK26M5VNK",
+    "invocationKey": "hockey/stats-ingest:S000015:filter-duplicates",
+    "invocationHash": "2b78b05a790c0108333b639bb4dc7e4098f666ac9c8e37e79cf8b34ca0d86785",
+    "stepId": "S000015",
+    "taskId": "filter-duplicates",
+    "kind": "node",
+    "label": "Filter duplicates",
+    "taskDefRef": "tasks/01KHHSTYMJYM406RWBK26M5VNK/task.json"
+  },
+  "checksum": "cd644af33135830db19e75f875f9447a2fe7af371e89c5262e200083929d6004"
+}

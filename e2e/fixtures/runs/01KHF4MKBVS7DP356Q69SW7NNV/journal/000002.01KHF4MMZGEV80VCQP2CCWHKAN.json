@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-14T22:34:15.408Z",
+  "data": {
+    "effectId": "01KHF4MMZGV8GA1CSCGECPGT2P",
+    "invocationKey": "hockey/stats-ingest:S000001:compute-aggregates",
+    "invocationHash": "4bdfd841ecfd02e3567d09df72a8f660b67a5c5559e3ea11875a88a7e57e9cf7",
+    "stepId": "S000001",
+    "taskId": "compute-aggregates",
+    "kind": "node",
+    "label": "Compute aggregates",
+    "taskDefRef": "tasks/01KHF4MMZGV8GA1CSCGECPGT2P/task.json"
+  },
+  "checksum": "f95a2d89e60bf0923e316a8cbc7e8e33d14bb9e71b371c377c01b45124ce2ccc"
+}

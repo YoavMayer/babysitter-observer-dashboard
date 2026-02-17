@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHMHY15BBTN1R0D2E6QPSW2Y",
+  "taskId": "review-generated-content-befor",
+  "invocationKey": "hockey/roster-update:S000007:review-generated-content-befor",
+  "status": "ok",
+  "startedAt": "2026-02-17T01:02:47.431Z",
+  "finishedAt": "2026-02-17T01:03:04.039Z",
+  "result": {
+    "approved": true,
+    "approvedBy": "user",
+    "approvedAt": "2026-02-17T01:03:04.039Z"
+  },
+  "value": {
+    "approved": true,
+    "approvedBy": "user",
+    "approvedAt": "2026-02-17T01:03:04.039Z"
+  }
+}

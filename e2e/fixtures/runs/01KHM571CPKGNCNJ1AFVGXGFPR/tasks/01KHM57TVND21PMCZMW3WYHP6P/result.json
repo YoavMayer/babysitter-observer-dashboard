@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHM57TVND21PMCZMW3WYHP6P",
+  "taskId": "draft-outreach-email",
+  "invocationKey": "hockey/roster-update:S000002:draft-outreach-email",
+  "status": "ok",
+  "startedAt": "2026-02-16T21:20:57.944Z",
+  "finishedAt": "2026-02-16T21:21:08.331Z",
+  "result": {
+    "summary": "Generated report for Draft outreach email",
+    "sections": 6,
+    "wordCount": 3174,
+    "confidence": 0.701,
+    "recommendations": [
+      "Add input validation for user-facing fields",
+      "Add input validation for user-facing fields",
+      "Add input validation for user-facing fields",
+      "Consider caching for frequently accessed data"
+    ]
+  },
+  "value": {
+    "summary": "Generated report for Draft outreach email",
+    "sections": 6,
+    "wordCount": 3174,
+    "confidence": 0.701,
+    "recommendations": [
+      "Add input validation for user-facing fields",
+      "Add input validation for user-facing fields",
+      "Add input validation for user-facing fields",
+      "Consider caching for frequently accessed data"
+    ]
+  }
+}

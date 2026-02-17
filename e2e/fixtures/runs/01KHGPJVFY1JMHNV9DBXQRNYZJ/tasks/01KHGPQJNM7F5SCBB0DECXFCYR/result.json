@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHGPQJNM7F5SCBB0DECXFCYR",
+  "taskId": "restart-service",
+  "invocationKey": "hockey/stats-ingest:S000006:restart-service",
+  "status": "ok",
+  "startedAt": "2026-02-15T13:09:41.746Z",
+  "finishedAt": "2026-02-15T13:10:05.668Z",
+  "result": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 84 items",
+    "stderr": "",
+    "duration_ms": 23922
+  },
+  "value": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 84 items",
+    "stderr": "",
+    "duration_ms": 23922
+  }
+}

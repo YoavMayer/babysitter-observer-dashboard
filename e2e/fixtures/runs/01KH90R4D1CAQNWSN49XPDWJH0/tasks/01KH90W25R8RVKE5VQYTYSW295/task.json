@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KH90W25R8RVKE5VQYTYSW295",
+  "taskId": "restart-service",
+  "invocationKey": "hockey/schedule-sync:S000005:restart-service",
+  "stepId": "S000005",
+  "kind": "shell",
+  "title": "Restart service",
+  "io": {
+    "inputJsonPath": "tasks/01KH90W25R8RVKE5VQYTYSW295/input.json",
+    "outputJsonPath": "tasks/01KH90W25R8RVKE5VQYTYSW295/result.json"
+  },
+  "inputs": {
+    "command": "npm",
+    "args": [
+      "run",
+      "--env=dev"
+    ],
+    "cwd": "/workspace/hockey-7-shifts",
+    "timeout": 68000
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHMHT66MKSXQVZR3522B0CJF",
+  "taskId": "create-architecture-spec",
+  "invocationKey": "hockey/roster-update:S000003:create-architecture-spec",
+  "stepId": "S000003",
+  "kind": "agent",
+  "title": "Create architecture spec",
+  "io": {
+    "inputJsonPath": "tasks/01KHMHT66MKSXQVZR3522B0CJF/input.json",
+    "outputJsonPath": "tasks/01KHMHT66MKSXQVZR3522B0CJF/result.json"
+  },
+  "inputs": {
+    "context": "Process hockey/roster-update step S000003",
+    "maxTokens": 4812,
+    "temperature": 0.37,
+    "model": "claude-haiku-235-20250227"
+  },
+  "agent": {
+    "name": "create-architecture-spec",
+    "prompt": {
+      "role": "architect",
+      "task": "Create architecture spec",
+      "instructions": [
+        "Analyze the provided data for hockey-7-shifts",
+        "Follow the project coding standards",
+        "Return structured JSON output",
+        "Use chain-of-thought reasoning"
+      ]
+    }
+  }
+}

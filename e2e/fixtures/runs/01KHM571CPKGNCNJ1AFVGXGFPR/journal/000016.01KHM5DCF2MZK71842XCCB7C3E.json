@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-16T21:23:58.050Z",
+  "data": {
+    "effectId": "01KHM5DCF24GRAWW52H92QABN6",
+    "invocationKey": "hockey/roster-update:S000008:normalize-timestamps",
+    "invocationHash": "82a2d13e3c809537208e082fadf4c7400aba3ab798f7a5ce7ee3efd66eb340e7",
+    "stepId": "S000008",
+    "taskId": "normalize-timestamps",
+    "kind": "node",
+    "label": "Normalize timestamps",
+    "taskDefRef": "tasks/01KHM5DCF24GRAWW52H92QABN6/task.json"
+  },
+  "checksum": "28a63218e2b7c73ae655dd2979a1f5db7eeae3aee99698ca8b83a20cf0e33ade"
+}

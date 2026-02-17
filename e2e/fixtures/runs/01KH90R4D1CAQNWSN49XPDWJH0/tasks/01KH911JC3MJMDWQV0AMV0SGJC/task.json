@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KH911JC3MJMDWQV0AMV0SGJC",
+  "taskId": "deploy-to-staging",
+  "invocationKey": "hockey/schedule-sync:S000009:deploy-to-staging",
+  "stepId": "S000009",
+  "kind": "shell",
+  "title": "Deploy to staging",
+  "io": {
+    "inputJsonPath": "tasks/01KH911JC3MJMDWQV0AMV0SGJC/input.json",
+    "outputJsonPath": "tasks/01KH911JC3MJMDWQV0AMV0SGJC/result.json"
+  },
+  "inputs": {
+    "command": "psql",
+    "args": [
+      "sync",
+      "--env=dev"
+    ],
+    "cwd": "/workspace/hockey-7-shifts",
+    "timeout": 61000
+  }
+}

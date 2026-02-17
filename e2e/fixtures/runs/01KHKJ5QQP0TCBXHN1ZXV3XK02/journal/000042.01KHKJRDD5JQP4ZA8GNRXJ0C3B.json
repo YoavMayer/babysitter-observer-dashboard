@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-16T15:57:56.517Z",
+  "data": {
+    "effectId": "01KHKJRDD5G3V6D0KR9JCT5C3G",
+    "invocationKey": "podcast-intel/transcribe:S000021:execute-ocr-pipeline",
+    "invocationHash": "854631eaa50eefbbb7a0966fde510c3006abd66e8e1de2438e99efc8e7f9dce6",
+    "stepId": "S000021",
+    "taskId": "execute-ocr-pipeline",
+    "kind": "skill",
+    "label": "Execute OCR pipeline",
+    "taskDefRef": "tasks/01KHKJRDD5G3V6D0KR9JCT5C3G/task.json"
+  },
+  "checksum": "d0d6250f418c1eefc16e5f11ad3ca178fecbb6bea5012aacf3e3d639d88ccdc5"
+}

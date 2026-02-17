@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHKJASTNB02QCJZ9SWC2B1BV",
+  "taskId": "clear-cache",
+  "invocationKey": "podcast-intel/transcribe:S000007:clear-cache",
+  "stepId": "S000007",
+  "kind": "shell",
+  "title": "Clear cache",
+  "io": {
+    "inputJsonPath": "tasks/01KHKJASTNB02QCJZ9SWC2B1BV/input.json",
+    "outputJsonPath": "tasks/01KHKJASTNB02QCJZ9SWC2B1BV/result.json"
+  },
+  "inputs": {
+    "command": "docker",
+    "args": [
+      "run",
+      "--env=dev"
+    ],
+    "cwd": "/workspace/podcast-intel",
+    "timeout": 121000
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T19:42:10.758Z",
+  "data": {
+    "effectId": "01KHHD69A6X9W37F938PWAYWBY",
+    "invocationKey": "hockey/roster-update:S000008:verify-outreach-email-before-s",
+    "invocationHash": "0ebe32009f625142dad9a07fb8e82f18f9540363d89fea2a0e5529847d51cb1b",
+    "stepId": "S000008",
+    "taskId": "verify-outreach-email-before-s",
+    "kind": "breakpoint",
+    "label": "Verify outreach email before sending?",
+    "taskDefRef": "tasks/01KHHD69A6X9W37F938PWAYWBY/task.json"
+  },
+  "checksum": "5330861a798cc5fdf23721729d97514839282fa40a49562e7561987752c4cb20"
+}

@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T23:24:14.800Z",
+  "data": {
+    "effectId": "01KHHSWX2G4EV09EXYTVC3V00Z",
+    "invocationKey": "hockey/stats-ingest:S000017:normalize-timestamps",
+    "invocationHash": "ba517f1825bf78aa577c1d6cdb3031d0ec03f0e694ca4ba6bb18db15b040b1d9",
+    "stepId": "S000017",
+    "taskId": "normalize-timestamps",
+    "kind": "node",
+    "label": "Normalize timestamps",
+    "taskDefRef": "tasks/01KHHSWX2G4EV09EXYTVC3V00Z/task.json"
+  },
+  "checksum": "976ed0235078a900e92e3de276bfd1d083e82687e720aa6659ce0a45fa673845"
+}

@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T14:45:54.177Z",
+  "data": {
+    "effectId": "01KHGW7SC152YCPDZCB7KDK8XJ",
+    "invocationKey": "podcast-intel/transcribe:S000006:deduplicate-records",
+    "invocationHash": "9cef37f7c0e7822b20f3e0326d9cdcf236fe07b6a8962a0201a2202bde8c4dc0",
+    "stepId": "S000006",
+    "taskId": "deduplicate-records",
+    "kind": "node",
+    "label": "Deduplicate records",
+    "taskDefRef": "tasks/01KHGW7SC152YCPDZCB7KDK8XJ/task.json"
+  },
+  "checksum": "3c09ed3c3249ec9044a71a4695191b4b686e8e8b7ca26b765f0805d9187eec2b"
+}

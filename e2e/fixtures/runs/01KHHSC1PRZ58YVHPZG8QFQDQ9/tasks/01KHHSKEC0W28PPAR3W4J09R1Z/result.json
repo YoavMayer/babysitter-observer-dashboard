@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHHSKEC0W28PPAR3W4J09R1Z",
+  "taskId": "validate-schema",
+  "invocationKey": "hockey/stats-ingest:S000008:validate-schema",
+  "status": "ok",
+  "startedAt": "2026-02-15T23:19:05.193Z",
+  "finishedAt": "2026-02-15T23:19:46.791Z",
+  "result": {
+    "processed": 6778,
+    "failed": 188,
+    "skipped": 129,
+    "duration_ms": 41598,
+    "outputPath": "output/validate-schema-J09R1Z.json"
+  },
+  "value": {
+    "processed": 6778,
+    "failed": 188,
+    "skipped": 129,
+    "duration_ms": 41598,
+    "outputPath": "output/validate-schema-J09R1Z.json"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-12T19:12:55.686Z",
+  "data": {
+    "effectId": "01KH9MAJC69MEVW2GDMRYQWVMC",
+    "invocationKey": "podcast-intel/transcribe:S000001:invoke-web-scraper",
+    "invocationHash": "a5157f6f43f5a4be1a3bcfabd5cda63ef2377f44f016c4a43335e1764a808221",
+    "stepId": "S000001",
+    "taskId": "invoke-web-scraper",
+    "kind": "skill",
+    "label": "Invoke web scraper",
+    "taskDefRef": "tasks/01KH9MAJC69MEVW2GDMRYQWVMC/task.json"
+  },
+  "checksum": "f0b4f7792b3f20e60bcb09e7c8c38b6a23ef749ff6502c34c53ecbea7a0bd23b"
+}

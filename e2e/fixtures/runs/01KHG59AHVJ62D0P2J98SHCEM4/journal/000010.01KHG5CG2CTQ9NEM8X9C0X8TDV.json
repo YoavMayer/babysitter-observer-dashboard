@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T08:06:31.244Z",
+  "data": {
+    "effectId": "01KHG5CG2CFEX0PFTJW36BX5J9",
+    "invocationKey": "hockey/schedule-sync:S000005:analyze-competitor-data",
+    "invocationHash": "52a344ab59d1cd4d7ada850955ca851581ae8e8744166cf51855af1344af9cdb",
+    "stepId": "S000005",
+    "taskId": "analyze-competitor-data",
+    "kind": "agent",
+    "label": "Analyze competitor data",
+    "taskDefRef": "tasks/01KHG5CG2CFEX0PFTJW36BX5J9/task.json"
+  },
+  "checksum": "5a82730fe23d4c81072f4b47a20d14c69fbca1f93e7f2f5a3cfe4cd9b8799c05"
+}

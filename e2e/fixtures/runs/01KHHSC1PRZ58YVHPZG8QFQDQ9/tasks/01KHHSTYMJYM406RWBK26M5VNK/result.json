@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHHSTYMJYM406RWBK26M5VNK",
+  "taskId": "filter-duplicates",
+  "invocationKey": "hockey/stats-ingest:S000015:filter-duplicates",
+  "status": "ok",
+  "startedAt": "2026-02-15T23:23:11.445Z",
+  "finishedAt": "2026-02-15T23:23:55.553Z",
+  "result": {
+    "processed": 5765,
+    "failed": 232,
+    "skipped": 60,
+    "duration_ms": 44108,
+    "outputPath": "output/filter-duplicates-6M5VNK.json"
+  },
+  "value": {
+    "processed": 5765,
+    "failed": 232,
+    "skipped": 60,
+    "duration_ms": 44108,
+    "outputPath": "output/filter-duplicates-6M5VNK.json"
+  }
+}

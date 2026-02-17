@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHGPK26J9Y7Z0YQ8DB5YPE8N",
+  "taskId": "analyze-competitor-data",
+  "invocationKey": "hockey/stats-ingest:S000002:analyze-competitor-data",
+  "status": "ok",
+  "startedAt": "2026-02-15T13:07:13.424Z",
+  "finishedAt": "2026-02-15T13:08:11.109Z",
+  "result": {
+    "summary": "Generated report for Analyze competitor data",
+    "sections": 4,
+    "wordCount": 1496,
+    "confidence": 0.835,
+    "recommendations": [
+      "Add structured logging for debugging",
+      "Review error handling in async paths",
+      "Add input validation for user-facing fields",
+      "Add structured logging for debugging"
+    ]
+  },
+  "value": {
+    "summary": "Generated report for Analyze competitor data",
+    "sections": 4,
+    "wordCount": 1496,
+    "confidence": 0.835,
+    "recommendations": [
+      "Add structured logging for debugging",
+      "Review error handling in async paths",
+      "Add input validation for user-facing fields",
+      "Add structured logging for debugging"
+    ]
+  }
+}

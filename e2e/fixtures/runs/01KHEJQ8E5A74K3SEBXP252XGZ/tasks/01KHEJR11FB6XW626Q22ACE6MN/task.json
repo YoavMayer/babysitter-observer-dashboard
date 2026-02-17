@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHEJR11FB6XW626Q22ACE6MN",
+  "taskId": "merge-datasets",
+  "invocationKey": "podcast-intel/publish:S000003:merge-datasets",
+  "stepId": "S000003",
+  "kind": "node",
+  "title": "Merge datasets",
+  "io": {
+    "inputJsonPath": "tasks/01KHEJR11FB6XW626Q22ACE6MN/input.json",
+    "outputJsonPath": "tasks/01KHEJR11FB6XW626Q22ACE6MN/result.json"
+  },
+  "inputs": {
+    "records": 4409,
+    "batchSize": 323,
+    "source": "csv",
+    "destination": "s3"
+  }
+}

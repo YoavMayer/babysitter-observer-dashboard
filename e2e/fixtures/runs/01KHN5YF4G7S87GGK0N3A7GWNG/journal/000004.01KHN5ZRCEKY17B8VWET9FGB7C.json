@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-17T06:53:14.510Z",
+  "data": {
+    "effectId": "01KHN5ZRCEGPNK17FBK940FBW3",
+    "invocationKey": "hockey/schedule-sync:S000002:enrich-metadata",
+    "invocationHash": "a99e8aa56e787a34c729c81d484863ea03734e9280f82eeab9e5183231fb2433",
+    "stepId": "S000002",
+    "taskId": "enrich-metadata",
+    "kind": "node",
+    "label": "Enrich metadata",
+    "taskDefRef": "tasks/01KHN5ZRCEGPNK17FBK940FBW3/task.json"
+  },
+  "checksum": "6f9373aa6942c3aaf3c6df909d4b5b28297559efeed441c1e069c33c7459a838"
+}

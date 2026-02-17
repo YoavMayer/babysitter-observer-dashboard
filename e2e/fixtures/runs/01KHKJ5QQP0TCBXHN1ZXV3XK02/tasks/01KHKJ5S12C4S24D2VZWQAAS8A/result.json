@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHKJ5S12C4S24D2VZWQAAS8A",
+  "taskId": "research-market-trends",
+  "invocationKey": "podcast-intel/transcribe:S000001:research-market-trends",
+  "status": "ok",
+  "startedAt": "2026-02-16T15:47:46.613Z",
+  "finishedAt": "2026-02-16T15:48:15.567Z",
+  "result": {
+    "summary": "Generated analysis for Research market trends",
+    "sections": 7,
+    "wordCount": 3189,
+    "confidence": 0.904,
+    "recommendations": [
+      "Add input validation for user-facing fields",
+      "Add input validation for user-facing fields",
+      "Consider caching for frequently accessed data"
+    ]
+  },
+  "value": {
+    "summary": "Generated analysis for Research market trends",
+    "sections": 7,
+    "wordCount": 3189,
+    "confidence": 0.904,
+    "recommendations": [
+      "Add input validation for user-facing fields",
+      "Add input validation for user-facing fields",
+      "Consider caching for frequently accessed data"
+    ]
+  }
+}

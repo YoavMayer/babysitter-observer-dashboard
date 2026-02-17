@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHHST2ETCW9C0Y1WN4B8V3BE",
+  "taskId": "generate-executive-summary",
+  "invocationKey": "hockey/stats-ingest:S000014:generate-executive-summary",
+  "stepId": "S000014",
+  "kind": "agent",
+  "title": "Generate executive summary",
+  "io": {
+    "inputJsonPath": "tasks/01KHHST2ETCW9C0Y1WN4B8V3BE/input.json",
+    "outputJsonPath": "tasks/01KHHST2ETCW9C0Y1WN4B8V3BE/result.json"
+  },
+  "inputs": {
+    "context": "Process hockey/stats-ingest step S000014",
+    "maxTokens": 1240,
+    "temperature": 0.89,
+    "model": "claude-sonnet-4-20250514"
+  },
+  "agent": {
+    "name": "generate-executive-summary",
+    "prompt": {
+      "role": "architect",
+      "task": "Generate executive summary",
+      "instructions": [
+        "Analyze the provided data for hockey-7-shifts",
+        "Follow the project coding standards",
+        "Return structured JSON output",
+        "Include confidence scores"
+      ]
+    }
+  }
+}

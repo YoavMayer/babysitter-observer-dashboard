@@ -1,0 +1,6 @@
+{
+  "feedUrl": "https://feeds.example.com/tech-talks/rss",
+  "maxEpisodes": 33,
+  "language": "es",
+  "outputFormat": "html"
+}

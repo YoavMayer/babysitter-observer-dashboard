@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T23:20:20.833Z",
+  "data": {
+    "effectId": "01KHHSNRK1M61XN7DS23C206J6",
+    "invocationKey": "hockey/stats-ingest:S000010:run-lint-checks",
+    "invocationHash": "0ab68ad1fc28d6ced24798dbb7ec49ec0411fbaef32aac224b964cde874bde98",
+    "stepId": "S000010",
+    "taskId": "run-lint-checks",
+    "kind": "shell",
+    "label": "Run lint checks",
+    "taskDefRef": "tasks/01KHHSNRK1M61XN7DS23C206J6/task.json"
+  },
+  "checksum": "b371ca1ef677186464723f5686f2b481b92c19e10ad5282243ad076f492c9ee4"
+}

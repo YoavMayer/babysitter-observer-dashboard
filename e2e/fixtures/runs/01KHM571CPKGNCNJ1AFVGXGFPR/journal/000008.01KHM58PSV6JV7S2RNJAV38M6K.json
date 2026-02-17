@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-16T21:21:24.795Z",
+  "data": {
+    "effectId": "01KHM58PSVBYA0SQ4JJDNZBJWD",
+    "invocationKey": "hockey/roster-update:S000004:build-docker-image",
+    "invocationHash": "6ac3d486cade23a64784964b998481ec62c6b074598a9c6942842ecca47a7306",
+    "stepId": "S000004",
+    "taskId": "build-docker-image",
+    "kind": "shell",
+    "label": "Build Docker image",
+    "taskDefRef": "tasks/01KHM58PSVBYA0SQ4JJDNZBJWD/task.json"
+  },
+  "checksum": "1f1a71013b946c727a7319bfeb1505a3864c7491f9bf66b9d157f2ccbcd76a7d"
+}

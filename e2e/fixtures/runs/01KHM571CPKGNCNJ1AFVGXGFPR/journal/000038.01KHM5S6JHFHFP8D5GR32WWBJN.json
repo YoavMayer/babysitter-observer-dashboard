@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-16T21:30:25.233Z",
+  "data": {
+    "effectId": "01KHM5S6JHCYH4C15S93E5SMS9",
+    "invocationKey": "hockey/roster-update:S000019:write-test-specifications",
+    "invocationHash": "06e95113f5bcad50992e15358eb434a978e28577e8fa5c26fde90282bcdd4d43",
+    "stepId": "S000019",
+    "taskId": "write-test-specifications",
+    "kind": "agent",
+    "label": "Write test specifications",
+    "taskDefRef": "tasks/01KHM5S6JHCYH4C15S93E5SMS9/task.json"
+  },
+  "checksum": "9453b1adb1486812f5f92b385cf4181671d7017be476e7c5504329a13ccacaa3"
+}

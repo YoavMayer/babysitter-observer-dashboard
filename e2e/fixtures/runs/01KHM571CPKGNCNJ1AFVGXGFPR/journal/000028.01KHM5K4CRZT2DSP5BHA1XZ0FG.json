@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-16T21:27:06.392Z",
+  "data": {
+    "effectId": "01KHM5K4CR7EF2EXKN03Q9EVH6",
+    "invocationKey": "hockey/roster-update:S000014:filter-duplicates",
+    "invocationHash": "3c3f0d7637f8f344100f2327879108ab663ac3ceebc6b127b89866713e55e8ca",
+    "stepId": "S000014",
+    "taskId": "filter-duplicates",
+    "kind": "node",
+    "label": "Filter duplicates",
+    "taskDefRef": "tasks/01KHM5K4CR7EF2EXKN03Q9EVH6/task.json"
+  },
+  "checksum": "c176fef3f8a05674dcb8900c54dbb79a3e5c7669a393c7c2eeca65d4e15292dc"
+}

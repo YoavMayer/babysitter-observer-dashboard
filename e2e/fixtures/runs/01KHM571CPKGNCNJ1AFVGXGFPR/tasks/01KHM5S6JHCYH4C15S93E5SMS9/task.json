@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHM5S6JHCYH4C15S93E5SMS9",
+  "taskId": "write-test-specifications",
+  "invocationKey": "hockey/roster-update:S000019:write-test-specifications",
+  "stepId": "S000019",
+  "kind": "agent",
+  "title": "Write test specifications",
+  "io": {
+    "inputJsonPath": "tasks/01KHM5S6JHCYH4C15S93E5SMS9/input.json",
+    "outputJsonPath": "tasks/01KHM5S6JHCYH4C15S93E5SMS9/result.json"
+  },
+  "inputs": {
+    "context": "Process hockey/roster-update step S000019",
+    "maxTokens": 3080,
+    "temperature": 0.85,
+    "model": "claude-haiku-235-20250227"
+  },
+  "agent": {
+    "name": "write-test-specifications",
+    "prompt": {
+      "role": "architect",
+      "task": "Write test specifications",
+      "instructions": [
+        "Analyze the provided data for hockey-7-shifts",
+        "Follow the project coding standards",
+        "Return structured JSON output",
+        "Cite sources where applicable"
+      ]
+    }
+  }
+}

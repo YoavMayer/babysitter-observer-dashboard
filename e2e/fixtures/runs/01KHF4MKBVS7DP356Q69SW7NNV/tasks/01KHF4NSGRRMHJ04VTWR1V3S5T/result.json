@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHF4NSGRRMHJ04VTWR1V3S5T",
+  "taskId": "draft-release-notes",
+  "invocationKey": "hockey/stats-ingest:S000003:draft-release-notes",
+  "status": "ok",
+  "startedAt": "2026-02-14T22:34:54.428Z",
+  "finishedAt": "2026-02-14T22:35:12.058Z",
+  "result": {
+    "summary": "Generated report for Draft release notes",
+    "sections": 7,
+    "wordCount": 295,
+    "confidence": 0.915,
+    "recommendations": [
+      "Add structured logging for debugging",
+      "Increase test coverage for edge cases",
+      "Implement retry logic for external API calls",
+      "Add structured logging for debugging"
+    ]
+  },
+  "value": {
+    "summary": "Generated report for Draft release notes",
+    "sections": 7,
+    "wordCount": 295,
+    "confidence": 0.915,
+    "recommendations": [
+      "Add structured logging for debugging",
+      "Increase test coverage for edge cases",
+      "Implement retry logic for external API calls",
+      "Add structured logging for debugging"
+    ]
+  }
+}

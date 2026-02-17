@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHH6EZMDWKNERB7H4TWTE1VF",
+  "taskId": "enrich-metadata",
+  "invocationKey": "podcast-intel/summarize:S000004:enrich-metadata",
+  "stepId": "S000004",
+  "kind": "node",
+  "title": "Enrich metadata",
+  "io": {
+    "inputJsonPath": "tasks/01KHH6EZMDWKNERB7H4TWTE1VF/input.json",
+    "outputJsonPath": "tasks/01KHH6EZMDWKNERB7H4TWTE1VF/result.json"
+  },
+  "inputs": {
+    "records": 7077,
+    "batchSize": 377,
+    "source": "redis",
+    "destination": "elasticsearch"
+  }
+}

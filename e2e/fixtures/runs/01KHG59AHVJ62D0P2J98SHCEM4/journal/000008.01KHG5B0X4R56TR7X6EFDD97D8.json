@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T08:05:42.948Z",
+  "data": {
+    "effectId": "01KHG5B0X4NN0JTB1Y3HSHSXX4",
+    "invocationKey": "hockey/schedule-sync:S000004:draft-release-notes",
+    "invocationHash": "e49eea7f8726975da2b8c044dade6bc1eaaf19ff83a57b98f2650c29c9eaae34",
+    "stepId": "S000004",
+    "taskId": "draft-release-notes",
+    "kind": "agent",
+    "label": "Draft release notes",
+    "taskDefRef": "tasks/01KHG5B0X4NN0JTB1Y3HSHSXX4/task.json"
+  },
+  "checksum": "b49d59888e56171de3686d5016fa03ee52df48fb0a14fe55b5f0d1166272ac04"
+}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHHD3Q5F6HWAXRBVH9RMQPFD",
+  "taskId": "approve-budget-allocation",
+  "invocationKey": "hockey/roster-update:S000006:approve-budget-allocation",
+  "status": "ok",
+  "startedAt": "2026-02-15T19:40:47.053Z",
+  "finishedAt": "2026-02-15T19:41:46.138Z",
+  "result": {
+    "approved": true,
+    "approvedBy": "user",
+    "approvedAt": "2026-02-15T19:41:46.138Z"
+  },
+  "value": {
+    "approved": true,
+    "approvedBy": "user",
+    "approvedAt": "2026-02-15T19:41:46.138Z"
+  }
+}

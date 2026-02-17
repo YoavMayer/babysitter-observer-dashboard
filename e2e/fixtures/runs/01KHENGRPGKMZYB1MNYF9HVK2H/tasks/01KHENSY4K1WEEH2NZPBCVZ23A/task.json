@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHENSY4K1WEEH2NZPBCVZ23A",
+  "taskId": "execute-test-suite",
+  "invocationKey": "hockey/roster-update:S000009:execute-test-suite",
+  "stepId": "S000009",
+  "kind": "shell",
+  "title": "Execute test suite",
+  "io": {
+    "inputJsonPath": "tasks/01KHENSY4K1WEEH2NZPBCVZ23A/input.json",
+    "outputJsonPath": "tasks/01KHENSY4K1WEEH2NZPBCVZ23A/result.json"
+  },
+  "inputs": {
+    "command": "aws",
+    "args": [
+      "run",
+      "--env=dev"
+    ],
+    "cwd": "/workspace/hockey-7-shifts",
+    "timeout": 123000
+  }
+}

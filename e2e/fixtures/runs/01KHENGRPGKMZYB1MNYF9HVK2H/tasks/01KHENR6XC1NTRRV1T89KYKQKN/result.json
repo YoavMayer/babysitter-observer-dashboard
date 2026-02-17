@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHENR6XC1NTRRV1T89KYKQKN",
+  "taskId": "merge-datasets",
+  "invocationKey": "hockey/roster-update:S000008:merge-datasets",
+  "status": "ok",
+  "startedAt": "2026-02-14T18:14:05.401Z",
+  "finishedAt": "2026-02-14T18:14:55.495Z",
+  "result": {
+    "processed": 6253,
+    "failed": 19,
+    "skipped": 24,
+    "duration_ms": 50094,
+    "outputPath": "output/merge-datasets-KYKQKN.json"
+  },
+  "value": {
+    "processed": 6253,
+    "failed": 19,
+    "skipped": 24,
+    "duration_ms": 50094,
+    "outputPath": "output/merge-datasets-KYKQKN.json"
+  }
+}

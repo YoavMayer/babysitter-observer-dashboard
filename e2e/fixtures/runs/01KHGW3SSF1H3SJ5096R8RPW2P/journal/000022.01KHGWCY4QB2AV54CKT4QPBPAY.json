@@ -1,0 +1,14 @@
+{
+  "type": "RUN_FAILED",
+  "recordedAt": "2026-02-15T14:48:42.903Z",
+  "data": {
+    "runId": "01KHGW3SSF1H3SJ5096R8RPW2P",
+    "status": "failed",
+    "error": {
+      "name": "RateLimitError",
+      "message": "429 Too Many Requests: retry after 60s",
+      "stack": "RateLimitError: 429 Too Many Requests: retry after 60s\n    at processTask (tasks/01KHGWCRXBWJFRHM5VDZA4CMMH/handler.js:42:11)\n    at async runStep (lib/runner.js:187:5)"
+    }
+  },
+  "checksum": "b425543ababd61572e83fad251222a691e4688c21dafc35d557d2406de17de5e"
+}

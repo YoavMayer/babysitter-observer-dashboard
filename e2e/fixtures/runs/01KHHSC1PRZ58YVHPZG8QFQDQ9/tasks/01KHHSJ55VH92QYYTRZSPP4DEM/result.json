@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHHSJ55VH92QYYTRZSPP4DEM",
+  "taskId": "draft-release-notes",
+  "invocationKey": "hockey/stats-ingest:S000007:draft-release-notes",
+  "status": "ok",
+  "startedAt": "2026-02-15T23:18:24.608Z",
+  "finishedAt": "2026-02-15T23:19:00.547Z",
+  "result": {
+    "summary": "Generated draft for Draft release notes",
+    "sections": 7,
+    "wordCount": 2153,
+    "confidence": 0.988,
+    "recommendations": [
+      "Review error handling in async paths",
+      "Implement retry logic for external API calls",
+      "Add input validation for user-facing fields",
+      "Review error handling in async paths"
+    ]
+  },
+  "value": {
+    "summary": "Generated draft for Draft release notes",
+    "sections": 7,
+    "wordCount": 2153,
+    "confidence": 0.988,
+    "recommendations": [
+      "Review error handling in async paths",
+      "Implement retry logic for external API calls",
+      "Add input validation for user-facing fields",
+      "Review error handling in async paths"
+    ]
+  }
+}

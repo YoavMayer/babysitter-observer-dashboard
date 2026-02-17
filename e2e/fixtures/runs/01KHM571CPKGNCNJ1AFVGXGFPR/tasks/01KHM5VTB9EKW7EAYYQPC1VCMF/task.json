@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHM5VTB9EKW7EAYYQPC1VCMF",
+  "taskId": "filter-duplicates",
+  "invocationKey": "hockey/roster-update:S000022:filter-duplicates",
+  "stepId": "S000022",
+  "kind": "node",
+  "title": "Filter duplicates",
+  "io": {
+    "inputJsonPath": "tasks/01KHM5VTB9EKW7EAYYQPC1VCMF/input.json",
+    "outputJsonPath": "tasks/01KHM5VTB9EKW7EAYYQPC1VCMF/result.json"
+  },
+  "inputs": {
+    "records": 3138,
+    "batchSize": 274,
+    "source": "csv",
+    "destination": "elasticsearch"
+  }
+}

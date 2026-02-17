@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KH9139VFXW71C6NYN5J25RW0",
+  "taskId": "deduplicate-records",
+  "invocationKey": "hockey/schedule-sync:S000011:deduplicate-records",
+  "stepId": "S000011",
+  "kind": "node",
+  "title": "Deduplicate records",
+  "io": {
+    "inputJsonPath": "tasks/01KH9139VFXW71C6NYN5J25RW0/input.json",
+    "outputJsonPath": "tasks/01KH9139VFXW71C6NYN5J25RW0/result.json"
+  },
+  "inputs": {
+    "records": 7229,
+    "batchSize": 70,
+    "source": "api",
+    "destination": "postgres"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHHVF08659PRZSNHX7WA0VBF",
+  "taskId": "draft-outreach-email",
+  "invocationKey": "podcast-intel/transcribe:S000010:draft-outreach-email",
+  "status": "ok",
+  "startedAt": "2026-02-15T23:51:36.641Z",
+  "finishedAt": "2026-02-15T23:52:20.026Z",
+  "result": {
+    "summary": "Generated specification for Draft outreach email",
+    "sections": 7,
+    "wordCount": 2429,
+    "confidence": 0.931,
+    "recommendations": [
+      "Review error handling in async paths",
+      "Add structured logging for debugging",
+      "Consider caching for frequently accessed data"
+    ]
+  },
+  "value": {
+    "summary": "Generated specification for Draft outreach email",
+    "sections": 7,
+    "wordCount": 2429,
+    "confidence": 0.931,
+    "recommendations": [
+      "Review error handling in async paths",
+      "Add structured logging for debugging",
+      "Consider caching for frequently accessed data"
+    ]
+  }
+}

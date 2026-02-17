@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHHVEN7PXSP10XZBVKJPY1HN",
+  "taskId": "validate-schema",
+  "invocationKey": "podcast-intel/transcribe:S000009:validate-schema",
+  "status": "ok",
+  "startedAt": "2026-02-15T23:51:26.184Z",
+  "finishedAt": "2026-02-15T23:51:31.158Z",
+  "result": {
+    "processed": 2506,
+    "failed": 42,
+    "skipped": 16,
+    "duration_ms": 4974,
+    "outputPath": "output/validate-schema-JPY1HN.json"
+  },
+  "value": {
+    "processed": 2506,
+    "failed": 42,
+    "skipped": 16,
+    "duration_ms": 4974,
+    "outputPath": "output/validate-schema-JPY1HN.json"
+  }
+}

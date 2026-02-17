@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHG5B0X4NN0JTB1Y3HSHSXX4",
+  "taskId": "draft-release-notes",
+  "invocationKey": "hockey/schedule-sync:S000004:draft-release-notes",
+  "status": "ok",
+  "startedAt": "2026-02-15T08:05:43.462Z",
+  "finishedAt": "2026-02-15T08:06:28.308Z",
+  "result": {
+    "summary": "Generated specification for Draft release notes",
+    "sections": 5,
+    "wordCount": 3209,
+    "confidence": 0.874,
+    "recommendations": [
+      "Add input validation for user-facing fields"
+    ]
+  },
+  "value": {
+    "summary": "Generated specification for Draft release notes",
+    "sections": 5,
+    "wordCount": 3209,
+    "confidence": 0.874,
+    "recommendations": [
+      "Add input validation for user-facing fields"
+    ]
+  }
+}

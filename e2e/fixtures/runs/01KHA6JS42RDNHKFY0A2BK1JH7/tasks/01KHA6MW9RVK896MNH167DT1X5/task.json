@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHA6MW9RVK896MNH167DT1X5",
+  "taskId": "invoke-web-scraper",
+  "invocationKey": "podcast-intel/publish:S000003:invoke-web-scraper",
+  "stepId": "S000003",
+  "kind": "skill",
+  "title": "Invoke web scraper",
+  "io": {
+    "inputJsonPath": "tasks/01KHA6MW9RVK896MNH167DT1X5/input.json",
+    "outputJsonPath": "tasks/01KHA6MW9RVK896MNH167DT1X5/result.json"
+  },
+  "inputs": {
+    "skillName": "invoke-web-scraper",
+    "version": "1.7.20",
+    "config": {
+      "retries": 4,
+      "backoff": "exponential"
+    }
+  }
+}

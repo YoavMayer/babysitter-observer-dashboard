@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KH90SKX0VB8C74C49QTETAFA",
+  "taskId": "generate-api-documentation",
+  "invocationKey": "hockey/schedule-sync:S000002:generate-api-documentation",
+  "status": "ok",
+  "startedAt": "2026-02-12T13:31:38.752Z",
+  "finishedAt": "2026-02-12T13:31:41.166Z",
+  "result": {
+    "summary": "Generated specification for Generate API documentation",
+    "sections": 7,
+    "wordCount": 1035,
+    "confidence": 0.882,
+    "recommendations": [
+      "Consider caching for frequently accessed data"
+    ]
+  },
+  "value": {
+    "summary": "Generated specification for Generate API documentation",
+    "sections": 7,
+    "wordCount": 1035,
+    "confidence": 0.882,
+    "recommendations": [
+      "Consider caching for frequently accessed data"
+    ]
+  }
+}

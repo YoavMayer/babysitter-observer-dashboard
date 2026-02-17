@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KH6M7G5KWEQ1MR7MMJ300ASK",
+  "taskId": "synthesize-user-feedback",
+  "invocationKey": "hockey/stats-ingest:S000004:synthesize-user-feedback",
+  "status": "ok",
+  "startedAt": "2026-02-11T15:13:32.283Z",
+  "finishedAt": "2026-02-11T15:14:00.632Z",
+  "result": {
+    "summary": "Generated draft for Synthesize user feedback",
+    "sections": 3,
+    "wordCount": 977,
+    "confidence": 0.931,
+    "recommendations": [
+      "Review error handling in async paths",
+      "Review error handling in async paths",
+      "Add structured logging for debugging",
+      "Increase test coverage for edge cases"
+    ]
+  },
+  "value": {
+    "summary": "Generated draft for Synthesize user feedback",
+    "sections": 3,
+    "wordCount": 977,
+    "confidence": 0.931,
+    "recommendations": [
+      "Review error handling in async paths",
+      "Review error handling in async paths",
+      "Add structured logging for debugging",
+      "Increase test coverage for edge cases"
+    ]
+  }
+}

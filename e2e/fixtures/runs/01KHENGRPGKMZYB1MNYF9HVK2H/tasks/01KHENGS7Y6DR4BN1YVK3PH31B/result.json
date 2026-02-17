@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHENGS7Y6DR4BN1YVK3PH31B",
+  "taskId": "enrich-metadata",
+  "invocationKey": "hockey/roster-update:S000001:enrich-metadata",
+  "status": "ok",
+  "startedAt": "2026-02-14T18:10:00.799Z",
+  "finishedAt": "2026-02-14T18:10:21.852Z",
+  "result": {
+    "processed": 132,
+    "failed": 2,
+    "skipped": 0,
+    "duration_ms": 21053,
+    "outputPath": "output/enrich-metadata-3PH31B.json"
+  },
+  "value": {
+    "processed": 132,
+    "failed": 2,
+    "skipped": 0,
+    "duration_ms": 21053,
+    "outputPath": "output/enrich-metadata-3PH31B.json"
+  }
+}

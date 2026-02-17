@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T14:45:15.993Z",
+  "data": {
+    "effectId": "01KHGW6M2STHB4J95RBS8ZDBMG",
+    "invocationKey": "podcast-intel/transcribe:S000005:delay-for-webhook-callback",
+    "invocationHash": "07a7a15d668029c394ee3a7d95aaf5ef1e8be7e6a996380e1c1fe05e659e8369",
+    "stepId": "S000005",
+    "taskId": "delay-for-webhook-callback",
+    "kind": "sleep",
+    "label": "Delay for webhook callback",
+    "taskDefRef": "tasks/01KHGW6M2STHB4J95RBS8ZDBMG/task.json"
+  },
+  "checksum": "21ae5b3ef0b2b191328237835592f7313e1b5a96bea888a59a7d5f256ab52e92"
+}

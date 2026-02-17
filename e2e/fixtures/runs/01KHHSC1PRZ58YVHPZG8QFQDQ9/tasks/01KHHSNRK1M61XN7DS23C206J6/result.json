@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHHSNRK1M61XN7DS23C206J6",
+  "taskId": "run-lint-checks",
+  "invocationKey": "hockey/stats-ingest:S000010:run-lint-checks",
+  "status": "ok",
+  "startedAt": "2026-02-15T23:20:21.678Z",
+  "finishedAt": "2026-02-15T23:20:52.793Z",
+  "result": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 108 items",
+    "stderr": "",
+    "duration_ms": 31115
+  },
+  "value": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 108 items",
+    "stderr": "",
+    "duration_ms": 31115
+  }
+}

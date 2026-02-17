@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHGWAN0Z71T0C5Q14Y1RS5GQ",
+  "taskId": "wait-for-rate-limit-cooldown",
+  "invocationKey": "podcast-intel/transcribe:S000008:wait-for-rate-limit-cooldown",
+  "status": "ok",
+  "startedAt": "2026-02-15T14:47:28.797Z",
+  "finishedAt": "2026-02-15T14:47:48.837Z",
+  "result": {
+    "sleptMs": 58907,
+    "reason": "Wait for rate limit cooldown"
+  },
+  "value": {
+    "sleptMs": 58907,
+    "reason": "Wait for rate limit cooldown"
+  }
+}

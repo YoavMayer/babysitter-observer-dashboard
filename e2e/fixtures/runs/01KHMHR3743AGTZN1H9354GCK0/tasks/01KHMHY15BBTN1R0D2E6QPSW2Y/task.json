@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHMHY15BBTN1R0D2E6QPSW2Y",
+  "taskId": "review-generated-content-befor",
+  "invocationKey": "hockey/roster-update:S000007:review-generated-content-befor",
+  "stepId": "S000007",
+  "kind": "breakpoint",
+  "title": "Review generated content before publishing?",
+  "io": {
+    "inputJsonPath": "tasks/01KHMHY15BBTN1R0D2E6QPSW2Y/input.json",
+    "outputJsonPath": "tasks/01KHMHY15BBTN1R0D2E6QPSW2Y/result.json"
+  },
+  "inputs": {
+    "question": "Review generated content before publishing?",
+    "title": "Approval: Review generated content before publishing",
+    "context": {
+      "files": [
+        {
+          "path": "reports/review-generated-content-befor-preview.md",
+          "format": "markdown",
+          "language": "markdown"
+        },
+        {
+          "path": "data/review-generated-content-befor-changes.json",
+          "format": "json"
+        }
+      ],
+      "metadata": {
+        "requestedBy": "scheduler",
+        "priority": "low"
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T23:49:28.687Z",
+  "data": {
+    "effectId": "01KHHVB3FFNFN1Z36MBDNS1HV5",
+    "invocationKey": "podcast-intel/transcribe:S000006:filter-duplicates",
+    "invocationHash": "9a25498c298472ee99181f3e5c3cd99ca49e37b70c31e4309c799f83b66502d9",
+    "stepId": "S000006",
+    "taskId": "filter-duplicates",
+    "kind": "node",
+    "label": "Filter duplicates",
+    "taskDefRef": "tasks/01KHHVB3FFNFN1Z36MBDNS1HV5/task.json"
+  },
+  "checksum": "002a44f0b72b04fb255d63cdd15d736916c8337e1c5c21368a1d5b0213b49854"
+}

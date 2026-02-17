@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHHV6E3SGXVHPXF2G57JWHW7",
+  "taskId": "sync-s3-bucket",
+  "invocationKey": "podcast-intel/transcribe:S000003:sync-s3-bucket",
+  "stepId": "S000003",
+  "kind": "shell",
+  "title": "Sync S3 bucket",
+  "io": {
+    "inputJsonPath": "tasks/01KHHV6E3SGXVHPXF2G57JWHW7/input.json",
+    "outputJsonPath": "tasks/01KHHV6E3SGXVHPXF2G57JWHW7/result.json"
+  },
+  "inputs": {
+    "command": "redis-cli",
+    "args": [
+      "sync",
+      "--env=staging"
+    ],
+    "cwd": "/workspace/podcast-intel",
+    "timeout": 212000
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHMHYMQ3JNPH0YTKG2J2V19G",
+  "taskId": "review-pull-request",
+  "invocationKey": "hockey/roster-update:S000008:review-pull-request",
+  "stepId": "S000008",
+  "kind": "agent",
+  "title": "Review pull request",
+  "io": {
+    "inputJsonPath": "tasks/01KHMHYMQ3JNPH0YTKG2J2V19G/input.json",
+    "outputJsonPath": "tasks/01KHMHYMQ3JNPH0YTKG2J2V19G/result.json"
+  },
+  "inputs": {
+    "context": "Process hockey/roster-update step S000008",
+    "maxTokens": 6386,
+    "temperature": 0.15,
+    "model": "claude-sonnet-4-20250514"
+  },
+  "agent": {
+    "name": "review-pull-request",
+    "prompt": {
+      "role": "researcher",
+      "task": "Review pull request",
+      "instructions": [
+        "Analyze the provided data for hockey-7-shifts",
+        "Follow the project coding standards",
+        "Return structured JSON output",
+        "Prioritize accuracy over speed"
+      ]
+    }
+  }
+}

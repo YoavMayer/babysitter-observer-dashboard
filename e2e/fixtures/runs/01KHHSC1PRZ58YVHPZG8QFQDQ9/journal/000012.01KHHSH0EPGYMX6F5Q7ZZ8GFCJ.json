@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T23:17:45.046Z",
+  "data": {
+    "effectId": "01KHHSH0EPYW8KPVFBVA2DH0CD",
+    "invocationKey": "hockey/stats-ingest:S000006:merge-datasets",
+    "invocationHash": "9c8740a17e61a2679391dbf17702fcf6d501ebbbf7608f65026ff11e3f84a630",
+    "stepId": "S000006",
+    "taskId": "merge-datasets",
+    "kind": "node",
+    "label": "Merge datasets",
+    "taskDefRef": "tasks/01KHHSH0EPYW8KPVFBVA2DH0CD/task.json"
+  },
+  "checksum": "d5c1070acd8e138cfd04331f95f9ce9695283ca47cffe01aca6db9dc85e14f35"
+}

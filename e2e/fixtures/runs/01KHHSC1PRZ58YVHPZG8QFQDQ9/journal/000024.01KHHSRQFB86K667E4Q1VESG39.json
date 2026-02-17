@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T23:21:57.995Z",
+  "data": {
+    "effectId": "01KHHSRQFBGJT6FTTAHGVHGZWG",
+    "invocationKey": "hockey/stats-ingest:S000012:enrich-metadata",
+    "invocationHash": "093f44487f727304f804dd97dc7099a4e466ed5197d8785de759b71e8c82b65e",
+    "stepId": "S000012",
+    "taskId": "enrich-metadata",
+    "kind": "node",
+    "label": "Enrich metadata",
+    "taskDefRef": "tasks/01KHHSRQFBGJT6FTTAHGVHGZWG/task.json"
+  },
+  "checksum": "1b86e466e5a1fa7ee9bbb2f43b9f89ed9f7109bb07057e62f15ccab027e7bd91"
+}

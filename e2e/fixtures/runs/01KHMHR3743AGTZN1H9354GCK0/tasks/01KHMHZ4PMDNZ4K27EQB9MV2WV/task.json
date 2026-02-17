@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHMHZ4PMDNZ4K27EQB9MV2WV",
+  "taskId": "generate-executive-summary",
+  "invocationKey": "hockey/roster-update:S000010:generate-executive-summary",
+  "stepId": "S000010",
+  "kind": "agent",
+  "title": "Generate executive summary",
+  "io": {
+    "inputJsonPath": "tasks/01KHMHZ4PMDNZ4K27EQB9MV2WV/input.json",
+    "outputJsonPath": "tasks/01KHMHZ4PMDNZ4K27EQB9MV2WV/result.json"
+  },
+  "inputs": {
+    "context": "Process hockey/roster-update step S000010",
+    "maxTokens": 6598,
+    "temperature": 0.75,
+    "model": "claude-haiku-235-20250227"
+  },
+  "agent": {
+    "name": "generate-executive-summary",
+    "prompt": {
+      "role": "writer",
+      "task": "Generate executive summary",
+      "instructions": [
+        "Analyze the provided data for hockey-7-shifts",
+        "Follow the project coding standards",
+        "Return structured JSON output",
+        "Include confidence scores"
+      ]
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHKJP8VJF2RKY083FVGYNH03",
+  "taskId": "compress-assets",
+  "invocationKey": "podcast-intel/transcribe:S000018:compress-assets",
+  "status": "ok",
+  "startedAt": "2026-02-16T15:56:47.649Z",
+  "finishedAt": "2026-02-16T15:56:50.913Z",
+  "result": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 200 items",
+    "stderr": "",
+    "duration_ms": 3264
+  },
+  "value": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 200 items",
+    "stderr": "",
+    "duration_ms": 3264
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-12T13:30:49.890Z",
+  "data": {
+    "effectId": "01KH90R5N20GX43FWHNW4TBNFK",
+    "invocationKey": "hockey/schedule-sync:S000001:call-translation-api",
+    "invocationHash": "4fcbfe7ca4852ae57be13c88d4af359a7a52abf6439d2520ef23d536bd51e464",
+    "stepId": "S000001",
+    "taskId": "call-translation-api",
+    "kind": "skill",
+    "label": "Call translation API",
+    "taskDefRef": "tasks/01KH90R5N20GX43FWHNW4TBNFK/task.json"
+  },
+  "checksum": "15aab517aafb320a0c2df370b57353730e5ac5fc3670dfb524b738cdbde371f0"
+}

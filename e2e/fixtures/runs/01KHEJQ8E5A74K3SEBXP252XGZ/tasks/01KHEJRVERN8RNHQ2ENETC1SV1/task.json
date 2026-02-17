@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHEJRVERN8RNHQ2ENETC1SV1",
+  "taskId": "draft-release-notes",
+  "invocationKey": "podcast-intel/publish:S000005:draft-release-notes",
+  "stepId": "S000005",
+  "kind": "agent",
+  "title": "Draft release notes",
+  "io": {
+    "inputJsonPath": "tasks/01KHEJRVERN8RNHQ2ENETC1SV1/input.json",
+    "outputJsonPath": "tasks/01KHEJRVERN8RNHQ2ENETC1SV1/result.json"
+  },
+  "inputs": {
+    "context": "Process podcast-intel/publish step S000005",
+    "maxTokens": 7781,
+    "temperature": 0.82,
+    "model": "claude-sonnet-4-20250514"
+  },
+  "agent": {
+    "name": "draft-release-notes",
+    "prompt": {
+      "role": "researcher",
+      "task": "Draft release notes",
+      "instructions": [
+        "Analyze the provided data for podcast-intel",
+        "Follow the project coding standards",
+        "Return structured JSON output",
+        "Prioritize accuracy over speed"
+      ]
+    }
+  }
+}

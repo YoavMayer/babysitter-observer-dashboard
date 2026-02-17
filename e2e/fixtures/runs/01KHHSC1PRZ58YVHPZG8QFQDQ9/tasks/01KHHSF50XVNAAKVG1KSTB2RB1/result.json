@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHHSF50XVNAAKVG1KSTB2RB1",
+  "taskId": "compress-assets",
+  "invocationKey": "hockey/stats-ingest:S000003:compress-assets",
+  "status": "ok",
+  "startedAt": "2026-02-15T23:16:44.760Z",
+  "finishedAt": "2026-02-15T23:16:58.578Z",
+  "result": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 164 items",
+    "stderr": "",
+    "duration_ms": 13818
+  },
+  "value": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 164 items",
+    "stderr": "",
+    "duration_ms": 13818
+  }
+}

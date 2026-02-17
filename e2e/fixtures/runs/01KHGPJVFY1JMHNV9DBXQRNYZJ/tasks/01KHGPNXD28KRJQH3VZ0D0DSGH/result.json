@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHGPNXD28KRJQH3VZ0D0DSGH",
+  "taskId": "execute-ocr-pipeline",
+  "invocationKey": "hockey/stats-ingest:S000005:execute-ocr-pipeline",
+  "status": "ok",
+  "startedAt": "2026-02-15T13:08:46.485Z",
+  "finishedAt": "2026-02-15T13:09:36.706Z",
+  "result": {
+    "invocations": 12,
+    "successRate": 0.837,
+    "resultCount": 198
+  },
+  "value": {
+    "invocations": 12,
+    "successRate": 0.837,
+    "resultCount": 198
+  }
+}

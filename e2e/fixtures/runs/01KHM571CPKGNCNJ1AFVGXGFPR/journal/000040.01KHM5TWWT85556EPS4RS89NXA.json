@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-16T21:31:20.858Z",
+  "data": {
+    "effectId": "01KHM5TWWTCR5AJRJTZV9XFSFH",
+    "invocationKey": "hockey/roster-update:S000020:generate-coverage-report",
+    "invocationHash": "58b0cfe6aacda509cd735c10f174c599a8cd0a65dabda51d4a1f92f882df91b6",
+    "stepId": "S000020",
+    "taskId": "generate-coverage-report",
+    "kind": "shell",
+    "label": "Generate coverage report",
+    "taskDefRef": "tasks/01KHM5TWWTCR5AJRJTZV9XFSFH/task.json"
+  },
+  "checksum": "65f0b38756a6d28ad27fd0da38d8b7ee930f393510512864e9f631868cb7b135"
+}

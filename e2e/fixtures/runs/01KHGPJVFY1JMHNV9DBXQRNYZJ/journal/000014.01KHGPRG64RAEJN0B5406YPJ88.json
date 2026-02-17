@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T13:10:10.372Z",
+  "data": {
+    "effectId": "01KHGPRG64CSH3XGB0REAM9HBV",
+    "invocationKey": "hockey/stats-ingest:S000007:generate-coverage-report",
+    "invocationHash": "3854169e7970322ed4b23546fff90516e604fc71a9a9bddda6f34bebe136faf7",
+    "stepId": "S000007",
+    "taskId": "generate-coverage-report",
+    "kind": "shell",
+    "label": "Generate coverage report",
+    "taskDefRef": "tasks/01KHGPRG64CSH3XGB0REAM9HBV/task.json"
+  },
+  "checksum": "4a3e0318a154240772302cf73a25432835075aa79d882715d117973847c304b5"
+}

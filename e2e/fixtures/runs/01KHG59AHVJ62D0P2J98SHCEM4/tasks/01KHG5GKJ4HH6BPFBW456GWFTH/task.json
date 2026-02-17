@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHG5GKJ4HH6BPFBW456GWFTH",
+  "taskId": "compress-assets",
+  "invocationKey": "hockey/schedule-sync:S000008:compress-assets",
+  "stepId": "S000008",
+  "kind": "shell",
+  "title": "Compress assets",
+  "io": {
+    "inputJsonPath": "tasks/01KHG5GKJ4HH6BPFBW456GWFTH/input.json",
+    "outputJsonPath": "tasks/01KHG5GKJ4HH6BPFBW456GWFTH/result.json"
+  },
+  "inputs": {
+    "command": "docker",
+    "args": [
+      "sync",
+      "--env=dev"
+    ],
+    "cwd": "/workspace/hockey-7-shifts",
+    "timeout": 209000
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "type": "RUN_CREATED",
+  "recordedAt": "2026-02-15T17:43:12.847Z",
+  "data": {
+    "runId": "01KHH6CEPFA57HTX21MZE70ZWK",
+    "processId": "podcast-intel/summarize",
+    "entrypoint": {
+      "importPath": "../../processes/podcast-intel-summarize.js",
+      "exportName": "process"
+    },
+    "inputsRef": "inputs.json"
+  },
+  "checksum": "ba0b48479d5aff9357446c3ce2721354d66cacec4e65a77d74718103b06c6a7e"
+}

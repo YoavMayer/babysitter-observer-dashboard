@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHKJHTZM8QBHKC96QCYNAS5D",
+  "taskId": "draft-outreach-email",
+  "invocationKey": "podcast-intel/transcribe:S000013:draft-outreach-email",
+  "stepId": "S000013",
+  "kind": "agent",
+  "title": "Draft outreach email",
+  "io": {
+    "inputJsonPath": "tasks/01KHKJHTZM8QBHKC96QCYNAS5D/input.json",
+    "outputJsonPath": "tasks/01KHKJHTZM8QBHKC96QCYNAS5D/result.json"
+  },
+  "inputs": {
+    "context": "Process podcast-intel/transcribe step S000013",
+    "maxTokens": 6178,
+    "temperature": 0.33,
+    "model": "claude-haiku-235-20250227"
+  },
+  "agent": {
+    "name": "draft-outreach-email",
+    "prompt": {
+      "role": "architect",
+      "task": "Draft outreach email",
+      "instructions": [
+        "Analyze the provided data for podcast-intel",
+        "Follow the project coding standards",
+        "Return structured JSON output",
+        "Cite sources where applicable"
+      ]
+    }
+  }
+}

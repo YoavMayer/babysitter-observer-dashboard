@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHM5VBCYEW4KHMN9X0QYWPWV",
+  "taskId": "sync-s3-bucket",
+  "invocationKey": "hockey/roster-update:S000021:sync-s3-bucket",
+  "status": "ok",
+  "startedAt": "2026-02-16T21:31:36.019Z",
+  "finishedAt": "2026-02-16T21:31:48.039Z",
+  "result": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 137 items",
+    "stderr": "",
+    "duration_ms": 12020
+  },
+  "value": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 137 items",
+    "stderr": "",
+    "duration_ms": 12020
+  }
+}

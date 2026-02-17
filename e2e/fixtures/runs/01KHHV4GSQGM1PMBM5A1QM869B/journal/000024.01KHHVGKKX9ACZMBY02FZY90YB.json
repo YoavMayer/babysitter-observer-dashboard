@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T23:52:29.053Z",
+  "data": {
+    "effectId": "01KHHVGKKXDX2GFV0ZAPE9S00A",
+    "invocationKey": "podcast-intel/transcribe:S000012:generate-api-documentation",
+    "invocationHash": "70f827b4cb9c4e76431b0325e39c9094fd704ca8d5567f1f513fef90a88a4c7b",
+    "stepId": "S000012",
+    "taskId": "generate-api-documentation",
+    "kind": "agent",
+    "label": "Generate API documentation",
+    "taskDefRef": "tasks/01KHHVGKKXDX2GFV0ZAPE9S00A/task.json"
+  },
+  "checksum": "247ca51df89fdcb09d335ee08ab59ae592bd257fc6d68aaa9ee2c3d523421dbd"
+}

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHHNF39JC19M2P7RKVZ5SVGQ",
+  "taskId": "compute-aggregates",
+  "invocationKey": "podcast-intel/summarize:S000005:compute-aggregates",
+  "status": "ok",
+  "startedAt": "2026-02-15T22:06:48.759Z",
+  "finishedAt": "2026-02-15T22:07:24.362Z",
+  "result": {
+    "processed": 7278,
+    "failed": 50,
+    "skipped": 32,
+    "duration_ms": 35603,
+    "outputPath": "output/compute-aggregates-Z5SVGQ.json"
+  },
+  "value": {
+    "processed": 7278,
+    "failed": 50,
+    "skipped": 32,
+    "duration_ms": 35603,
+    "outputPath": "output/compute-aggregates-Z5SVGQ.json"
+  }
+}

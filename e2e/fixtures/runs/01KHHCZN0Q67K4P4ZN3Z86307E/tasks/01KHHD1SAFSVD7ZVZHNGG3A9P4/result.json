@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHHD1SAFSVD7ZVZHNGG3A9P4",
+  "taskId": "generate-api-documentation",
+  "invocationKey": "hockey/roster-update:S000003:generate-api-documentation",
+  "status": "ok",
+  "startedAt": "2026-02-15T19:39:44.437Z",
+  "finishedAt": "2026-02-15T19:40:12.227Z",
+  "result": {
+    "summary": "Generated analysis for Generate API documentation",
+    "sections": 4,
+    "wordCount": 3975,
+    "confidence": 0.73,
+    "recommendations": [
+      "Increase test coverage for edge cases",
+      "Add input validation for user-facing fields",
+      "Add structured logging for debugging",
+      "Implement retry logic for external API calls"
+    ]
+  },
+  "value": {
+    "summary": "Generated analysis for Generate API documentation",
+    "sections": 4,
+    "wordCount": 3975,
+    "confidence": 0.73,
+    "recommendations": [
+      "Increase test coverage for edge cases",
+      "Add input validation for user-facing fields",
+      "Add structured logging for debugging",
+      "Implement retry logic for external API calls"
+    ]
+  }
+}

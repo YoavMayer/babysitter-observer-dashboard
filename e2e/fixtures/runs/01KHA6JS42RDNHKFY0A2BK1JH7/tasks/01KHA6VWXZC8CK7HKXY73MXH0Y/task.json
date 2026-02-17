@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHA6VWXZC8CK7HKXY73MXH0Y",
+  "taskId": "normalize-timestamps",
+  "invocationKey": "podcast-intel/publish:S000010:normalize-timestamps",
+  "stepId": "S000010",
+  "kind": "node",
+  "title": "Normalize timestamps",
+  "io": {
+    "inputJsonPath": "tasks/01KHA6VWXZC8CK7HKXY73MXH0Y/input.json",
+    "outputJsonPath": "tasks/01KHA6VWXZC8CK7HKXY73MXH0Y/result.json"
+  },
+  "inputs": {
+    "records": 7764,
+    "batchSize": 78,
+    "source": "postgres",
+    "destination": "s3"
+  }
+}

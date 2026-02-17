@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHB7Y6TBWA9KD32KESFD7A2H",
+  "taskId": "merge-datasets",
+  "invocationKey": "hockey/stats-ingest:S000008:merge-datasets",
+  "stepId": "S000008",
+  "kind": "node",
+  "title": "Merge datasets",
+  "io": {
+    "inputJsonPath": "tasks/01KHB7Y6TBWA9KD32KESFD7A2H/input.json",
+    "outputJsonPath": "tasks/01KHB7Y6TBWA9KD32KESFD7A2H/result.json"
+  },
+  "inputs": {
+    "records": 3679,
+    "batchSize": 489,
+    "source": "postgres",
+    "destination": "elasticsearch"
+  }
+}

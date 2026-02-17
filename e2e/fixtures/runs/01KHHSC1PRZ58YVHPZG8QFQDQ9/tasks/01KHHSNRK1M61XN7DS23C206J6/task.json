@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHHSNRK1M61XN7DS23C206J6",
+  "taskId": "run-lint-checks",
+  "invocationKey": "hockey/stats-ingest:S000010:run-lint-checks",
+  "stepId": "S000010",
+  "kind": "shell",
+  "title": "Run lint checks",
+  "io": {
+    "inputJsonPath": "tasks/01KHHSNRK1M61XN7DS23C206J6/input.json",
+    "outputJsonPath": "tasks/01KHHSNRK1M61XN7DS23C206J6/result.json"
+  },
+  "inputs": {
+    "command": "psql",
+    "args": [
+      "build",
+      "--env=staging"
+    ],
+    "cwd": "/workspace/hockey-7-shifts",
+    "timeout": 158000
+  }
+}

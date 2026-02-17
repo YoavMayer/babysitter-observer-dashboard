@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-12T13:35:28.575Z",
+  "data": {
+    "effectId": "01KH910NSZW8K20X9AF9ZJ5A78",
+    "invocationKey": "hockey/schedule-sync:S000008:invoke-web-scraper",
+    "invocationHash": "5385b1855172d068f0252470eee24657a78e4d9e86c6199d047d6143b8d8a111",
+    "stepId": "S000008",
+    "taskId": "invoke-web-scraper",
+    "kind": "skill",
+    "label": "Invoke web scraper",
+    "taskDefRef": "tasks/01KH910NSZW8K20X9AF9ZJ5A78/task.json"
+  },
+  "checksum": "289057ac9b506214f940d9ef491b325d8cbd8cbe18d12d4f4c5195c64559fb7c"
+}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHB7WC3X7YQA4424R72Z9X14",
+  "taskId": "transform-csv-to-json",
+  "invocationKey": "hockey/stats-ingest:S000007:transform-csv-to-json",
+  "stepId": "S000007",
+  "kind": "node",
+  "title": "Transform CSV to JSON",
+  "io": {
+    "inputJsonPath": "tasks/01KHB7WC3X7YQA4424R72Z9X14/input.json",
+    "outputJsonPath": "tasks/01KHB7WC3X7YQA4424R72Z9X14/result.json"
+  },
+  "inputs": {
+    "records": 5759,
+    "batchSize": 258,
+    "source": "redis",
+    "destination": "s3"
+  }
+}

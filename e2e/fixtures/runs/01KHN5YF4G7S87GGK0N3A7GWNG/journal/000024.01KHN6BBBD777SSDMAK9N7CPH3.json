@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-17T06:59:34.381Z",
+  "data": {
+    "effectId": "01KHN6BBBDWCJXRN2XY48TB0A6",
+    "invocationKey": "hockey/schedule-sync:S000012:approve-budget-allocation",
+    "invocationHash": "c9c47a418c0db07add4f50232d9460fd8ffbcb6624b1767faec5f00f2919228c",
+    "stepId": "S000012",
+    "taskId": "approve-budget-allocation",
+    "kind": "breakpoint",
+    "label": "Approve budget allocation?",
+    "taskDefRef": "tasks/01KHN6BBBDWCJXRN2XY48TB0A6/task.json"
+  },
+  "checksum": "dc5a6b658ca026b6d7d243cf37ad0208b8afb42053534ee0340b8864aba56cfe"
+}

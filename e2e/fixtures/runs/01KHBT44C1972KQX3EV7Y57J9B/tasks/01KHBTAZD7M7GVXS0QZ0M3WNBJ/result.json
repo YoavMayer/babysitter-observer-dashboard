@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHBTAZD7M7GVXS0QZ0M3WNBJ",
+  "taskId": "index-search-documents",
+  "invocationKey": "podcast-intel/transcribe:S000009:index-search-documents",
+  "status": "ok",
+  "startedAt": "2026-02-13T15:36:30.006Z",
+  "finishedAt": "2026-02-13T15:37:24.145Z",
+  "result": {
+    "processed": 4855,
+    "failed": 71,
+    "skipped": 24,
+    "duration_ms": 54139,
+    "outputPath": "output/index-search-documents-M3WNBJ.json"
+  },
+  "value": {
+    "processed": 4855,
+    "failed": 71,
+    "skipped": 24,
+    "duration_ms": 54139,
+    "outputPath": "output/index-search-documents-M3WNBJ.json"
+  }
+}

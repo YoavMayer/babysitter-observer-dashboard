@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T22:04:32.760Z",
+  "data": {
+    "effectId": "01KHHNAZ3RQFZA9786CVXZYJH2",
+    "invocationKey": "podcast-intel/summarize:S000002:normalize-timestamps",
+    "invocationHash": "be8bd9b7f4ac465aae17a3e9dc7de05e9874eeb272f4a7d288e5c66402628bb6",
+    "stepId": "S000002",
+    "taskId": "normalize-timestamps",
+    "kind": "node",
+    "label": "Normalize timestamps",
+    "taskDefRef": "tasks/01KHHNAZ3RQFZA9786CVXZYJH2/task.json"
+  },
+  "checksum": "0455f2438526917adf02bef93efae249de94c172852d4eebb17d58ba7cf4a83e"
+}

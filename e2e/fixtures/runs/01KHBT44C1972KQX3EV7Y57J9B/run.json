@@ -1,0 +1,14 @@
+{
+  "runId": "01KHBT44C1972KQX3EV7Y57J9B",
+  "request": "podcast-intel/transcribe",
+  "processId": "podcast-intel/transcribe",
+  "entrypoint": {
+    "importPath": "../../processes/podcast-intel-transcribe.js",
+    "exportName": "process"
+  },
+  "processPath": "../../processes/podcast-intel-transcribe.js",
+  "layoutVersion": "2026.01-storage-preview",
+  "createdAt": "2026-02-13T15:32:45.057Z",
+  "completionSecret": "ddfb35f1011756a4e387738d4ff9e7b3",
+  "projectName": "podcast-intel"
+}

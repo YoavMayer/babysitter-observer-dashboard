@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHG5CG2CFEX0PFTJW36BX5J9",
+  "taskId": "analyze-competitor-data",
+  "invocationKey": "hockey/schedule-sync:S000005:analyze-competitor-data",
+  "status": "ok",
+  "startedAt": "2026-02-15T08:06:31.557Z",
+  "finishedAt": "2026-02-15T08:07:21.405Z",
+  "result": {
+    "summary": "Generated report for Analyze competitor data",
+    "sections": 4,
+    "wordCount": 1934,
+    "confidence": 0.898,
+    "recommendations": [
+      "Implement retry logic for external API calls",
+      "Review error handling in async paths",
+      "Review error handling in async paths",
+      "Review error handling in async paths"
+    ]
+  },
+  "value": {
+    "summary": "Generated report for Analyze competitor data",
+    "sections": 4,
+    "wordCount": 1934,
+    "confidence": 0.898,
+    "recommendations": [
+      "Implement retry logic for external API calls",
+      "Review error handling in async paths",
+      "Review error handling in async paths",
+      "Review error handling in async paths"
+    ]
+  }
+}

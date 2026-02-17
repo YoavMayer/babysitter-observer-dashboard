@@ -1,0 +1,14 @@
+{
+  "runId": "01KHM571CPKGNCNJ1AFVGXGFPR",
+  "request": "hockey/roster-update",
+  "processId": "hockey/roster-update",
+  "entrypoint": {
+    "importPath": "../../processes/hockey-roster-update.js",
+    "exportName": "process"
+  },
+  "processPath": "../../processes/hockey-roster-update.js",
+  "layoutVersion": "2026.01-storage-preview",
+  "createdAt": "2026-02-16T21:20:30.102Z",
+  "completionSecret": "65c8b4c52a6aed8a035e84c8e33bb242",
+  "projectName": "hockey-7-shifts"
+}

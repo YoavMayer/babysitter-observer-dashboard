@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHN5ZRCEGPNK17FBK940FBW3",
+  "taskId": "enrich-metadata",
+  "invocationKey": "hockey/schedule-sync:S000002:enrich-metadata",
+  "stepId": "S000002",
+  "kind": "node",
+  "title": "Enrich metadata",
+  "io": {
+    "inputJsonPath": "tasks/01KHN5ZRCEGPNK17FBK940FBW3/input.json",
+    "outputJsonPath": "tasks/01KHN5ZRCEGPNK17FBK940FBW3/result.json"
+  },
+  "inputs": {
+    "records": 8364,
+    "batchSize": 440,
+    "source": "s3",
+    "destination": "elasticsearch"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHN6BBBDWCJXRN2XY48TB0A6",
+  "taskId": "approve-budget-allocation",
+  "invocationKey": "hockey/schedule-sync:S000012:approve-budget-allocation",
+  "status": "ok",
+  "startedAt": "2026-02-17T06:59:34.807Z",
+  "finishedAt": "2026-02-17T07:00:12.359Z",
+  "result": {
+    "approved": true,
+    "approvedBy": "user",
+    "approvedAt": "2026-02-17T07:00:12.359Z"
+  },
+  "value": {
+    "approved": true,
+    "approvedBy": "user",
+    "approvedAt": "2026-02-17T07:00:12.359Z"
+  }
+}

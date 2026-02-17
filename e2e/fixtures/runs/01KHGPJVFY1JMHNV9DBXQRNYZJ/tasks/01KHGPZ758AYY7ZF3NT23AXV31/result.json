@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHGPZ758AYY7ZF3NT23AXV31",
+  "taskId": "review-generated-content-befor",
+  "invocationKey": "hockey/stats-ingest:S000013:review-generated-content-befor",
+  "status": "ok",
+  "startedAt": "2026-02-15T13:13:52.021Z",
+  "finishedAt": "2026-02-15T13:14:02.407Z",
+  "result": {
+    "approved": true,
+    "approvedBy": "user",
+    "approvedAt": "2026-02-15T13:14:02.407Z"
+  },
+  "value": {
+    "approved": true,
+    "approvedBy": "user",
+    "approvedAt": "2026-02-15T13:14:02.407Z"
+  }
+}

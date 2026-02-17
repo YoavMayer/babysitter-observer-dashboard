@@ -1,0 +1,25 @@
+// Breakpoint-related types
+
+export interface BreakpointFile {
+  path: string;
+  format: string;
+  language?: string;
+}
+
+export interface BreakpointPayload {
+  question: string;
+  title: string;
+  context?: {
+    files?: BreakpointFile[];
+  };
+}
+
+export interface BreakpointResolveRequest {
+  approved: boolean;
+  value?: string;
+}
+
+export interface BreakpointResolveResponse {
+  success: boolean;
+  error?: string;
+}

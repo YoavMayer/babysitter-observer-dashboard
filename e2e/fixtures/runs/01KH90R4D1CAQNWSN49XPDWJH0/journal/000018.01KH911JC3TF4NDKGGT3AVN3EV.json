@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-12T13:35:57.827Z",
+  "data": {
+    "effectId": "01KH911JC3MJMDWQV0AMV0SGJC",
+    "invocationKey": "hockey/schedule-sync:S000009:deploy-to-staging",
+    "invocationHash": "658f8541198f887648bb15e42019246eb5c548f370981789913e5c9b501b2e07",
+    "stepId": "S000009",
+    "taskId": "deploy-to-staging",
+    "kind": "shell",
+    "label": "Deploy to staging",
+    "taskDefRef": "tasks/01KH911JC3MJMDWQV0AMV0SGJC/task.json"
+  },
+  "checksum": "7a77ef5a2986b0e29c9be061e35fe7f644eb036985c7359867a018928d62a133"
+}

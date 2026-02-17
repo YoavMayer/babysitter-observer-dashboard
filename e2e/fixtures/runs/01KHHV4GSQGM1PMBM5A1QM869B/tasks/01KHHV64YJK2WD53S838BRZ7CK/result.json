@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHHV64YJK2WD53S838BRZ7CK",
+  "taskId": "generate-executive-summary",
+  "invocationKey": "podcast-intel/transcribe:S000002:generate-executive-summary",
+  "status": "ok",
+  "startedAt": "2026-02-15T23:46:46.509Z",
+  "finishedAt": "2026-02-15T23:46:51.770Z",
+  "result": {
+    "summary": "Generated draft for Generate executive summary",
+    "sections": 5,
+    "wordCount": 3943,
+    "confidence": 0.835,
+    "recommendations": [
+      "Add input validation for user-facing fields"
+    ]
+  },
+  "value": {
+    "summary": "Generated draft for Generate executive summary",
+    "sections": 5,
+    "wordCount": 3943,
+    "confidence": 0.835,
+    "recommendations": [
+      "Add input validation for user-facing fields"
+    ]
+  }
+}

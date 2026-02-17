@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T08:12:08.465Z",
+  "data": {
+    "effectId": "01KHG5PSCHRNFE72ZJA4M0GY3H",
+    "invocationKey": "hockey/schedule-sync:S000013:process-payment-webhook",
+    "invocationHash": "82a64b1035e319aec02001bba542855cbdcf265cfbbcecd8a2a397ea86b090f7",
+    "stepId": "S000013",
+    "taskId": "process-payment-webhook",
+    "kind": "skill",
+    "label": "Process payment webhook",
+    "taskDefRef": "tasks/01KHG5PSCHRNFE72ZJA4M0GY3H/task.json"
+  },
+  "checksum": "d819585d90a97e4914d022e285e98129db0e6d43400249595b3becdd9a48e1d4"
+}

@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T08:09:38.369Z",
+  "data": {
+    "effectId": "01KHG5J6T18G8QN048RF9NVDRJ",
+    "invocationKey": "hockey/schedule-sync:S000010:filter-duplicates",
+    "invocationHash": "1efd4582ad5d5f81b876a99b512a1f50dde0485dd62a3567ff7452734a6788e6",
+    "stepId": "S000010",
+    "taskId": "filter-duplicates",
+    "kind": "node",
+    "label": "Filter duplicates",
+    "taskDefRef": "tasks/01KHG5J6T18G8QN048RF9NVDRJ/task.json"
+  },
+  "checksum": "902cb6b2c461a25d6d03a0d1c3efe43ba186c0b1e60a9ebe19c45efe317015ed"
+}

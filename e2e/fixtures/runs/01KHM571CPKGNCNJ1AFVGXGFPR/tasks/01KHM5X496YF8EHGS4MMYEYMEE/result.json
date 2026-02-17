@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHM5X496YF8EHGS4MMYEYMEE",
+  "taskId": "generate-api-documentation",
+  "invocationKey": "hockey/roster-update:S000023:generate-api-documentation",
+  "status": "error",
+  "startedAt": "2026-02-16T21:32:34.362Z",
+  "finishedAt": "2026-02-16T21:32:51.839Z",
+  "error": {
+    "name": "TimeoutError",
+    "message": "Task exceeded 120s timeout",
+    "stack": "TimeoutError: Task exceeded 120s timeout\n    at processTask (tasks/01KHM5X496YF8EHGS4MMYEYMEE/handler.js:42:11)\n    at async runStep (lib/runner.js:187:5)"
+  }
+}

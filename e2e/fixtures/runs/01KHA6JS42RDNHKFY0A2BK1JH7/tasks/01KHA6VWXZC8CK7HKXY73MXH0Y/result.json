@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHA6VWXZC8CK7HKXY73MXH0Y",
+  "taskId": "normalize-timestamps",
+  "invocationKey": "podcast-intel/publish:S000010:normalize-timestamps",
+  "status": "ok",
+  "startedAt": "2026-02-13T00:36:59.037Z",
+  "finishedAt": "2026-02-13T00:37:30.868Z",
+  "result": {
+    "processed": 6480,
+    "failed": 48,
+    "skipped": 8,
+    "duration_ms": 31831,
+    "outputPath": "output/normalize-timestamps-3MXH0Y.json"
+  },
+  "value": {
+    "processed": 6480,
+    "failed": 48,
+    "skipped": 8,
+    "duration_ms": 31831,
+    "outputPath": "output/normalize-timestamps-3MXH0Y.json"
+  }
+}

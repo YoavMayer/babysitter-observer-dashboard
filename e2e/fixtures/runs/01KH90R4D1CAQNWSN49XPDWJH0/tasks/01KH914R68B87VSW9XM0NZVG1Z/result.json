@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KH914R68B87VSW9XM0NZVG1Z",
+  "taskId": "invoke-web-scraper",
+  "invocationKey": "hockey/schedule-sync:S000012:invoke-web-scraper",
+  "status": "ok",
+  "startedAt": "2026-02-12T13:37:43.579Z",
+  "finishedAt": "2026-02-12T13:38:21.416Z",
+  "result": {
+    "invocations": 18,
+    "successRate": 0.891,
+    "resultCount": 497
+  },
+  "value": {
+    "invocations": 18,
+    "successRate": 0.891,
+    "resultCount": 497
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHENHFB9GVVFWT73XF0HR22G",
+  "taskId": "validate-schema",
+  "invocationKey": "hockey/roster-update:S000002:validate-schema",
+  "stepId": "S000002",
+  "kind": "node",
+  "title": "Validate schema",
+  "io": {
+    "inputJsonPath": "tasks/01KHENHFB9GVVFWT73XF0HR22G/input.json",
+    "outputJsonPath": "tasks/01KHENHFB9GVVFWT73XF0HR22G/result.json"
+  },
+  "inputs": {
+    "records": 3768,
+    "batchSize": 306,
+    "source": "s3",
+    "destination": "s3"
+  }
+}

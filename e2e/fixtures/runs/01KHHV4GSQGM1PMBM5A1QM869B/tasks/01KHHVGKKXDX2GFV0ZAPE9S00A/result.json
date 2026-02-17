@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHHVGKKXDX2GFV0ZAPE9S00A",
+  "taskId": "generate-api-documentation",
+  "invocationKey": "podcast-intel/transcribe:S000012:generate-api-documentation",
+  "status": "ok",
+  "startedAt": "2026-02-15T23:52:30.987Z",
+  "finishedAt": "2026-02-15T23:53:02.571Z",
+  "result": {
+    "summary": "Generated draft for Generate API documentation",
+    "sections": 6,
+    "wordCount": 2173,
+    "confidence": 0.774,
+    "recommendations": [
+      "Add structured logging for debugging",
+      "Implement retry logic for external API calls"
+    ]
+  },
+  "value": {
+    "summary": "Generated draft for Generate API documentation",
+    "sections": 6,
+    "wordCount": 2173,
+    "confidence": 0.774,
+    "recommendations": [
+      "Add structured logging for debugging",
+      "Implement retry logic for external API calls"
+    ]
+  }
+}

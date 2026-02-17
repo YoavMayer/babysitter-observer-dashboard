@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHBTED0PFPN02WNSCSJJ2KED",
+  "taskId": "analyze-competitor-data",
+  "invocationKey": "podcast-intel/transcribe:S000011:analyze-competitor-data",
+  "status": "error",
+  "startedAt": "2026-02-13T15:38:23.476Z",
+  "finishedAt": "2026-02-13T15:38:46.875Z",
+  "error": {
+    "name": "TimeoutError",
+    "message": "Task exceeded 120s timeout",
+    "stack": "TimeoutError: Task exceeded 120s timeout\n    at processTask (tasks/01KHBTED0PFPN02WNSCSJJ2KED/handler.js:42:11)\n    at async runStep (lib/runner.js:187:5)"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHG5J6T18G8QN048RF9NVDRJ",
+  "taskId": "filter-duplicates",
+  "invocationKey": "hockey/schedule-sync:S000010:filter-duplicates",
+  "stepId": "S000010",
+  "kind": "node",
+  "title": "Filter duplicates",
+  "io": {
+    "inputJsonPath": "tasks/01KHG5J6T18G8QN048RF9NVDRJ/input.json",
+    "outputJsonPath": "tasks/01KHG5J6T18G8QN048RF9NVDRJ/result.json"
+  },
+  "inputs": {
+    "records": 9634,
+    "batchSize": 332,
+    "source": "redis",
+    "destination": "elasticsearch"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-12T13:31:37.248Z",
+  "data": {
+    "effectId": "01KH90SKX0VB8C74C49QTETAFA",
+    "invocationKey": "hockey/schedule-sync:S000002:generate-api-documentation",
+    "invocationHash": "3bad9bf86995cd57c84a3c3b8efa2bc3cdd8ad1e43cbe315b12c7f71c73053a3",
+    "stepId": "S000002",
+    "taskId": "generate-api-documentation",
+    "kind": "agent",
+    "label": "Generate API documentation",
+    "taskDefRef": "tasks/01KH90SKX0VB8C74C49QTETAFA/task.json"
+  },
+  "checksum": "57598670cafe3a91f43e83450749ee3b0b27358c0ea074a0b333d0866a3141f8"
+}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHHD0CK1X3DB95EP1D3NDAM0",
+  "taskId": "compute-aggregates",
+  "invocationKey": "hockey/roster-update:S000002:compute-aggregates",
+  "stepId": "S000002",
+  "kind": "node",
+  "title": "Compute aggregates",
+  "io": {
+    "inputJsonPath": "tasks/01KHHD0CK1X3DB95EP1D3NDAM0/input.json",
+    "outputJsonPath": "tasks/01KHHD0CK1X3DB95EP1D3NDAM0/result.json"
+  },
+  "inputs": {
+    "records": 767,
+    "batchSize": 454,
+    "source": "csv",
+    "destination": "elasticsearch"
+  }
+}

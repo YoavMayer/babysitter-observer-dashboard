@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHENNQFTW3V390KG5Y7NCWQ1",
+  "taskId": "run-sentiment-analysis",
+  "invocationKey": "hockey/roster-update:S000006:run-sentiment-analysis",
+  "status": "ok",
+  "startedAt": "2026-02-14T18:12:43.139Z",
+  "finishedAt": "2026-02-14T18:12:58.835Z",
+  "result": {
+    "invocations": 20,
+    "successRate": 0.867,
+    "resultCount": 86
+  },
+  "value": {
+    "invocations": 20,
+    "successRate": 0.867,
+    "resultCount": 86
+  }
+}

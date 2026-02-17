@@ -1,0 +1,14 @@
+{
+  "type": "RUN_CREATED",
+  "recordedAt": "2026-02-16T15:47:44.502Z",
+  "data": {
+    "runId": "01KHKJ5QQP0TCBXHN1ZXV3XK02",
+    "processId": "podcast-intel/transcribe",
+    "entrypoint": {
+      "importPath": "../../processes/podcast-intel-transcribe.js",
+      "exportName": "process"
+    },
+    "inputsRef": "inputs.json"
+  },
+  "checksum": "08ccf28b89ac5e557a8aa06ced0b5e9f43cf61e844b7038e23d6bd3b36723a2a"
+}

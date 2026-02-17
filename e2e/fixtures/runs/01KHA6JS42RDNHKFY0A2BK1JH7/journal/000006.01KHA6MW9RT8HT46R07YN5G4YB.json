@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-13T00:33:07.896Z",
+  "data": {
+    "effectId": "01KHA6MW9RVK896MNH167DT1X5",
+    "invocationKey": "podcast-intel/publish:S000003:invoke-web-scraper",
+    "invocationHash": "6d1a70f97dd47e7cfa03968c6ad7933dcd82152ad26a700bc73fa737e84bbda4",
+    "stepId": "S000003",
+    "taskId": "invoke-web-scraper",
+    "kind": "skill",
+    "label": "Invoke web scraper",
+    "taskDefRef": "tasks/01KHA6MW9RVK896MNH167DT1X5/task.json"
+  },
+  "checksum": "1cf49001ca31fa7e3820233cd37bb157b6b6006506470a97a44aaacaabef0f96"
+}

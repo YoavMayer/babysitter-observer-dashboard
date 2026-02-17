@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T19:38:57.505Z",
+  "data": {
+    "effectId": "01KHHD0CK1X3DB95EP1D3NDAM0",
+    "invocationKey": "hockey/roster-update:S000002:compute-aggregates",
+    "invocationHash": "7d3af7e5bfb7ad70c68d937a9b2db6fa661c7105bfc2deb92f31c4df03eea424",
+    "stepId": "S000002",
+    "taskId": "compute-aggregates",
+    "kind": "node",
+    "label": "Compute aggregates",
+    "taskDefRef": "tasks/01KHHD0CK1X3DB95EP1D3NDAM0/task.json"
+  },
+  "checksum": "29b5502d9dc9b365f911b776109089ebb8a8921d4acf4afc561a44756de49a6f"
+}

@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KH9MG2WV2W1P817B77SFMBHA",
+  "taskId": "verify-outreach-email-before-s",
+  "invocationKey": "podcast-intel/transcribe:S000005:verify-outreach-email-before-s",
+  "stepId": "S000005",
+  "kind": "breakpoint",
+  "title": "Verify outreach email before sending?",
+  "io": {
+    "inputJsonPath": "tasks/01KH9MG2WV2W1P817B77SFMBHA/input.json",
+    "outputJsonPath": "tasks/01KH9MG2WV2W1P817B77SFMBHA/result.json"
+  },
+  "inputs": {
+    "question": "Verify outreach email before sending?",
+    "title": "Approval: Verify outreach email before sending",
+    "context": {
+      "files": [
+        {
+          "path": "reports/verify-outreach-email-before-s-preview.md",
+          "format": "markdown",
+          "language": "markdown"
+        },
+        {
+          "path": "data/verify-outreach-email-before-s-changes.json",
+          "format": "json"
+        }
+      ],
+      "metadata": {
+        "requestedBy": "user",
+        "priority": "medium"
+      }
+    }
+  }
+}

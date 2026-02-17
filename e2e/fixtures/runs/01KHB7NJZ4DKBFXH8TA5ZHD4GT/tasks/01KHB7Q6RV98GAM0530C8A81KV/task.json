@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHB7Q6RV98GAM0530C8A81KV",
+  "taskId": "validate-schema",
+  "invocationKey": "hockey/stats-ingest:S000002:validate-schema",
+  "stepId": "S000002",
+  "kind": "node",
+  "title": "Validate schema",
+  "io": {
+    "inputJsonPath": "tasks/01KHB7Q6RV98GAM0530C8A81KV/input.json",
+    "outputJsonPath": "tasks/01KHB7Q6RV98GAM0530C8A81KV/result.json"
+  },
+  "inputs": {
+    "records": 4879,
+    "batchSize": 472,
+    "source": "postgres",
+    "destination": "webhook"
+  }
+}

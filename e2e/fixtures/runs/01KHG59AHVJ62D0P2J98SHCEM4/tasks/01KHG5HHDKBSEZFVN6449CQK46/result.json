@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHG5HHDKBSEZFVN6449CQK46",
+  "taskId": "run-lint-checks",
+  "invocationKey": "hockey/schedule-sync:S000009:run-lint-checks",
+  "status": "ok",
+  "startedAt": "2026-02-15T08:09:17.765Z",
+  "finishedAt": "2026-02-15T08:09:36.218Z",
+  "result": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 108 items",
+    "stderr": "",
+    "duration_ms": 18453
+  },
+  "value": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 108 items",
+    "stderr": "",
+    "duration_ms": 18453
+  }
+}

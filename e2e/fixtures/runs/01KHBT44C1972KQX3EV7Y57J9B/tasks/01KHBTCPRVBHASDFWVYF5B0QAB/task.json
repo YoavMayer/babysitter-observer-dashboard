@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHBTCPRVBHASDFWVYF5B0QAB",
+  "taskId": "sync-s3-bucket",
+  "invocationKey": "podcast-intel/transcribe:S000010:sync-s3-bucket",
+  "stepId": "S000010",
+  "kind": "shell",
+  "title": "Sync S3 bucket",
+  "io": {
+    "inputJsonPath": "tasks/01KHBTCPRVBHASDFWVYF5B0QAB/input.json",
+    "outputJsonPath": "tasks/01KHBTCPRVBHASDFWVYF5B0QAB/result.json"
+  },
+  "inputs": {
+    "command": "docker",
+    "args": [
+      "run",
+      "--env=dev"
+    ],
+    "cwd": "/workspace/podcast-intel",
+    "timeout": 165000
+  }
+}

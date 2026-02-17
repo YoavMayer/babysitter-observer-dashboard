@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-14T18:10:00.062Z",
+  "data": {
+    "effectId": "01KHENGS7Y6DR4BN1YVK3PH31B",
+    "invocationKey": "hockey/roster-update:S000001:enrich-metadata",
+    "invocationHash": "52d78520b605189c4377f642f1671c5492650674e7d3bb93aec792b3ea263a87",
+    "stepId": "S000001",
+    "taskId": "enrich-metadata",
+    "kind": "node",
+    "label": "Enrich metadata",
+    "taskDefRef": "tasks/01KHENGS7Y6DR4BN1YVK3PH31B/task.json"
+  },
+  "checksum": "3599811ca0d220e3bc737f977ff17be385e5b8b365d640141e638ccb3297adc3"
+}

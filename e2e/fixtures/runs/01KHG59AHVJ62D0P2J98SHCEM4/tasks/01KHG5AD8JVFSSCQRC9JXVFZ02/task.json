@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHG5AD8JVFSSCQRC9JXVFZ02",
+  "taskId": "pause-before-retry",
+  "invocationKey": "hockey/schedule-sync:S000003:pause-before-retry",
+  "stepId": "S000003",
+  "kind": "sleep",
+  "title": "Pause before retry",
+  "io": {
+    "inputJsonPath": "tasks/01KHG5AD8JVFSSCQRC9JXVFZ02/input.json",
+    "outputJsonPath": "tasks/01KHG5AD8JVFSSCQRC9JXVFZ02/result.json"
+  },
+  "inputs": {
+    "durationMs": 24670,
+    "reason": "Pause before retry"
+  }
+}

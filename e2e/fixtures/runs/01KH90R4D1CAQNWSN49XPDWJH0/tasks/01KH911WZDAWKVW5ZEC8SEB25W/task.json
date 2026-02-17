@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KH911WZDAWKVW5ZEC8SEB25W",
+  "taskId": "validate-schema",
+  "invocationKey": "hockey/schedule-sync:S000010:validate-schema",
+  "stepId": "S000010",
+  "kind": "node",
+  "title": "Validate schema",
+  "io": {
+    "inputJsonPath": "tasks/01KH911WZDAWKVW5ZEC8SEB25W/input.json",
+    "outputJsonPath": "tasks/01KH911WZDAWKVW5ZEC8SEB25W/result.json"
+  },
+  "inputs": {
+    "records": 4810,
+    "batchSize": 366,
+    "source": "postgres",
+    "destination": "webhook"
+  }
+}

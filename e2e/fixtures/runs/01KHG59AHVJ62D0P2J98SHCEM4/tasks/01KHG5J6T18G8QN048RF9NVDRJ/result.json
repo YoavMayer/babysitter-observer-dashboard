@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHG5J6T18G8QN048RF9NVDRJ",
+  "taskId": "filter-duplicates",
+  "invocationKey": "hockey/schedule-sync:S000010:filter-duplicates",
+  "status": "ok",
+  "startedAt": "2026-02-15T08:09:39.830Z",
+  "finishedAt": "2026-02-15T08:10:26.386Z",
+  "result": {
+    "processed": 3012,
+    "failed": 98,
+    "skipped": 53,
+    "duration_ms": 46556,
+    "outputPath": "output/filter-duplicates-9NVDRJ.json"
+  },
+  "value": {
+    "processed": 3012,
+    "failed": 98,
+    "skipped": 53,
+    "duration_ms": 46556,
+    "outputPath": "output/filter-duplicates-9NVDRJ.json"
+  }
+}

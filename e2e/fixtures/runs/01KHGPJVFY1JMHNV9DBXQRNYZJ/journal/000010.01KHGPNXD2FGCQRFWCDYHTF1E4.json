@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T13:08:45.602Z",
+  "data": {
+    "effectId": "01KHGPNXD28KRJQH3VZ0D0DSGH",
+    "invocationKey": "hockey/stats-ingest:S000005:execute-ocr-pipeline",
+    "invocationHash": "b9cf6588a1db144d158601b7446691ba809c5f94633284276e5906f568e3570d",
+    "stepId": "S000005",
+    "taskId": "execute-ocr-pipeline",
+    "kind": "skill",
+    "label": "Execute OCR pipeline",
+    "taskDefRef": "tasks/01KHGPNXD28KRJQH3VZ0D0DSGH/task.json"
+  },
+  "checksum": "3b842430aefb2a9c0cdeec6e50a78a7c5619ae5949e803f845da1d560ccff8a5"
+}

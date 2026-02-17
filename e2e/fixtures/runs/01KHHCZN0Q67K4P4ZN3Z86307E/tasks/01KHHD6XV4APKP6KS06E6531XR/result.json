@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHHD6XV4APKP6KS06E6531XR",
+  "taskId": "generate-api-documentation",
+  "invocationKey": "hockey/roster-update:S000009:generate-api-documentation",
+  "status": "ok",
+  "startedAt": "2026-02-15T19:42:32.584Z",
+  "finishedAt": "2026-02-15T19:42:44.644Z",
+  "result": {
+    "summary": "Generated specification for Generate API documentation",
+    "sections": 2,
+    "wordCount": 2892,
+    "confidence": 0.799,
+    "recommendations": [
+      "Consider caching for frequently accessed data",
+      "Add structured logging for debugging",
+      "Consider caching for frequently accessed data",
+      "Review error handling in async paths"
+    ]
+  },
+  "value": {
+    "summary": "Generated specification for Generate API documentation",
+    "sections": 2,
+    "wordCount": 2892,
+    "confidence": 0.799,
+    "recommendations": [
+      "Consider caching for frequently accessed data",
+      "Add structured logging for debugging",
+      "Consider caching for frequently accessed data",
+      "Review error handling in async paths"
+    ]
+  }
+}

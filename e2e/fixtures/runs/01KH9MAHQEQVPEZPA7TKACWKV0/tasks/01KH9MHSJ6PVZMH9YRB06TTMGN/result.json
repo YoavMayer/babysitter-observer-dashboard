@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KH9MHSJ6PVZMH9YRB06TTMGN",
+  "taskId": "generate-api-documentation",
+  "invocationKey": "podcast-intel/transcribe:S000006:generate-api-documentation",
+  "status": "ok",
+  "startedAt": "2026-02-12T19:16:53.760Z",
+  "finishedAt": "2026-02-12T19:17:16.108Z",
+  "result": {
+    "summary": "Generated review for Generate API documentation",
+    "sections": 4,
+    "wordCount": 599,
+    "confidence": 0.744,
+    "recommendations": [
+      "Add input validation for user-facing fields",
+      "Add input validation for user-facing fields",
+      "Review error handling in async paths",
+      "Add input validation for user-facing fields"
+    ]
+  },
+  "value": {
+    "summary": "Generated review for Generate API documentation",
+    "sections": 4,
+    "wordCount": 599,
+    "confidence": 0.744,
+    "recommendations": [
+      "Add input validation for user-facing fields",
+      "Add input validation for user-facing fields",
+      "Review error handling in async paths",
+      "Add input validation for user-facing fields"
+    ]
+  }
+}

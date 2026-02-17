@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-17T01:03:22.836Z",
+  "data": {
+    "effectId": "01KHMHZ4PMDNZ4K27EQB9MV2WV",
+    "invocationKey": "hockey/roster-update:S000010:generate-executive-summary",
+    "invocationHash": "bb20657431c2135c4aefb6e180cc9ee1ceac12bf418a399dc2c81d4024c5a347",
+    "stepId": "S000010",
+    "taskId": "generate-executive-summary",
+    "kind": "agent",
+    "label": "Generate executive summary",
+    "taskDefRef": "tasks/01KHMHZ4PMDNZ4K27EQB9MV2WV/task.json"
+  },
+  "checksum": "4346d168c4332b537191f7b6f513b09051cac65bf724c24fc83cdf5db366c869"
+}

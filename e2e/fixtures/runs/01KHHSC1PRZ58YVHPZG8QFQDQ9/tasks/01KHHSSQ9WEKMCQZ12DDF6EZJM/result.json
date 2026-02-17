@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHHSSQ9WEKMCQZ12DDF6EZJM",
+  "taskId": "generate-executive-summary",
+  "invocationKey": "hockey/stats-ingest:S000013:generate-executive-summary",
+  "status": "ok",
+  "startedAt": "2026-02-15T23:22:31.984Z",
+  "finishedAt": "2026-02-15T23:22:37.786Z",
+  "result": {
+    "summary": "Generated review for Generate executive summary",
+    "sections": 2,
+    "wordCount": 2969,
+    "confidence": 0.828,
+    "recommendations": [
+      "Add input validation for user-facing fields"
+    ]
+  },
+  "value": {
+    "summary": "Generated review for Generate executive summary",
+    "sections": 2,
+    "wordCount": 2969,
+    "confidence": 0.828,
+    "recommendations": [
+      "Add input validation for user-facing fields"
+    ]
+  }
+}

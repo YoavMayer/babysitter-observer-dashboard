@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-14T18:14:59.987Z",
+  "data": {
+    "effectId": "01KHENSY4K1WEEH2NZPBCVZ23A",
+    "invocationKey": "hockey/roster-update:S000009:execute-test-suite",
+    "invocationHash": "b95192a12d295518a071a4bf5b994388c907a8811460cb3ce093a02fc5fe1cdb",
+    "stepId": "S000009",
+    "taskId": "execute-test-suite",
+    "kind": "shell",
+    "label": "Execute test suite",
+    "taskDefRef": "tasks/01KHENSY4K1WEEH2NZPBCVZ23A/task.json"
+  },
+  "checksum": "cf012bcdbf3f7aa1b89abfa25cd8add27563edf00ba1c8ccd6b11b62a87994a3"
+}

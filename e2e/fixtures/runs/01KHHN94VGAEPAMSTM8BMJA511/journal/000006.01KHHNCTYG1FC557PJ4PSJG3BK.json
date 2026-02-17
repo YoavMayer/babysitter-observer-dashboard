@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T22:05:34.032Z",
+  "data": {
+    "effectId": "01KHHNCTYGCRV2FSXCY0DC8EGE",
+    "invocationKey": "podcast-intel/summarize:S000003:compute-aggregates",
+    "invocationHash": "f1a0f6735c3c4aaa2dd99383a3e47f87f6b44e2a5cc79ebc479b72fd9d4a34ec",
+    "stepId": "S000003",
+    "taskId": "compute-aggregates",
+    "kind": "node",
+    "label": "Compute aggregates",
+    "taskDefRef": "tasks/01KHHNCTYGCRV2FSXCY0DC8EGE/task.json"
+  },
+  "checksum": "4a3c2c28a82532836102a15c19d576b46edf8d50424ee1cd58fa4a4e70ac371c"
+}

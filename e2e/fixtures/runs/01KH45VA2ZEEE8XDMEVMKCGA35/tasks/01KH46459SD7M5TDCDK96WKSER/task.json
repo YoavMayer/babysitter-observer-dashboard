@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KH46459SD7M5TDCDK96WKSER",
+  "taskId": "restart-service",
+  "invocationKey": "podcast-intel/publish:S000007:restart-service",
+  "stepId": "S000007",
+  "kind": "shell",
+  "title": "Restart service",
+  "io": {
+    "inputJsonPath": "tasks/01KH46459SD7M5TDCDK96WKSER/input.json",
+    "outputJsonPath": "tasks/01KH46459SD7M5TDCDK96WKSER/result.json"
+  },
+  "inputs": {
+    "command": "redis-cli",
+    "args": [
+      "exec",
+      "--env=dev"
+    ],
+    "cwd": "/workspace/podcast-intel",
+    "timeout": 276000
+  }
+}

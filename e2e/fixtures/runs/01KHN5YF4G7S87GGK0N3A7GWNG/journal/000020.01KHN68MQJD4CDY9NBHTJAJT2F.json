@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-17T06:58:05.682Z",
+  "data": {
+    "effectId": "01KHN68MQJHXTKV8GKR01BQJ1Y",
+    "invocationKey": "hockey/schedule-sync:S000010:run-lint-checks",
+    "invocationHash": "6339662f7f174266f6ffdba2162d881dfdc2ac75c33c8a46c524e6352028500a",
+    "stepId": "S000010",
+    "taskId": "run-lint-checks",
+    "kind": "shell",
+    "label": "Run lint checks",
+    "taskDefRef": "tasks/01KHN68MQJHXTKV8GKR01BQJ1Y/task.json"
+  },
+  "checksum": "1fc96cdbec75cf99904c0d675dd6f1db5f4266ab90566fe27969958223700dc6"
+}

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHGPZMTFYR0QP5FCMYXG65X1",
+  "taskId": "generate-api-documentation",
+  "invocationKey": "hockey/stats-ingest:S000014:generate-api-documentation",
+  "status": "ok",
+  "startedAt": "2026-02-15T13:14:05.985Z",
+  "finishedAt": "2026-02-15T13:15:02.138Z",
+  "result": {
+    "summary": "Generated review for Generate API documentation",
+    "sections": 7,
+    "wordCount": 3324,
+    "confidence": 0.768,
+    "recommendations": [
+      "Add input validation for user-facing fields"
+    ]
+  },
+  "value": {
+    "summary": "Generated review for Generate API documentation",
+    "sections": 7,
+    "wordCount": 3324,
+    "confidence": 0.768,
+    "recommendations": [
+      "Add input validation for user-facing fields"
+    ]
+  }
+}

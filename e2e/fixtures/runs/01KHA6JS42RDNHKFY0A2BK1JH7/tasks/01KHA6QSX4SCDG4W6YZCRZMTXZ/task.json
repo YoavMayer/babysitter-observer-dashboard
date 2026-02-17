@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHA6QSX4SCDG4W6YZCRZMTXZ",
+  "taskId": "process-payment-webhook",
+  "invocationKey": "podcast-intel/publish:S000006:process-payment-webhook",
+  "stepId": "S000006",
+  "kind": "skill",
+  "title": "Process payment webhook",
+  "io": {
+    "inputJsonPath": "tasks/01KHA6QSX4SCDG4W6YZCRZMTXZ/input.json",
+    "outputJsonPath": "tasks/01KHA6QSX4SCDG4W6YZCRZMTXZ/result.json"
+  },
+  "inputs": {
+    "skillName": "process-payment-webhook",
+    "version": "4.4.1",
+    "config": {
+      "retries": 3,
+      "backoff": "linear"
+    }
+  }
+}

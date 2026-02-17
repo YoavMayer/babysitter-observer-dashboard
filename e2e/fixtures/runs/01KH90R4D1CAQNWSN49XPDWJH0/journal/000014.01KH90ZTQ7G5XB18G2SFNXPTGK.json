@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-12T13:35:00.839Z",
+  "data": {
+    "effectId": "01KH90ZTQ7N73YNMKS7A28GWC8",
+    "invocationKey": "hockey/schedule-sync:S000007:draft-outreach-email",
+    "invocationHash": "a3a1cd3d5d163945d9d26dc8494a1e659b6fa172082022fdb3f2e4f015ccab17",
+    "stepId": "S000007",
+    "taskId": "draft-outreach-email",
+    "kind": "agent",
+    "label": "Draft outreach email",
+    "taskDefRef": "tasks/01KH90ZTQ7N73YNMKS7A28GWC8/task.json"
+  },
+  "checksum": "a0722f5085b1d0d39edcc158a093f1b330610db5a9c72046850e3a4ee21030d2"
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHN69KH9AZRXZZX15PEYK7TH",
+  "taskId": "review-pull-request",
+  "invocationKey": "hockey/schedule-sync:S000011:review-pull-request",
+  "stepId": "S000011",
+  "kind": "agent",
+  "title": "Review pull request",
+  "io": {
+    "inputJsonPath": "tasks/01KHN69KH9AZRXZZX15PEYK7TH/input.json",
+    "outputJsonPath": "tasks/01KHN69KH9AZRXZZX15PEYK7TH/result.json"
+  },
+  "inputs": {
+    "context": "Process hockey/schedule-sync step S000011",
+    "maxTokens": 7924,
+    "temperature": 0.52,
+    "model": "claude-sonnet-4-20250514"
+  },
+  "agent": {
+    "name": "review-pull-request",
+    "prompt": {
+      "role": "analyst",
+      "task": "Review pull request",
+      "instructions": [
+        "Analyze the provided data for hockey-7-shifts",
+        "Follow the project coding standards",
+        "Return structured JSON output",
+        "Use chain-of-thought reasoning"
+      ]
+    }
+  }
+}

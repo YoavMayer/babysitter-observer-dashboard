@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHF4MMZGV8GA1CSCGECPGT2P",
+  "taskId": "compute-aggregates",
+  "invocationKey": "hockey/stats-ingest:S000001:compute-aggregates",
+  "stepId": "S000001",
+  "kind": "node",
+  "title": "Compute aggregates",
+  "io": {
+    "inputJsonPath": "tasks/01KHF4MMZGV8GA1CSCGECPGT2P/input.json",
+    "outputJsonPath": "tasks/01KHF4MMZGV8GA1CSCGECPGT2P/result.json"
+  },
+  "inputs": {
+    "records": 598,
+    "batchSize": 123,
+    "source": "api",
+    "destination": "postgres"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "runId": "01KHN5YF4G7S87GGK0N3A7GWNG",
+  "request": "hockey/schedule-sync",
+  "processId": "hockey/schedule-sync",
+  "entrypoint": {
+    "importPath": "../../processes/hockey-schedule-sync.js",
+    "exportName": "process"
+  },
+  "processPath": "../../processes/hockey-schedule-sync.js",
+  "layoutVersion": "2026.01-storage-preview",
+  "createdAt": "2026-02-17T06:52:32.272Z",
+  "completionSecret": "8b8fa6e5d0780a43fa9f0a7ea6188662",
+  "projectName": "hockey-7-shifts"
+}

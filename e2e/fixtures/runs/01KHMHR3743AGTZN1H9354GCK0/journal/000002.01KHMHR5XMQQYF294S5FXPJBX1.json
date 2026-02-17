@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-17T00:59:34.708Z",
+  "data": {
+    "effectId": "01KHMHR5XMHJEG4GNS831E70RB",
+    "invocationKey": "hockey/roster-update:S000001:transform-csv-to-json",
+    "invocationHash": "5d673546d3a587d24eb4a8b9de975f961a36fcd833ea411c04c6050ac89a6430",
+    "stepId": "S000001",
+    "taskId": "transform-csv-to-json",
+    "kind": "node",
+    "label": "Transform CSV to JSON",
+    "taskDefRef": "tasks/01KHMHR5XMHJEG4GNS831E70RB/task.json"
+  },
+  "checksum": "6bc15181f8b91b830c6cc12d7cad88d462d7da5d1562c9e226325d9878c8ae73"
+}

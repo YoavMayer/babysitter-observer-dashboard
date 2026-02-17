@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHEJRVERN8RNHQ2ENETC1SV1",
+  "taskId": "draft-release-notes",
+  "invocationKey": "podcast-intel/publish:S000005:draft-release-notes",
+  "status": "ok",
+  "startedAt": "2026-02-14T17:21:59.517Z",
+  "finishedAt": "2026-02-14T17:22:06.564Z",
+  "result": {
+    "summary": "Generated draft for Draft release notes",
+    "sections": 6,
+    "wordCount": 2157,
+    "confidence": 0.87,
+    "recommendations": [
+      "Consider caching for frequently accessed data",
+      "Add input validation for user-facing fields",
+      "Consider caching for frequently accessed data",
+      "Consider caching for frequently accessed data"
+    ]
+  },
+  "value": {
+    "summary": "Generated draft for Draft release notes",
+    "sections": 6,
+    "wordCount": 2157,
+    "confidence": 0.87,
+    "recommendations": [
+      "Consider caching for frequently accessed data",
+      "Add input validation for user-facing fields",
+      "Consider caching for frequently accessed data",
+      "Consider caching for frequently accessed data"
+    ]
+  }
+}

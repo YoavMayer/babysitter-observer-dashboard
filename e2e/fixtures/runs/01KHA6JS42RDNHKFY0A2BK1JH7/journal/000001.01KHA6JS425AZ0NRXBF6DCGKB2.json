@@ -1,0 +1,14 @@
+{
+  "type": "RUN_CREATED",
+  "recordedAt": "2026-02-13T00:31:59.106Z",
+  "data": {
+    "runId": "01KHA6JS42RDNHKFY0A2BK1JH7",
+    "processId": "podcast-intel/publish",
+    "entrypoint": {
+      "importPath": "../../processes/podcast-intel-publish.js",
+      "exportName": "process"
+    },
+    "inputsRef": "inputs.json"
+  },
+  "checksum": "a2a4ce427b3df89e8ed83946b6d046a73c9d661d00b57977bb3b8649ae3e5447"
+}

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHH6JXJXFE5M0QQBYFQ6Y0T8",
+  "taskId": "parse-xml-feed",
+  "invocationKey": "podcast-intel/summarize:S000008:parse-xml-feed",
+  "status": "ok",
+  "startedAt": "2026-02-15T17:46:46.069Z",
+  "finishedAt": "2026-02-15T17:47:02.805Z",
+  "result": {
+    "processed": 1677,
+    "failed": 27,
+    "skipped": 21,
+    "duration_ms": 16736,
+    "outputPath": "output/parse-xml-feed-Q6Y0T8.json"
+  },
+  "value": {
+    "processed": 1677,
+    "failed": 27,
+    "skipped": 21,
+    "duration_ms": 16736,
+    "outputPath": "output/parse-xml-feed-Q6Y0T8.json"
+  }
+}

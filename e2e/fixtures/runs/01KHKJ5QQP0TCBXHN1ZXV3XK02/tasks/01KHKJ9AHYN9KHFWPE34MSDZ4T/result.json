@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHKJ9AHYN9KHFWPE34MSDZ4T",
+  "taskId": "analyze-competitor-data",
+  "invocationKey": "podcast-intel/transcribe:S000006:analyze-competitor-data",
+  "status": "ok",
+  "startedAt": "2026-02-16T15:49:43.694Z",
+  "finishedAt": "2026-02-16T15:50:28.193Z",
+  "result": {
+    "summary": "Generated draft for Analyze competitor data",
+    "sections": 8,
+    "wordCount": 1070,
+    "confidence": 0.789,
+    "recommendations": [
+      "Review error handling in async paths",
+      "Consider caching for frequently accessed data",
+      "Implement retry logic for external API calls",
+      "Consider caching for frequently accessed data",
+      "Add input validation for user-facing fields"
+    ]
+  },
+  "value": {
+    "summary": "Generated draft for Analyze competitor data",
+    "sections": 8,
+    "wordCount": 1070,
+    "confidence": 0.789,
+    "recommendations": [
+      "Review error handling in async paths",
+      "Consider caching for frequently accessed data",
+      "Implement retry logic for external API calls",
+      "Consider caching for frequently accessed data",
+      "Add input validation for user-facing fields"
+    ]
+  }
+}

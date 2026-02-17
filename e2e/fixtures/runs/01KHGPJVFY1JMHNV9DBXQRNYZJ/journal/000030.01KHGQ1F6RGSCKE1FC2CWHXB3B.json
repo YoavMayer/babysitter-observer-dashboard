@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T13:15:04.280Z",
+  "data": {
+    "effectId": "01KHGQ1F6R7JE7F87ANBHA8A3J",
+    "invocationKey": "hockey/stats-ingest:S000015:synthesize-user-feedback",
+    "invocationHash": "387c89b865229d66d4c0157b71b4a1e87aa38e5b3e9c0a056618cea4d51c7cf2",
+    "stepId": "S000015",
+    "taskId": "synthesize-user-feedback",
+    "kind": "agent",
+    "label": "Synthesize user feedback",
+    "taskDefRef": "tasks/01KHGQ1F6R7JE7F87ANBHA8A3J/task.json"
+  },
+  "checksum": "8c1b78c756672b11098b11e0816c07891630f6f80560e438c22d94112a813f35"
+}

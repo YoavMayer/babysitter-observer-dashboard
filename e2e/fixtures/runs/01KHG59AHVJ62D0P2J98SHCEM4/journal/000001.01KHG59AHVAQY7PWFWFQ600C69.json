@@ -1,0 +1,14 @@
+{
+  "type": "RUN_CREATED",
+  "recordedAt": "2026-02-15T08:04:47.291Z",
+  "data": {
+    "runId": "01KHG59AHVJ62D0P2J98SHCEM4",
+    "processId": "hockey/schedule-sync",
+    "entrypoint": {
+      "importPath": "../../processes/hockey-schedule-sync.js",
+      "exportName": "process"
+    },
+    "inputsRef": "inputs.json"
+  },
+  "checksum": "bc1e58859c7f1196bd9442601595509774912ad199da2ee2c702e775bc8051b2"
+}

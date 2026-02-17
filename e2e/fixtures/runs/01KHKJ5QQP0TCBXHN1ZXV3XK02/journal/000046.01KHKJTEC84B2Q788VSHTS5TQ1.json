@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-16T15:59:03.048Z",
+  "data": {
+    "effectId": "01KHKJTEC807MCD653V9GDJK3M",
+    "invocationKey": "podcast-intel/transcribe:S000023:create-architecture-spec",
+    "invocationHash": "9692c8e7fa1f1dfdb3e5391463328125dce2a332d71a2bc2d05229f8df0c01a3",
+    "stepId": "S000023",
+    "taskId": "create-architecture-spec",
+    "kind": "agent",
+    "label": "Create architecture spec",
+    "taskDefRef": "tasks/01KHKJTEC807MCD653V9GDJK3M/task.json"
+  },
+  "checksum": "6cc8321fba35aa726c7d1343e841fbb704ba18101113cef9ea8a8e66c12a199b"
+}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHN6187G5MN4ATAR0H5HENTF",
+  "taskId": "process-payment-webhook",
+  "invocationKey": "hockey/schedule-sync:S000004:process-payment-webhook",
+  "status": "ok",
+  "startedAt": "2026-02-17T06:54:04.970Z",
+  "finishedAt": "2026-02-17T06:54:52.208Z",
+  "result": {
+    "invocations": 2,
+    "successRate": 0.835,
+    "resultCount": 279
+  },
+  "value": {
+    "invocations": 2,
+    "successRate": 0.835,
+    "resultCount": 279
+  }
+}

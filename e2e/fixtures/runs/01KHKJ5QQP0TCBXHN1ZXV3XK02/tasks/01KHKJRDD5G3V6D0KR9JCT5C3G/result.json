@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHKJRDD5G3V6D0KR9JCT5C3G",
+  "taskId": "execute-ocr-pipeline",
+  "invocationKey": "podcast-intel/transcribe:S000021:execute-ocr-pipeline",
+  "status": "ok",
+  "startedAt": "2026-02-16T15:57:57.267Z",
+  "finishedAt": "2026-02-16T15:58:17.487Z",
+  "result": {
+    "invocations": 13,
+    "successRate": 0.977,
+    "resultCount": 284
+  },
+  "value": {
+    "invocations": 13,
+    "successRate": 0.977,
+    "resultCount": 284
+  }
+}

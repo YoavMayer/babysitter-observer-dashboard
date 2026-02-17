@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-11T15:14:04.567Z",
+  "data": {
+    "effectId": "01KH6M8G4QKKPATPY4MERA50W8",
+    "invocationKey": "hockey/stats-ingest:S000005:wait-for-rate-limit-cooldown",
+    "invocationHash": "2cefa9e94cc40eddc254e095b21f02efff40f9e23837377ba0561897f8e7cf61",
+    "stepId": "S000005",
+    "taskId": "wait-for-rate-limit-cooldown",
+    "kind": "sleep",
+    "label": "Wait for rate limit cooldown",
+    "taskDefRef": "tasks/01KH6M8G4QKKPATPY4MERA50W8/task.json"
+  },
+  "checksum": "b013a2e9fb05ac2f7a1510d7fb7683f6048fa7f6eeebc922c843fc37f548211a"
+}

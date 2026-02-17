@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHM5TWWTCR5AJRJTZV9XFSFH",
+  "taskId": "generate-coverage-report",
+  "invocationKey": "hockey/roster-update:S000020:generate-coverage-report",
+  "status": "ok",
+  "startedAt": "2026-02-16T21:31:22.289Z",
+  "finishedAt": "2026-02-16T21:31:31.922Z",
+  "result": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 145 items",
+    "stderr": "",
+    "duration_ms": 9633
+  },
+  "value": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 145 items",
+    "stderr": "",
+    "duration_ms": 9633
+  }
+}

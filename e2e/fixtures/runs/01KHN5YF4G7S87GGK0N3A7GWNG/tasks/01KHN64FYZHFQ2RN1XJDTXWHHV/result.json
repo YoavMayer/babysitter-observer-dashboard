@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHN64FYZHFQ2RN1XJDTXWHHV",
+  "taskId": "analyze-competitor-data",
+  "invocationKey": "hockey/schedule-sync:S000006:analyze-competitor-data",
+  "status": "ok",
+  "startedAt": "2026-02-17T06:55:50.952Z",
+  "finishedAt": "2026-02-17T06:55:59.009Z",
+  "result": {
+    "summary": "Generated review for Analyze competitor data",
+    "sections": 3,
+    "wordCount": 4005,
+    "confidence": 0.783,
+    "recommendations": [
+      "Review error handling in async paths",
+      "Add input validation for user-facing fields",
+      "Consider caching for frequently accessed data",
+      "Add structured logging for debugging",
+      "Consider caching for frequently accessed data"
+    ]
+  },
+  "value": {
+    "summary": "Generated review for Analyze competitor data",
+    "sections": 3,
+    "wordCount": 4005,
+    "confidence": 0.783,
+    "recommendations": [
+      "Review error handling in async paths",
+      "Add input validation for user-facing fields",
+      "Consider caching for frequently accessed data",
+      "Add structured logging for debugging",
+      "Consider caching for frequently accessed data"
+    ]
+  }
+}

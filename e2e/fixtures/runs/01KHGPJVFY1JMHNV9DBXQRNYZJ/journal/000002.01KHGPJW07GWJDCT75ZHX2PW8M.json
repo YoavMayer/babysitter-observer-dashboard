@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T13:07:05.863Z",
+  "data": {
+    "effectId": "01KHGPJW075XJNR0KZXBD0VYAW",
+    "invocationKey": "hockey/stats-ingest:S000001:restart-service",
+    "invocationHash": "8b8c810e7d02b34f5466fd54d1a192380538ddb178e00295bff6a803537aec8d",
+    "stepId": "S000001",
+    "taskId": "restart-service",
+    "kind": "shell",
+    "label": "Restart service",
+    "taskDefRef": "tasks/01KHGPJW075XJNR0KZXBD0VYAW/task.json"
+  },
+  "checksum": "d1144b3461a679dc6b8f5e28a00ff9f0dd7f9c5c0a9a82039e4b0a1d228cdcdf"
+}

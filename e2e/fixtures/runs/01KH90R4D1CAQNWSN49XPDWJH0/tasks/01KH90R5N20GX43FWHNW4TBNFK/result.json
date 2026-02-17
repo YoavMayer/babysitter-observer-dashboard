@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KH90R5N20GX43FWHNW4TBNFK",
+  "taskId": "call-translation-api",
+  "invocationKey": "hockey/schedule-sync:S000001:call-translation-api",
+  "status": "ok",
+  "startedAt": "2026-02-12T13:30:50.177Z",
+  "finishedAt": "2026-02-12T13:31:33.414Z",
+  "result": {
+    "invocations": 19,
+    "successRate": 0.933,
+    "resultCount": 363
+  },
+  "value": {
+    "invocations": 19,
+    "successRate": 0.933,
+    "resultCount": 363
+  }
+}

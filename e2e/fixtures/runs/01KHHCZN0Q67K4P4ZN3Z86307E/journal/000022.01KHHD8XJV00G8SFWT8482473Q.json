@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T19:43:37.051Z",
+  "data": {
+    "effectId": "01KHHD8XJVNFRJDNE0N4PBCWRN",
+    "invocationKey": "hockey/roster-update:S000011:deploy-to-staging",
+    "invocationHash": "4607ade5cd9c45cf8d1d0e5c4d95458c8e6b0baff9e0af601cbe9d7bf815b349",
+    "stepId": "S000011",
+    "taskId": "deploy-to-staging",
+    "kind": "shell",
+    "label": "Deploy to staging",
+    "taskDefRef": "tasks/01KHHD8XJVNFRJDNE0N4PBCWRN/task.json"
+  },
+  "checksum": "590a9e0071311a6de7469f63fca4c9414dca749da3e1734133b27f5da9fccdb0"
+}

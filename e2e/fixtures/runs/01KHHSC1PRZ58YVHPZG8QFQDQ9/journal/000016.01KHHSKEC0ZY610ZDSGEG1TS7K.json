@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T23:19:04.832Z",
+  "data": {
+    "effectId": "01KHHSKEC0W28PPAR3W4J09R1Z",
+    "invocationKey": "hockey/stats-ingest:S000008:validate-schema",
+    "invocationHash": "f949e4e3191a0f936641f19054c55b35cc6c12abdeb751ec86784d78355c683a",
+    "stepId": "S000008",
+    "taskId": "validate-schema",
+    "kind": "node",
+    "label": "Validate schema",
+    "taskDefRef": "tasks/01KHHSKEC0W28PPAR3W4J09R1Z/task.json"
+  },
+  "checksum": "10a3eb190591135f1054da8edf6d42b7b676ad3909740a437496193a70cdc0e7"
+}

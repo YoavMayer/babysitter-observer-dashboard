@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHM5EP1WBTWZ3885P9WBMZYF",
+  "taskId": "draft-outreach-email",
+  "invocationKey": "hockey/roster-update:S000009:draft-outreach-email",
+  "status": "ok",
+  "startedAt": "2026-02-16T21:24:42.360Z",
+  "finishedAt": "2026-02-16T21:24:47.903Z",
+  "result": {
+    "summary": "Generated analysis for Draft outreach email",
+    "sections": 8,
+    "wordCount": 4329,
+    "confidence": 0.938,
+    "recommendations": [
+      "Consider caching for frequently accessed data",
+      "Implement retry logic for external API calls",
+      "Implement retry logic for external API calls"
+    ]
+  },
+  "value": {
+    "summary": "Generated analysis for Draft outreach email",
+    "sections": 8,
+    "wordCount": 4329,
+    "confidence": 0.938,
+    "recommendations": [
+      "Consider caching for frequently accessed data",
+      "Implement retry logic for external API calls",
+      "Implement retry logic for external API calls"
+    ]
+  }
+}

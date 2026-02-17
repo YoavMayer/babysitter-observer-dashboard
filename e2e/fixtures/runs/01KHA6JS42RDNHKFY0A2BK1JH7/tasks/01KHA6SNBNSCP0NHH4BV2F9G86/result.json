@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHA6SNBNSCP0NHH4BV2F9G86",
+  "taskId": "generate-executive-summary",
+  "invocationKey": "podcast-intel/publish:S000007:generate-executive-summary",
+  "status": "ok",
+  "startedAt": "2026-02-13T00:35:46.063Z",
+  "finishedAt": "2026-02-13T00:35:46.667Z",
+  "result": {
+    "summary": "Generated review for Generate executive summary",
+    "sections": 4,
+    "wordCount": 1721,
+    "confidence": 0.914,
+    "recommendations": [
+      "Increase test coverage for edge cases",
+      "Add input validation for user-facing fields",
+      "Consider caching for frequently accessed data",
+      "Review error handling in async paths",
+      "Add structured logging for debugging"
+    ]
+  },
+  "value": {
+    "summary": "Generated review for Generate executive summary",
+    "sections": 4,
+    "wordCount": 1721,
+    "confidence": 0.914,
+    "recommendations": [
+      "Increase test coverage for edge cases",
+      "Add input validation for user-facing fields",
+      "Consider caching for frequently accessed data",
+      "Review error handling in async paths",
+      "Add structured logging for debugging"
+    ]
+  }
+}

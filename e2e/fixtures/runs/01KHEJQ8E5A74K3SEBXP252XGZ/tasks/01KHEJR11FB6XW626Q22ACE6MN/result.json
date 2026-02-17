@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHEJR11FB6XW626Q22ACE6MN",
+  "taskId": "merge-datasets",
+  "invocationKey": "podcast-intel/publish:S000003:merge-datasets",
+  "status": "ok",
+  "startedAt": "2026-02-14T17:21:31.798Z",
+  "finishedAt": "2026-02-14T17:21:33.858Z",
+  "result": {
+    "processed": 1324,
+    "failed": 26,
+    "skipped": 19,
+    "duration_ms": 2060,
+    "outputPath": "output/merge-datasets-ACE6MN.json"
+  },
+  "value": {
+    "processed": 1324,
+    "failed": 26,
+    "skipped": 19,
+    "duration_ms": 2060,
+    "outputPath": "output/merge-datasets-ACE6MN.json"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHB7TWYMM7NBN6NXD4HKX8A2",
+  "taskId": "generate-coverage-report",
+  "invocationKey": "hockey/stats-ingest:S000004:generate-coverage-report",
+  "status": "ok",
+  "startedAt": "2026-02-13T10:13:09.334Z",
+  "finishedAt": "2026-02-13T10:13:17.755Z",
+  "result": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 80 items",
+    "stderr": "",
+    "duration_ms": 8421
+  },
+  "value": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 80 items",
+    "stderr": "",
+    "duration_ms": 8421
+  }
+}

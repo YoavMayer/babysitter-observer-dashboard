@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHHSDGQSXJT5B5VV2HNQA56D",
+  "taskId": "draft-release-notes",
+  "invocationKey": "hockey/stats-ingest:S000002:draft-release-notes",
+  "stepId": "S000002",
+  "kind": "agent",
+  "title": "Draft release notes",
+  "io": {
+    "inputJsonPath": "tasks/01KHHSDGQSXJT5B5VV2HNQA56D/input.json",
+    "outputJsonPath": "tasks/01KHHSDGQSXJT5B5VV2HNQA56D/result.json"
+  },
+  "inputs": {
+    "context": "Process hockey/stats-ingest step S000002",
+    "maxTokens": 1958,
+    "temperature": 0.67,
+    "model": "claude-opus-4-20250514"
+  },
+  "agent": {
+    "name": "draft-release-notes",
+    "prompt": {
+      "role": "architect",
+      "task": "Draft release notes",
+      "instructions": [
+        "Analyze the provided data for hockey-7-shifts",
+        "Follow the project coding standards",
+        "Return structured JSON output",
+        "Prioritize accuracy over speed"
+      ]
+    }
+  }
+}

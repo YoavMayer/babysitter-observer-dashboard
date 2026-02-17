@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KH6M4MVNE0K7M9033BK8ZP5T",
+  "taskId": "review-pull-request",
+  "invocationKey": "hockey/stats-ingest:S000002:review-pull-request",
+  "status": "ok",
+  "startedAt": "2026-02-11T15:11:58.786Z",
+  "finishedAt": "2026-02-11T15:12:23.591Z",
+  "result": {
+    "summary": "Generated analysis for Review pull request",
+    "sections": 2,
+    "wordCount": 2210,
+    "confidence": 0.923,
+    "recommendations": [
+      "Increase test coverage for edge cases",
+      "Add structured logging for debugging",
+      "Increase test coverage for edge cases",
+      "Consider caching for frequently accessed data",
+      "Consider caching for frequently accessed data"
+    ]
+  },
+  "value": {
+    "summary": "Generated analysis for Review pull request",
+    "sections": 2,
+    "wordCount": 2210,
+    "confidence": 0.923,
+    "recommendations": [
+      "Increase test coverage for edge cases",
+      "Add structured logging for debugging",
+      "Increase test coverage for edge cases",
+      "Consider caching for frequently accessed data",
+      "Consider caching for frequently accessed data"
+    ]
+  }
+}

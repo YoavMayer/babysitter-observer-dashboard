@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHA6JVVZHHSD589H3H206TBH",
+  "taskId": "generate-api-documentation",
+  "invocationKey": "podcast-intel/publish:S000001:generate-api-documentation",
+  "stepId": "S000001",
+  "kind": "agent",
+  "title": "Generate API documentation",
+  "io": {
+    "inputJsonPath": "tasks/01KHA6JVVZHHSD589H3H206TBH/input.json",
+    "outputJsonPath": "tasks/01KHA6JVVZHHSD589H3H206TBH/result.json"
+  },
+  "inputs": {
+    "context": "Process podcast-intel/publish step S000001",
+    "maxTokens": 7723,
+    "temperature": 0.48,
+    "model": "claude-opus-4-20250514"
+  },
+  "agent": {
+    "name": "generate-api-documentation",
+    "prompt": {
+      "role": "researcher",
+      "task": "Generate API documentation",
+      "instructions": [
+        "Analyze the provided data for podcast-intel",
+        "Follow the project coding standards",
+        "Return structured JSON output",
+        "Cite sources where applicable"
+      ]
+    }
+  }
+}

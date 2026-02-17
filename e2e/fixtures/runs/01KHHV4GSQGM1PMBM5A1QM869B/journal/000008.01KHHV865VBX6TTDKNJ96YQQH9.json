@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T23:47:53.147Z",
+  "data": {
+    "effectId": "01KHHV865V9XPJ5HG5B89SQDN3",
+    "invocationKey": "podcast-intel/transcribe:S000004:clear-cache",
+    "invocationHash": "463ed46df60e69d40fbcc79393455138ca1e1fa0d45268cd61abc009a4aabf71",
+    "stepId": "S000004",
+    "taskId": "clear-cache",
+    "kind": "shell",
+    "label": "Clear cache",
+    "taskDefRef": "tasks/01KHHV865V9XPJ5HG5B89SQDN3/task.json"
+  },
+  "checksum": "70d9861a02d5c99c897e19e9a9a0f39a9aac2c232b2566b6946e48bbe0a3960a"
+}

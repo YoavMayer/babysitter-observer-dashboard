@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHHVEN7PXSP10XZBVKJPY1HN",
+  "taskId": "validate-schema",
+  "invocationKey": "podcast-intel/transcribe:S000009:validate-schema",
+  "stepId": "S000009",
+  "kind": "node",
+  "title": "Validate schema",
+  "io": {
+    "inputJsonPath": "tasks/01KHHVEN7PXSP10XZBVKJPY1HN/input.json",
+    "outputJsonPath": "tasks/01KHHVEN7PXSP10XZBVKJPY1HN/result.json"
+  },
+  "inputs": {
+    "records": 5813,
+    "batchSize": 229,
+    "source": "postgres",
+    "destination": "elasticsearch"
+  }
+}

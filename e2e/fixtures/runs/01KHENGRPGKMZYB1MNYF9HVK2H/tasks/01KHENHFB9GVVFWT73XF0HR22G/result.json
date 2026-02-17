@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHENHFB9GVVFWT73XF0HR22G",
+  "taskId": "validate-schema",
+  "invocationKey": "hockey/roster-update:S000002:validate-schema",
+  "status": "ok",
+  "startedAt": "2026-02-14T18:10:22.888Z",
+  "finishedAt": "2026-02-14T18:11:22.641Z",
+  "result": {
+    "processed": 5914,
+    "failed": 97,
+    "skipped": 116,
+    "duration_ms": 59753,
+    "outputPath": "output/validate-schema-0HR22G.json"
+  },
+  "value": {
+    "processed": 5914,
+    "failed": 97,
+    "skipped": 116,
+    "duration_ms": 59753,
+    "outputPath": "output/validate-schema-0HR22G.json"
+  }
+}

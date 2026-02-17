@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHG5KT6D29J1AD5BJ1XW4RAC",
+  "taskId": "execute-test-suite",
+  "invocationKey": "hockey/schedule-sync:S000011:execute-test-suite",
+  "status": "ok",
+  "startedAt": "2026-02-15T08:10:31.635Z",
+  "finishedAt": "2026-02-15T08:11:21.592Z",
+  "result": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 143 items",
+    "stderr": "",
+    "duration_ms": 49957
+  },
+  "value": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 143 items",
+    "stderr": "",
+    "duration_ms": 49957
+  }
+}

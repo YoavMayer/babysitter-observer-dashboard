@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHHSDGQSXJT5B5VV2HNQA56D",
+  "taskId": "draft-release-notes",
+  "invocationKey": "hockey/stats-ingest:S000002:draft-release-notes",
+  "status": "ok",
+  "startedAt": "2026-02-15T23:15:51.733Z",
+  "finishedAt": "2026-02-15T23:16:43.640Z",
+  "result": {
+    "summary": "Generated specification for Draft release notes",
+    "sections": 7,
+    "wordCount": 3487,
+    "confidence": 0.87,
+    "recommendations": [
+      "Add input validation for user-facing fields",
+      "Review error handling in async paths",
+      "Add input validation for user-facing fields"
+    ]
+  },
+  "value": {
+    "summary": "Generated specification for Draft release notes",
+    "sections": 7,
+    "wordCount": 3487,
+    "confidence": 0.87,
+    "recommendations": [
+      "Add input validation for user-facing fields",
+      "Review error handling in async paths",
+      "Add input validation for user-facing fields"
+    ]
+  }
+}

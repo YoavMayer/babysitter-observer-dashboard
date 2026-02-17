@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHKJ7VCVNMYAMP5EEYE5TNYF",
+  "taskId": "transform-csv-to-json",
+  "invocationKey": "podcast-intel/transcribe:S000004:transform-csv-to-json",
+  "stepId": "S000004",
+  "kind": "node",
+  "title": "Transform CSV to JSON",
+  "io": {
+    "inputJsonPath": "tasks/01KHKJ7VCVNMYAMP5EEYE5TNYF/input.json",
+    "outputJsonPath": "tasks/01KHKJ7VCVNMYAMP5EEYE5TNYF/result.json"
+  },
+  "inputs": {
+    "records": 5952,
+    "batchSize": 88,
+    "source": "postgres",
+    "destination": "postgres"
+  }
+}

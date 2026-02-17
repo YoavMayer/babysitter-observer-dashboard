@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-16T15:55:16.691Z",
+  "data": {
+    "effectId": "01KHKJKHAK7N6TJPTQFAYKJ4JS",
+    "invocationKey": "podcast-intel/transcribe:S000015:wait-for-rate-limit-cooldown",
+    "invocationHash": "f6d69000db66a68d783de2d2dcedf3ac1f7a2fccdaebd637215e67a3ceb7688f",
+    "stepId": "S000015",
+    "taskId": "wait-for-rate-limit-cooldown",
+    "kind": "sleep",
+    "label": "Wait for rate limit cooldown",
+    "taskDefRef": "tasks/01KHKJKHAK7N6TJPTQFAYKJ4JS/task.json"
+  },
+  "checksum": "ceb6110558301902bba0762daadd4524295cf90c3b3acf1ba829a9af7e354808"
+}

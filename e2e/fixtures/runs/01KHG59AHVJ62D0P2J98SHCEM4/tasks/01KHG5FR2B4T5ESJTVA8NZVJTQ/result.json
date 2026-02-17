@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHG5FR2B4T5ESJTVA8NZVJTQ",
+  "taskId": "approve-deployment-to-producti",
+  "invocationKey": "hockey/schedule-sync:S000007:approve-deployment-to-producti",
+  "status": "ok",
+  "startedAt": "2026-02-15T08:08:18.167Z",
+  "finishedAt": "2026-02-15T08:08:43.820Z",
+  "result": {
+    "approved": true,
+    "approvedBy": "user",
+    "approvedAt": "2026-02-15T08:08:43.820Z"
+  },
+  "value": {
+    "approved": true,
+    "approvedBy": "user",
+    "approvedAt": "2026-02-15T08:08:43.820Z"
+  }
+}

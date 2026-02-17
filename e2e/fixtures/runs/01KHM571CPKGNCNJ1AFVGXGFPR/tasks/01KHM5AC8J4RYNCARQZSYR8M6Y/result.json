@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHM5AC8J4RYNCARQZSYR8M6Y",
+  "taskId": "write-test-specifications",
+  "invocationKey": "hockey/roster-update:S000005:write-test-specifications",
+  "status": "ok",
+  "startedAt": "2026-02-16T21:22:19.644Z",
+  "finishedAt": "2026-02-16T21:23:09.818Z",
+  "result": {
+    "summary": "Generated report for Write test specifications",
+    "sections": 4,
+    "wordCount": 3643,
+    "confidence": 0.856,
+    "recommendations": [
+      "Increase test coverage for edge cases",
+      "Increase test coverage for edge cases",
+      "Consider caching for frequently accessed data",
+      "Implement retry logic for external API calls",
+      "Increase test coverage for edge cases"
+    ]
+  },
+  "value": {
+    "summary": "Generated report for Write test specifications",
+    "sections": 4,
+    "wordCount": 3643,
+    "confidence": 0.856,
+    "recommendations": [
+      "Increase test coverage for edge cases",
+      "Increase test coverage for edge cases",
+      "Consider caching for frequently accessed data",
+      "Implement retry logic for external API calls",
+      "Increase test coverage for edge cases"
+    ]
+  }
+}

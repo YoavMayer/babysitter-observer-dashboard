@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHENTZ2203T0YX8PY6WFA5WY",
+  "taskId": "run-lint-checks",
+  "invocationKey": "hockey/roster-update:S000010:run-lint-checks",
+  "status": "ok",
+  "startedAt": "2026-02-14T18:15:35.628Z",
+  "finishedAt": "2026-02-14T18:15:35.925Z",
+  "result": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 27 items",
+    "stderr": "",
+    "duration_ms": 297
+  },
+  "value": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 27 items",
+    "stderr": "",
+    "duration_ms": 297
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-13T15:37:26.043Z",
+  "data": {
+    "effectId": "01KHBTCPRVBHASDFWVYF5B0QAB",
+    "invocationKey": "podcast-intel/transcribe:S000010:sync-s3-bucket",
+    "invocationHash": "d410f90eabca3302fe02904705e6528d03750b5dad496f2a4f5641c3b8528d36",
+    "stepId": "S000010",
+    "taskId": "sync-s3-bucket",
+    "kind": "shell",
+    "label": "Sync S3 bucket",
+    "taskDefRef": "tasks/01KHBTCPRVBHASDFWVYF5B0QAB/task.json"
+  },
+  "checksum": "66e864d4ab4ceda8ff21285631a7415118729fc283aa78a1d3929bf9fcd53ae1"
+}

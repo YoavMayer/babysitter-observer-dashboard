@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHHD5KHZ5TWCQ9M4CNW3BCKW",
+  "taskId": "generate-coverage-report",
+  "invocationKey": "hockey/roster-update:S000007:generate-coverage-report",
+  "stepId": "S000007",
+  "kind": "shell",
+  "title": "Generate coverage report",
+  "io": {
+    "inputJsonPath": "tasks/01KHHD5KHZ5TWCQ9M4CNW3BCKW/input.json",
+    "outputJsonPath": "tasks/01KHHD5KHZ5TWCQ9M4CNW3BCKW/result.json"
+  },
+  "inputs": {
+    "command": "redis-cli",
+    "args": [
+      "sync",
+      "--env=dev"
+    ],
+    "cwd": "/workspace/hockey-7-shifts",
+    "timeout": 115000
+  }
+}

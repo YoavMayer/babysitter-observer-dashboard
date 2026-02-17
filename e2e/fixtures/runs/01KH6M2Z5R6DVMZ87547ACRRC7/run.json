@@ -1,0 +1,14 @@
+{
+  "runId": "01KH6M2Z5R6DVMZ87547ACRRC7",
+  "request": "hockey/stats-ingest",
+  "processId": "hockey/stats-ingest",
+  "entrypoint": {
+    "importPath": "../../processes/hockey-stats-ingest.js",
+    "exportName": "process"
+  },
+  "processPath": "../../processes/hockey-stats-ingest.js",
+  "layoutVersion": "2026.01-storage-preview",
+  "createdAt": "2026-02-11T15:11:03.352Z",
+  "completionSecret": "bc9c7966b3f5b94b741117ca6f027076",
+  "projectName": "hockey-7-shifts"
+}

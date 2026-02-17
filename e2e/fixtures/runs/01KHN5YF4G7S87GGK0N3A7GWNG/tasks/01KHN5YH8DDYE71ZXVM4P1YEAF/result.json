@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHN5YH8DDYE71ZXVM4P1YEAF",
+  "taskId": "clear-cache",
+  "invocationKey": "hockey/schedule-sync:S000001:clear-cache",
+  "status": "ok",
+  "startedAt": "2026-02-17T06:52:35.649Z",
+  "finishedAt": "2026-02-17T06:53:09.975Z",
+  "result": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 194 items",
+    "stderr": "",
+    "duration_ms": 34326
+  },
+  "value": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 194 items",
+    "stderr": "",
+    "duration_ms": 34326
+  }
+}

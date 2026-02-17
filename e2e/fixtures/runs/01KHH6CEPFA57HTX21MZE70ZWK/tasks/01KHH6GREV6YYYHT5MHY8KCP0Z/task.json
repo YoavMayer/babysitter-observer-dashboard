@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHH6GREV6YYYHT5MHY8KCP0Z",
+  "taskId": "draft-outreach-email",
+  "invocationKey": "podcast-intel/summarize:S000005:draft-outreach-email",
+  "stepId": "S000005",
+  "kind": "agent",
+  "title": "Draft outreach email",
+  "io": {
+    "inputJsonPath": "tasks/01KHH6GREV6YYYHT5MHY8KCP0Z/input.json",
+    "outputJsonPath": "tasks/01KHH6GREV6YYYHT5MHY8KCP0Z/result.json"
+  },
+  "inputs": {
+    "context": "Process podcast-intel/summarize step S000005",
+    "maxTokens": 2269,
+    "temperature": 0.62,
+    "model": "claude-sonnet-4-20250514"
+  },
+  "agent": {
+    "name": "draft-outreach-email",
+    "prompt": {
+      "role": "architect",
+      "task": "Draft outreach email",
+      "instructions": [
+        "Analyze the provided data for podcast-intel",
+        "Follow the project coding standards",
+        "Return structured JSON output",
+        "Prioritize accuracy over speed"
+      ]
+    }
+  }
+}

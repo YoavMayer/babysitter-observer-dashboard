@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHA6QK7XAABY2J58SJFYMD24",
+  "taskId": "validate-schema",
+  "invocationKey": "podcast-intel/publish:S000005:validate-schema",
+  "stepId": "S000005",
+  "kind": "node",
+  "title": "Validate schema",
+  "io": {
+    "inputJsonPath": "tasks/01KHA6QK7XAABY2J58SJFYMD24/input.json",
+    "outputJsonPath": "tasks/01KHA6QK7XAABY2J58SJFYMD24/result.json"
+  },
+  "inputs": {
+    "records": 9119,
+    "batchSize": 340,
+    "source": "csv",
+    "destination": "elasticsearch"
+  }
+}

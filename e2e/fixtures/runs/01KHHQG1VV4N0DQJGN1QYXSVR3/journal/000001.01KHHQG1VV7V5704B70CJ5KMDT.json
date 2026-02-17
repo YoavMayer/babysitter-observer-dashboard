@@ -1,0 +1,14 @@
+{
+  "type": "RUN_CREATED",
+  "recordedAt": "2026-02-15T22:42:16.571Z",
+  "data": {
+    "runId": "01KHHQG1VV4N0DQJGN1QYXSVR3",
+    "processId": "hockey/roster-update",
+    "entrypoint": {
+      "importPath": "../../processes/hockey-roster-update.js",
+      "exportName": "process"
+    },
+    "inputsRef": "inputs.json"
+  },
+  "checksum": "0970a6faf349460996d4493ea6fccadfef7af0227fc6683f49b03fc7436fc668"
+}

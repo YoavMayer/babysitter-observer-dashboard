@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHGW6DNK53NDQ86TKHFBYSBZ",
+  "taskId": "review-pull-request",
+  "invocationKey": "podcast-intel/transcribe:S000004:review-pull-request",
+  "status": "ok",
+  "startedAt": "2026-02-15T14:45:10.304Z",
+  "finishedAt": "2026-02-15T14:45:12.760Z",
+  "result": {
+    "summary": "Generated draft for Review pull request",
+    "sections": 5,
+    "wordCount": 3645,
+    "confidence": 0.873,
+    "recommendations": [
+      "Implement retry logic for external API calls",
+      "Add input validation for user-facing fields"
+    ]
+  },
+  "value": {
+    "summary": "Generated draft for Review pull request",
+    "sections": 5,
+    "wordCount": 3645,
+    "confidence": 0.873,
+    "recommendations": [
+      "Implement retry logic for external API calls",
+      "Add input validation for user-facing fields"
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T23:51:11.521Z",
+  "data": {
+    "effectId": "01KHHVE7X104R9C5BKXP3J7CYW",
+    "invocationKey": "podcast-intel/transcribe:S000008:merge-datasets",
+    "invocationHash": "1add3cf98ff8234b83622f58ce72923af9f6792ddd240ae72d95b255f053b1ad",
+    "stepId": "S000008",
+    "taskId": "merge-datasets",
+    "kind": "node",
+    "label": "Merge datasets",
+    "taskDefRef": "tasks/01KHHVE7X104R9C5BKXP3J7CYW/task.json"
+  },
+  "checksum": "db2e85d7b380da9820c58acfe9eb5be992a8ca956935c5d090b413bdd69cd10a"
+}

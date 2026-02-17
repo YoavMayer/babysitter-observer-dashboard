@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T23:51:25.174Z",
+  "data": {
+    "effectId": "01KHHVEN7PXSP10XZBVKJPY1HN",
+    "invocationKey": "podcast-intel/transcribe:S000009:validate-schema",
+    "invocationHash": "185fd300de73c52445d2c8d44bf4b81a148f60df4142a791e4405a474f2d82be",
+    "stepId": "S000009",
+    "taskId": "validate-schema",
+    "kind": "node",
+    "label": "Validate schema",
+    "taskDefRef": "tasks/01KHHVEN7PXSP10XZBVKJPY1HN/task.json"
+  },
+  "checksum": "9f3cbe16e4aecf3eebbb6a01cedae146bab4d69d9565c22dd55c63ec742bff6d"
+}

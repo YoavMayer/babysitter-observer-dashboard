@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHHSTYMJYM406RWBK26M5VNK",
+  "taskId": "filter-duplicates",
+  "invocationKey": "hockey/stats-ingest:S000015:filter-duplicates",
+  "stepId": "S000015",
+  "kind": "node",
+  "title": "Filter duplicates",
+  "io": {
+    "inputJsonPath": "tasks/01KHHSTYMJYM406RWBK26M5VNK/input.json",
+    "outputJsonPath": "tasks/01KHHSTYMJYM406RWBK26M5VNK/result.json"
+  },
+  "inputs": {
+    "records": 7912,
+    "batchSize": 438,
+    "source": "redis",
+    "destination": "s3"
+  }
+}

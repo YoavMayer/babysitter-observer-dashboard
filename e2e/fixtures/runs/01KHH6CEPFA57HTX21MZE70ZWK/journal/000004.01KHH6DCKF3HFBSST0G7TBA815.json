@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T17:43:43.471Z",
+  "data": {
+    "effectId": "01KHH6DCKF6KX707PE01GVFSEY",
+    "invocationKey": "podcast-intel/summarize:S000002:research-market-trends",
+    "invocationHash": "c94d2e8bbf9cae364d1ac45517758cdd9c5c4879fb7f57421bfa9d632b8d45be",
+    "stepId": "S000002",
+    "taskId": "research-market-trends",
+    "kind": "agent",
+    "label": "Research market trends",
+    "taskDefRef": "tasks/01KHH6DCKF6KX707PE01GVFSEY/task.json"
+  },
+  "checksum": "8ce9021e9073165ffec42328dd024a3532d2fe2a2b980b9d2c3251a9f52bb48f"
+}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHGPWT8QB1TQ8D2PMA9RG7XZ",
+  "taskId": "index-search-documents",
+  "invocationKey": "hockey/stats-ingest:S000010:index-search-documents",
+  "stepId": "S000010",
+  "kind": "node",
+  "title": "Index search documents",
+  "io": {
+    "inputJsonPath": "tasks/01KHGPWT8QB1TQ8D2PMA9RG7XZ/input.json",
+    "outputJsonPath": "tasks/01KHGPWT8QB1TQ8D2PMA9RG7XZ/result.json"
+  },
+  "inputs": {
+    "records": 2639,
+    "batchSize": 101,
+    "source": "api",
+    "destination": "elasticsearch"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHN64FYZHFQ2RN1XJDTXWHHV",
+  "taskId": "analyze-competitor-data",
+  "invocationKey": "hockey/schedule-sync:S000006:analyze-competitor-data",
+  "stepId": "S000006",
+  "kind": "agent",
+  "title": "Analyze competitor data",
+  "io": {
+    "inputJsonPath": "tasks/01KHN64FYZHFQ2RN1XJDTXWHHV/input.json",
+    "outputJsonPath": "tasks/01KHN64FYZHFQ2RN1XJDTXWHHV/result.json"
+  },
+  "inputs": {
+    "context": "Process hockey/schedule-sync step S000006",
+    "maxTokens": 7624,
+    "temperature": 0.29,
+    "model": "claude-opus-4-20250514"
+  },
+  "agent": {
+    "name": "analyze-competitor-data",
+    "prompt": {
+      "role": "architect",
+      "task": "Analyze competitor data",
+      "instructions": [
+        "Analyze the provided data for hockey-7-shifts",
+        "Follow the project coding standards",
+        "Return structured JSON output",
+        "Include confidence scores"
+      ]
+    }
+  }
+}

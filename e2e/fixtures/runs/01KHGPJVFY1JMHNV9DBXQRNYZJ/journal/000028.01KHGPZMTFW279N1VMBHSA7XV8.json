@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T13:14:04.495Z",
+  "data": {
+    "effectId": "01KHGPZMTFYR0QP5FCMYXG65X1",
+    "invocationKey": "hockey/stats-ingest:S000014:generate-api-documentation",
+    "invocationHash": "185237e5d6bd42d090e49fead3f83b88c92723a2dfad5c45306c00d4e02d7a65",
+    "stepId": "S000014",
+    "taskId": "generate-api-documentation",
+    "kind": "agent",
+    "label": "Generate API documentation",
+    "taskDefRef": "tasks/01KHGPZMTFYR0QP5FCMYXG65X1/task.json"
+  },
+  "checksum": "7ad68969143c4a1d4b316b31d464d15a3a101e54cc2396059b6f1836afdf2468"
+}

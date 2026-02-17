@@ -1,0 +1,328 @@
+"use client";
+import { useState, useMemo, useCallback } from "react";
+import { useProjects } from "@/hooks/use-projects";
+import { useKeyboard } from "@/hooks/use-keyboard";
+import { useNotificationContext } from "@/components/notifications/notification-provider";
+import { NotificationPanel } from "@/components/notifications/notification-panel";
+import { ProjectHealthCard } from "@/components/dashboard/project-health-card";
+import { useTheme } from "@/components/shared/theme-provider";
+import { SettingsModal } from "@/components/shared/settings-modal";
+import { useEventStream } from "@/hooks/use-event-stream";
+import {
+  Eye,
+  Sun,
+  Moon,
+  Settings,
+  FolderOpen,
+  Activity,
+  CheckCircle2,
+  AlertCircle,
+  Layers,
+  Pause,
+} from "lucide-react";
+import { cn } from "@/lib/cn";
+import type { RunStatus } from "@/types";
+
+const filters: { label: string; value: RunStatus | "all" | "stale" }[] = [
+  { label: "All", value: "all" },
+  { label: "Running", value: "waiting" },
+  { label: "Stale", value: "stale" },
+  { label: "Completed", value: "completed" },
+  { label: "Failed", value: "failed" },
+];
+
+export default function DashboardPage() {
+  const { projects, loading, error } = useProjects();
+  const { theme, toggle: toggleTheme } = useTheme();
+  const { connected: sseConnected } = useEventStream();
+  const { notifications, dismiss } = useNotificationContext();
+  const [statusFilter, setStatusFilter] = useState<RunStatus | "all" | "stale">("all");
+  const [showNotificationPanel, setShowNotificationPanel] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+
+  const toggleNotificationPanel = useCallback(() => {
+    setShowNotificationPanel((v) => !v);
+  }, []);
+
+  useKeyboard([
+    { key: "n", action: toggleNotificationPanel, description: "Toggle notifications" },
+  ]);
+
+  // Aggregate metrics across all projects
+  const metrics = useMemo(() => {
+    const totalRuns = projects.reduce((s, p) => s + p.totalRuns, 0);
+    const activeRuns = projects.reduce((s, p) => s + p.activeRuns, 0);
+    const completedRuns = projects.reduce((s, p) => s + p.completedRuns, 0);
+    const failedRuns = projects.reduce((s, p) => s + p.failedRuns, 0);
+    const staleRuns = projects.reduce((s, p) => s + p.staleRuns, 0);
+    const totalTasks = projects.reduce((s, p) => s + p.totalTasks, 0);
+    const completedTasks = projects.reduce((s, p) => s + p.completedTasksAggregate, 0);
+    return { totalRuns, activeRuns, completedRuns, failedRuns, staleRuns, totalTasks, completedTasks };
+  }, [projects]);
+
+  const filterCounts = useMemo(() => {
+    return {
+      all: metrics.totalRuns,
+      waiting: metrics.activeRuns,
+      stale: metrics.staleRuns,
+      completed: metrics.completedRuns,
+      failed: metrics.failedRuns,
+      pending: 0,
+    } as Record<RunStatus | "all" | "stale", number>;
+  }, [metrics]);
+
+  // Filter projects by status counts
+  const filteredProjects = useMemo(() => {
+    if (statusFilter === "all") return projects;
+    if (statusFilter === "stale") return projects.filter((p) => p.staleRuns > 0);
+    return projects.filter((project) => {
+      if (statusFilter === "waiting") return project.activeRuns > 0;
+      if (statusFilter === "completed") return project.completedRuns > 0;
+      if (statusFilter === "failed") return project.failedRuns > 0;
+      return false;
+    });
+  }, [projects, statusFilter]);
+
+  // Determine the status filter to pass to ProjectHealthCard (map "stale" to "all" since it's not a RunStatus)
+  const cardStatusFilter: RunStatus | "all" = statusFilter === "stale" ? "all" : statusFilter;
+
+  // How many KPI columns: 4 base + 1 if stale > 0
+  const hasStaleRuns = metrics.staleRuns > 0;
+  const kpiCols = hasStaleRuns ? "grid-cols-2 sm:grid-cols-5" : "grid-cols-2 sm:grid-cols-4";
+
+  return (
+    <div className="min-h-screen bg-gradient-brand">
+      {/* Top bar */}
+      <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-md">
+        <div className="mx-auto max-w-[1600px] px-6 py-3 flex items-center gap-3">
+          <Eye className="h-5 w-5 text-primary" />
+          <h1 className="text-base font-semibold text-foreground">Babysitter Observer</h1>
+          <span className="text-[10px] leading-tight font-medium text-primary/60 tracking-wide hidden sm:block">a5c.ai</span>
+          <span className="text-xs text-foreground-muted hidden sm:block">
+            Real-time orchestration dashboard
+          </span>
+          <div className="ml-auto flex items-center gap-1.5">
+            <span
+              className={cn(
+                "h-2 w-2 rounded-full mr-1 transition-all",
+                sseConnected
+                  ? "bg-success shadow-[0_0_6px_var(--success)]"
+                  : "bg-foreground-muted/30"
+              )}
+              title={sseConnected ? "Live updates connected" : "Live updates disconnected"}
+            />
+            <span className="text-[10px] text-foreground-muted mr-1 hidden sm:block">
+              {sseConnected ? "Live" : "Offline"}
+            </span>
+            <button
+              onClick={() => setShowSettings(true)}
+              className="rounded-md p-2 text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary transition-colors"
+              title="Settings"
+            >
+              <Settings className="h-4 w-4" />
+            </button>
+            <button
+              onClick={toggleTheme}
+              className="rounded-md p-2 text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary transition-colors"
+              title={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
+            >
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-[1600px] px-6 py-6">
+        {/* KPI Metrics Row */}
+        {!loading && !error && projects.length > 0 && (
+          <div data-testid="kpi-grid" className={cn("grid gap-3 mb-6", kpiCols)}>
+            <MetricTile
+              label="Total Runs"
+              value={metrics.totalRuns}
+              icon={<Layers className="h-4 w-4" />}
+              color="primary"
+              testId="metric-tile-total-runs"
+            />
+            <MetricTile
+              label="Active"
+              value={metrics.activeRuns}
+              icon={<Activity className="h-4 w-4" />}
+              color="warning"
+              pulse={metrics.activeRuns > 0}
+              testId="metric-tile-active"
+            />
+            {hasStaleRuns && (
+              <MetricTile
+                label="Stale"
+                value={metrics.staleRuns}
+                icon={<Pause className="h-4 w-4" />}
+                color="muted"
+                testId="metric-tile-stale"
+              />
+            )}
+            <MetricTile
+              label="Completed"
+              value={metrics.completedRuns}
+              icon={<CheckCircle2 className="h-4 w-4" />}
+              color="success"
+              testId="metric-tile-completed"
+            />
+            <MetricTile
+              label="Failed"
+              value={metrics.failedRuns}
+              icon={<AlertCircle className="h-4 w-4" />}
+              color="error"
+              testId="metric-tile-failed"
+            />
+          </div>
+        )}
+
+        {/* Filter pills */}
+        <div className="mb-5">
+          <div data-testid="filter-bar" className="flex items-center gap-1">
+            {filters.map((f) => {
+              const count = filterCounts[f.value] ?? 0;
+              // Hide Stale filter pill when there are no stale runs
+              if (f.value === "stale" && count === 0) return null;
+              return (
+                <button
+                  key={f.value}
+                  data-testid={`filter-pill-${f.value}`}
+                  onClick={() => setStatusFilter(f.value)}
+                  className={cn(
+                    "rounded-md px-3 py-1.5 text-xs font-medium transition-all inline-flex items-center gap-1.5",
+                    statusFilter === f.value
+                      ? f.value === "stale"
+                        ? "bg-zinc-500/10 text-zinc-500"
+                        : "bg-primary/10 text-primary shadow-neon-glow-primary-xs"
+                      : "text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary"
+                  )}
+                >
+                  {f.label}
+                  {count > 0 && (
+                    <span className={cn(
+                      "rounded-full px-1.5 py-px text-[10px] leading-tight font-semibold tabular-nums",
+                      statusFilter === f.value
+                        ? f.value === "stale"
+                          ? "bg-zinc-500/20 text-zinc-500"
+                          : "bg-primary/20 text-primary"
+                        : "bg-background-secondary text-foreground-muted"
+                    )}>
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+            {/* Project count */}
+            <span data-testid="project-count" className="ml-auto text-xs text-foreground-muted tabular-nums">
+              {filteredProjects.length} project{filteredProjects.length !== 1 ? "s" : ""}
+            </span>
+          </div>
+        </div>
+
+        {/* Content */}
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="rounded-lg border border-border bg-card p-4 animate-pulse">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="h-2.5 w-2.5 rounded-full bg-foreground-muted/20" />
+                  <div className="h-4 w-32 rounded bg-foreground-muted/10" />
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-foreground-muted/10 mb-3" />
+                <div className="flex items-center gap-3">
+                  <div className="h-5 w-16 rounded-full bg-foreground-muted/10" />
+                  <div className="h-5 w-16 rounded-full bg-foreground-muted/10" />
+                  <div className="h-3 w-12 rounded bg-foreground-muted/10" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : error ? (
+          <div data-testid="error-banner" className="rounded-lg border border-error/20 bg-error-muted p-4 text-sm text-error">
+            Failed to load projects: {error}
+          </div>
+        ) : filteredProjects.length === 0 ? (
+          <div data-testid="empty-state" className="text-center py-16">
+            <FolderOpen className="h-10 w-10 text-foreground-muted/30 mx-auto mb-3" />
+            <p className="text-sm text-foreground-muted mb-1">No projects found</p>
+            <p className="text-xs text-foreground-muted/60">
+              Configure watch sources in{" "}
+              <button
+                onClick={() => setShowSettings(true)}
+                className="text-primary hover:underline"
+              >
+                Settings
+              </button>{" "}
+              or edit <span className="font-mono">~/.a5c/observer.json</span>
+            </p>
+          </div>
+        ) : (
+          <div data-testid="project-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredProjects.map((project) => (
+              <ProjectHealthCard
+                key={project.projectName}
+                project={project}
+                statusFilter={cardStatusFilter}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Notification Panel */}
+      {showNotificationPanel && (
+        <NotificationPanel
+          notifications={notifications}
+          onDismiss={dismiss}
+          onClose={() => setShowNotificationPanel(false)}
+        />
+      )}
+
+      {/* Settings Modal */}
+      <SettingsModal open={showSettings} onClose={() => setShowSettings(false)} />
+    </div>
+  );
+}
+
+/* --- KPI Metric Tile --- */
+interface MetricTileProps {
+  label: string;
+  value: number;
+  icon: React.ReactNode;
+  color: "primary" | "success" | "warning" | "error" | "muted";
+  pulse?: boolean;
+  testId?: string;
+}
+
+const colorMap: Record<MetricTileProps["color"], { text: string; bg: string; glow: string; borderL: string }> = {
+  primary: { text: "text-primary", bg: "bg-primary/10", glow: "", borderL: "" },
+  success: { text: "text-success", bg: "bg-success/10", glow: "", borderL: "border-l-success/60" },
+  warning: { text: "text-warning", bg: "bg-warning/10", glow: "shadow-[0_0_8px_var(--warning)]", borderL: "border-l-warning/60" },
+  error: { text: "text-error", bg: "bg-error/10", glow: "", borderL: "border-l-error/60" },
+  muted: { text: "text-zinc-500", bg: "bg-zinc-500/10", glow: "", borderL: "border-l-zinc-500/60" },
+};
+
+function MetricTile({ label, value, icon, color, pulse, testId }: MetricTileProps) {
+  const c = colorMap[color];
+  return (
+    <div data-testid={testId} className={cn(
+      "rounded-lg border border-border bg-card/80 backdrop-blur-sm p-3 flex items-center gap-3 transition-all",
+      value > 0 && color !== "primary" && "border-l-2",
+      value > 0 && color !== "primary" && c.borderL,
+    )}>
+      <div className={cn("rounded-md p-2", c.bg)}>
+        <span className={cn(c.text, pulse && "animate-pulse-dot")}>{icon}</span>
+      </div>
+      <div>
+        <p className={cn("text-lg font-bold tabular-nums leading-none mb-0.5", c.text)}>
+          {value}
+        </p>
+        <p className="text-[10px] leading-tight text-foreground-muted uppercase tracking-wider font-medium">
+          {label}
+        </p>
+      </div>
+    </div>
+  );
+}

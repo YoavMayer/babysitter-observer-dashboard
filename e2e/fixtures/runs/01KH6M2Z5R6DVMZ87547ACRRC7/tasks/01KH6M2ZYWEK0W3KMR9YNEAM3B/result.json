@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KH6M2ZYWEK0W3KMR9YNEAM3B",
+  "taskId": "draft-outreach-email",
+  "invocationKey": "hockey/stats-ingest:S000001:draft-outreach-email",
+  "status": "ok",
+  "startedAt": "2026-02-11T15:11:04.522Z",
+  "finishedAt": "2026-02-11T15:11:54.007Z",
+  "result": {
+    "summary": "Generated analysis for Draft outreach email",
+    "sections": 4,
+    "wordCount": 3920,
+    "confidence": 0.964,
+    "recommendations": [
+      "Add input validation for user-facing fields"
+    ]
+  },
+  "value": {
+    "summary": "Generated analysis for Draft outreach email",
+    "sections": 4,
+    "wordCount": 3920,
+    "confidence": 0.964,
+    "recommendations": [
+      "Add input validation for user-facing fields"
+    ]
+  }
+}

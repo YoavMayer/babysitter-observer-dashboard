@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-16T21:24:51.891Z",
+  "data": {
+    "effectId": "01KHM5F11KEKEZNKQVJNYEWNH4",
+    "invocationKey": "hockey/roster-update:S000010:run-sentiment-analysis",
+    "invocationHash": "8775dc281619f7e30b7e5557bb443a4afcdf85d396ff6eaf44af41696d1c1687",
+    "stepId": "S000010",
+    "taskId": "run-sentiment-analysis",
+    "kind": "skill",
+    "label": "Run sentiment analysis",
+    "taskDefRef": "tasks/01KHM5F11KEKEZNKQVJNYEWNH4/task.json"
+  },
+  "checksum": "aca1ae02753e1f96a202d749a8fd87be2df9126f0198b95c5bc281310c906e90"
+}

@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-17T01:01:42.352Z",
+  "data": {
+    "effectId": "01KHMHW2JGSZRYHJX4CN67RBJZ",
+    "invocationKey": "hockey/roster-update:S000004:analyze-competitor-data",
+    "invocationHash": "dd93e2ff8caca67828b6a0663dbf06ff0cf30476e4e78fd94eb0d560af2c0643",
+    "stepId": "S000004",
+    "taskId": "analyze-competitor-data",
+    "kind": "agent",
+    "label": "Analyze competitor data",
+    "taskDefRef": "tasks/01KHMHW2JGSZRYHJX4CN67RBJZ/task.json"
+  },
+  "checksum": "1cd3099bfa4c85b494f544d6abe1ecc3b6934b8b2a23d0686db50c26c11d12a0"
+}

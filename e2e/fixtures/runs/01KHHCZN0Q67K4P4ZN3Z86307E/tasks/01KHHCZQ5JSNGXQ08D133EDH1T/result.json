@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHHCZQ5JSNGXQ08D133EDH1T",
+  "taskId": "research-market-trends",
+  "invocationKey": "hockey/roster-update:S000001:research-market-trends",
+  "status": "ok",
+  "startedAt": "2026-02-15T19:38:36.266Z",
+  "finishedAt": "2026-02-15T19:38:53.742Z",
+  "result": {
+    "summary": "Generated report for Research market trends",
+    "sections": 4,
+    "wordCount": 908,
+    "confidence": 0.963,
+    "recommendations": [
+      "Increase test coverage for edge cases",
+      "Consider caching for frequently accessed data",
+      "Increase test coverage for edge cases",
+      "Add input validation for user-facing fields"
+    ]
+  },
+  "value": {
+    "summary": "Generated report for Research market trends",
+    "sections": 4,
+    "wordCount": 908,
+    "confidence": 0.963,
+    "recommendations": [
+      "Increase test coverage for edge cases",
+      "Consider caching for frequently accessed data",
+      "Increase test coverage for edge cases",
+      "Add input validation for user-facing fields"
+    ]
+  }
+}

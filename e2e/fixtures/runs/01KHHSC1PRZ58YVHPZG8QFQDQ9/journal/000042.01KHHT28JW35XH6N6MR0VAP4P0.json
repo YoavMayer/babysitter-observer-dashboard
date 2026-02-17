@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T23:27:10.428Z",
+  "data": {
+    "effectId": "01KHHT28JW17X2R2NK0NF71M4T",
+    "invocationKey": "hockey/stats-ingest:S000021:index-search-documents",
+    "invocationHash": "d1c231fabe11eca08fd99bfe781f31f8aec4cb686c4cd66902b76f6f47e933ae",
+    "stepId": "S000021",
+    "taskId": "index-search-documents",
+    "kind": "node",
+    "label": "Index search documents",
+    "taskDefRef": "tasks/01KHHT28JW17X2R2NK0NF71M4T/task.json"
+  },
+  "checksum": "f0a21a616a56a21169a66f45440c12a5e63445233ef30cc535a96e2d4f8aacc7"
+}

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KH9MAZC9BKX69TS5M74NFB1Z",
+  "taskId": "compress-assets",
+  "invocationKey": "podcast-intel/transcribe:S000002:compress-assets",
+  "stepId": "S000002",
+  "kind": "shell",
+  "title": "Compress assets",
+  "io": {
+    "inputJsonPath": "tasks/01KH9MAZC9BKX69TS5M74NFB1Z/input.json",
+    "outputJsonPath": "tasks/01KH9MAZC9BKX69TS5M74NFB1Z/result.json"
+  },
+  "inputs": {
+    "command": "aws",
+    "args": [
+      "exec",
+      "--env=staging"
+    ],
+    "cwd": "/workspace/podcast-intel",
+    "timeout": 42000
+  }
+}

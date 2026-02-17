@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KH914R68B87VSW9XM0NZVG1Z",
+  "taskId": "invoke-web-scraper",
+  "invocationKey": "hockey/schedule-sync:S000012:invoke-web-scraper",
+  "stepId": "S000012",
+  "kind": "skill",
+  "title": "Invoke web scraper",
+  "io": {
+    "inputJsonPath": "tasks/01KH914R68B87VSW9XM0NZVG1Z/input.json",
+    "outputJsonPath": "tasks/01KH914R68B87VSW9XM0NZVG1Z/result.json"
+  },
+  "inputs": {
+    "skillName": "invoke-web-scraper",
+    "version": "4.4.7",
+    "config": {
+      "retries": 2,
+      "backoff": "exponential"
+    }
+  }
+}

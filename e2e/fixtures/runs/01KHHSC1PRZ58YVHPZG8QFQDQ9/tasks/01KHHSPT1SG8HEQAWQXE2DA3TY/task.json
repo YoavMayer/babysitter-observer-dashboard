@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHHSPT1SG8HEQAWQXE2DA3TY",
+  "taskId": "execute-ocr-pipeline",
+  "invocationKey": "hockey/stats-ingest:S000011:execute-ocr-pipeline",
+  "stepId": "S000011",
+  "kind": "skill",
+  "title": "Execute OCR pipeline",
+  "io": {
+    "inputJsonPath": "tasks/01KHHSPT1SG8HEQAWQXE2DA3TY/input.json",
+    "outputJsonPath": "tasks/01KHHSPT1SG8HEQAWQXE2DA3TY/result.json"
+  },
+  "inputs": {
+    "skillName": "execute-ocr-pipeline",
+    "version": "2.3.11",
+    "config": {
+      "retries": 1,
+      "backoff": "exponential"
+    }
+  }
+}

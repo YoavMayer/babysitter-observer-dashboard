@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHN6187G5MN4ATAR0H5HENTF",
+  "taskId": "process-payment-webhook",
+  "invocationKey": "hockey/schedule-sync:S000004:process-payment-webhook",
+  "stepId": "S000004",
+  "kind": "skill",
+  "title": "Process payment webhook",
+  "io": {
+    "inputJsonPath": "tasks/01KHN6187G5MN4ATAR0H5HENTF/input.json",
+    "outputJsonPath": "tasks/01KHN6187G5MN4ATAR0H5HENTF/result.json"
+  },
+  "inputs": {
+    "skillName": "process-payment-webhook",
+    "version": "4.0.13",
+    "config": {
+      "retries": 3,
+      "backoff": "exponential"
+    }
+  }
+}

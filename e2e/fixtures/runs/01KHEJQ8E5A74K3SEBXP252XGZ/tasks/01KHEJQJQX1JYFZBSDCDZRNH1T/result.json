@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHEJQJQX1JYFZBSDCDZRNH1T",
+  "taskId": "execute-test-suite",
+  "invocationKey": "podcast-intel/publish:S000002:execute-test-suite",
+  "status": "ok",
+  "startedAt": "2026-02-14T17:21:17.635Z",
+  "finishedAt": "2026-02-14T17:21:27.831Z",
+  "result": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 159 items",
+    "stderr": "",
+    "duration_ms": 10196
+  },
+  "value": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 159 items",
+    "stderr": "",
+    "duration_ms": 10196
+  }
+}

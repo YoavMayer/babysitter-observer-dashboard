@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHHSF50XVNAAKVG1KSTB2RB1",
+  "taskId": "compress-assets",
+  "invocationKey": "hockey/stats-ingest:S000003:compress-assets",
+  "stepId": "S000003",
+  "kind": "shell",
+  "title": "Compress assets",
+  "io": {
+    "inputJsonPath": "tasks/01KHHSF50XVNAAKVG1KSTB2RB1/input.json",
+    "outputJsonPath": "tasks/01KHHSF50XVNAAKVG1KSTB2RB1/result.json"
+  },
+  "inputs": {
+    "command": "aws",
+    "args": [
+      "build",
+      "--env=staging"
+    ],
+    "cwd": "/workspace/hockey-7-shifts",
+    "timeout": 248000
+  }
+}

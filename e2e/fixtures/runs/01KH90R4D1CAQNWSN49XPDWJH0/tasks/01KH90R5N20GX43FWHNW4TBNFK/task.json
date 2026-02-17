@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KH90R5N20GX43FWHNW4TBNFK",
+  "taskId": "call-translation-api",
+  "invocationKey": "hockey/schedule-sync:S000001:call-translation-api",
+  "stepId": "S000001",
+  "kind": "skill",
+  "title": "Call translation API",
+  "io": {
+    "inputJsonPath": "tasks/01KH90R5N20GX43FWHNW4TBNFK/input.json",
+    "outputJsonPath": "tasks/01KH90R5N20GX43FWHNW4TBNFK/result.json"
+  },
+  "inputs": {
+    "skillName": "call-translation-api",
+    "version": "3.0.15",
+    "config": {
+      "retries": 5,
+      "backoff": "exponential"
+    }
+  }
+}

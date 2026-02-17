@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHKJ5S12C4S24D2VZWQAAS8A",
+  "taskId": "research-market-trends",
+  "invocationKey": "podcast-intel/transcribe:S000001:research-market-trends",
+  "stepId": "S000001",
+  "kind": "agent",
+  "title": "Research market trends",
+  "io": {
+    "inputJsonPath": "tasks/01KHKJ5S12C4S24D2VZWQAAS8A/input.json",
+    "outputJsonPath": "tasks/01KHKJ5S12C4S24D2VZWQAAS8A/result.json"
+  },
+  "inputs": {
+    "context": "Process podcast-intel/transcribe step S000001",
+    "maxTokens": 1958,
+    "temperature": 0.48,
+    "model": "claude-sonnet-4-20250514"
+  },
+  "agent": {
+    "name": "research-market-trends",
+    "prompt": {
+      "role": "reviewer",
+      "task": "Research market trends",
+      "instructions": [
+        "Analyze the provided data for podcast-intel",
+        "Follow the project coding standards",
+        "Return structured JSON output",
+        "Include confidence scores"
+      ]
+    }
+  }
+}

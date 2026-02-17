@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHF4MT34CA8KH81D1EYJ6WRY",
+  "taskId": "write-test-specifications",
+  "invocationKey": "hockey/stats-ingest:S000002:write-test-specifications",
+  "status": "ok",
+  "startedAt": "2026-02-14T22:34:22.376Z",
+  "finishedAt": "2026-02-14T22:34:49.446Z",
+  "result": {
+    "summary": "Generated report for Write test specifications",
+    "sections": 5,
+    "wordCount": 548,
+    "confidence": 0.91,
+    "recommendations": [
+      "Review error handling in async paths",
+      "Consider caching for frequently accessed data"
+    ]
+  },
+  "value": {
+    "summary": "Generated report for Write test specifications",
+    "sections": 5,
+    "wordCount": 548,
+    "confidence": 0.91,
+    "recommendations": [
+      "Review error handling in async paths",
+      "Consider caching for frequently accessed data"
+    ]
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHA6JVVZHHSD589H3H206TBH",
+  "taskId": "generate-api-documentation",
+  "invocationKey": "podcast-intel/publish:S000001:generate-api-documentation",
+  "status": "ok",
+  "startedAt": "2026-02-13T00:32:03.125Z",
+  "finishedAt": "2026-02-13T00:32:06.168Z",
+  "result": {
+    "summary": "Generated draft for Generate API documentation",
+    "sections": 6,
+    "wordCount": 4155,
+    "confidence": 0.733,
+    "recommendations": [
+      "Add input validation for user-facing fields"
+    ]
+  },
+  "value": {
+    "summary": "Generated draft for Generate API documentation",
+    "sections": 6,
+    "wordCount": 4155,
+    "confidence": 0.733,
+    "recommendations": [
+      "Add input validation for user-facing fields"
+    ]
+  }
+}

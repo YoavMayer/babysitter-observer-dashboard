@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHH6KG7AD3PN5BTDQY0SH1G4",
+  "taskId": "verify-outreach-email-before-s",
+  "invocationKey": "podcast-intel/summarize:S000009:verify-outreach-email-before-s",
+  "status": "ok",
+  "startedAt": "2026-02-15T17:47:04.059Z",
+  "finishedAt": "2026-02-15T17:48:02.783Z",
+  "result": {
+    "approved": true,
+    "approvedBy": "user",
+    "approvedAt": "2026-02-15T17:48:02.783Z"
+  },
+  "value": {
+    "approved": true,
+    "approvedBy": "user",
+    "approvedAt": "2026-02-15T17:48:02.783Z"
+  }
+}

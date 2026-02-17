@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHENSY4K1WEEH2NZPBCVZ23A",
+  "taskId": "execute-test-suite",
+  "invocationKey": "hockey/roster-update:S000009:execute-test-suite",
+  "status": "ok",
+  "startedAt": "2026-02-14T18:15:01.694Z",
+  "finishedAt": "2026-02-14T18:15:32.914Z",
+  "result": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 147 items",
+    "stderr": "",
+    "duration_ms": 31220
+  },
+  "value": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 147 items",
+    "stderr": "",
+    "duration_ms": 31220
+  }
+}

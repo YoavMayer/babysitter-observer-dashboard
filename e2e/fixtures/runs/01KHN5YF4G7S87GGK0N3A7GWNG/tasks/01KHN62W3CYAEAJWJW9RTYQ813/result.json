@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHN62W3CYAEAJWJW9RTYQ813",
+  "taskId": "pause-before-retry",
+  "invocationKey": "hockey/schedule-sync:S000005:pause-before-retry",
+  "status": "ok",
+  "startedAt": "2026-02-17T06:54:57.862Z",
+  "finishedAt": "2026-02-17T06:55:45.778Z",
+  "result": {
+    "sleptMs": 41062,
+    "reason": "Pause before retry"
+  },
+  "value": {
+    "sleptMs": 41062,
+    "reason": "Pause before retry"
+  }
+}

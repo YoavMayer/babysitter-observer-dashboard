@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KH911WZDAWKVW5ZEC8SEB25W",
+  "taskId": "validate-schema",
+  "invocationKey": "hockey/schedule-sync:S000010:validate-schema",
+  "status": "ok",
+  "startedAt": "2026-02-12T13:36:09.242Z",
+  "finishedAt": "2026-02-12T13:36:50.840Z",
+  "result": {
+    "processed": 1958,
+    "failed": 61,
+    "skipped": 14,
+    "duration_ms": 41598,
+    "outputPath": "output/validate-schema-SEB25W.json"
+  },
+  "value": {
+    "processed": 1958,
+    "failed": 61,
+    "skipped": 14,
+    "duration_ms": 41598,
+    "outputPath": "output/validate-schema-SEB25W.json"
+  }
+}

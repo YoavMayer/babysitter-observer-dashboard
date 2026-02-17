@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHKJGV1N0Y14WB7XTR04KNCH",
+  "taskId": "generate-coverage-report",
+  "invocationKey": "podcast-intel/transcribe:S000012:generate-coverage-report",
+  "status": "ok",
+  "startedAt": "2026-02-16T15:53:48.771Z",
+  "finishedAt": "2026-02-16T15:54:19.835Z",
+  "result": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 182 items",
+    "stderr": "",
+    "duration_ms": 31064
+  },
+  "value": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 182 items",
+    "stderr": "",
+    "duration_ms": 31064
+  }
+}

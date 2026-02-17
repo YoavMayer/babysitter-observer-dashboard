@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-13T00:32:10.472Z",
+  "data": {
+    "effectId": "01KHA6K478PTGASNSCCPNXY7E4",
+    "invocationKey": "podcast-intel/publish:S000002:build-docker-image",
+    "invocationHash": "58e04e4af9a59ed61edb98b20f6d6d2571e83919e74808cd2a9d44337826859c",
+    "stepId": "S000002",
+    "taskId": "build-docker-image",
+    "kind": "shell",
+    "label": "Build Docker image",
+    "taskDefRef": "tasks/01KHA6K478PTGASNSCCPNXY7E4/task.json"
+  },
+  "checksum": "73039b8e788e61b2cd97bf2f662b6df0286cca76252106f8d64b6f52e4a111aa"
+}

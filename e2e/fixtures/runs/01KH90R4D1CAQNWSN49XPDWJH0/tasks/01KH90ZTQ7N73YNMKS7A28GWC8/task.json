@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KH90ZTQ7N73YNMKS7A28GWC8",
+  "taskId": "draft-outreach-email",
+  "invocationKey": "hockey/schedule-sync:S000007:draft-outreach-email",
+  "stepId": "S000007",
+  "kind": "agent",
+  "title": "Draft outreach email",
+  "io": {
+    "inputJsonPath": "tasks/01KH90ZTQ7N73YNMKS7A28GWC8/input.json",
+    "outputJsonPath": "tasks/01KH90ZTQ7N73YNMKS7A28GWC8/result.json"
+  },
+  "inputs": {
+    "context": "Process hockey/schedule-sync step S000007",
+    "maxTokens": 7964,
+    "temperature": 0.57,
+    "model": "claude-sonnet-4-20250514"
+  },
+  "agent": {
+    "name": "draft-outreach-email",
+    "prompt": {
+      "role": "reviewer",
+      "task": "Draft outreach email",
+      "instructions": [
+        "Analyze the provided data for hockey-7-shifts",
+        "Follow the project coding standards",
+        "Return structured JSON output",
+        "Prioritize accuracy over speed"
+      ]
+    }
+  }
+}

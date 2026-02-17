@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KH90VA2XCYDKDXGZSAVMC06E",
+  "taskId": "index-search-documents",
+  "invocationKey": "hockey/schedule-sync:S000004:index-search-documents",
+  "stepId": "S000004",
+  "kind": "node",
+  "title": "Index search documents",
+  "io": {
+    "inputJsonPath": "tasks/01KH90VA2XCYDKDXGZSAVMC06E/input.json",
+    "outputJsonPath": "tasks/01KH90VA2XCYDKDXGZSAVMC06E/result.json"
+  },
+  "inputs": {
+    "records": 6366,
+    "batchSize": 357,
+    "source": "csv",
+    "destination": "s3"
+  }
+}

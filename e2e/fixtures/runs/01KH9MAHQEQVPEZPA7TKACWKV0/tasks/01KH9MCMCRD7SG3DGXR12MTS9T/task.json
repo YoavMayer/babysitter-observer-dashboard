@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KH9MCMCRD7SG3DGXR12MTS9T",
+  "taskId": "build-docker-image",
+  "invocationKey": "podcast-intel/transcribe:S000003:build-docker-image",
+  "stepId": "S000003",
+  "kind": "shell",
+  "title": "Build Docker image",
+  "io": {
+    "inputJsonPath": "tasks/01KH9MCMCRD7SG3DGXR12MTS9T/input.json",
+    "outputJsonPath": "tasks/01KH9MCMCRD7SG3DGXR12MTS9T/result.json"
+  },
+  "inputs": {
+    "command": "npm",
+    "args": [
+      "run",
+      "--env=dev"
+    ],
+    "cwd": "/workspace/podcast-intel",
+    "timeout": 93000
+  }
+}

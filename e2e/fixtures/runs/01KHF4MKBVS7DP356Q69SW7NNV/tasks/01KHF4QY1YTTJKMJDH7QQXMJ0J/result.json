@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHF4QY1YTTJKMJDH7QQXMJ0J",
+  "taskId": "deduplicate-records",
+  "invocationKey": "hockey/stats-ingest:S000005:deduplicate-records",
+  "status": "ok",
+  "startedAt": "2026-02-14T22:36:04.672Z",
+  "finishedAt": "2026-02-14T22:37:04.465Z",
+  "result": {
+    "processed": 6434,
+    "failed": 51,
+    "skipped": 17,
+    "duration_ms": 59793,
+    "outputPath": "output/deduplicate-records-QXMJ0J.json"
+  },
+  "value": {
+    "processed": 6434,
+    "failed": 51,
+    "skipped": 17,
+    "duration_ms": 59793,
+    "outputPath": "output/deduplicate-records-QXMJ0J.json"
+  }
+}

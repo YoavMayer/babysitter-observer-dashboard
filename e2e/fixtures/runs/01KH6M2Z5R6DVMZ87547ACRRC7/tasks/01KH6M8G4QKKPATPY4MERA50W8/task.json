@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KH6M8G4QKKPATPY4MERA50W8",
+  "taskId": "wait-for-rate-limit-cooldown",
+  "invocationKey": "hockey/stats-ingest:S000005:wait-for-rate-limit-cooldown",
+  "stepId": "S000005",
+  "kind": "sleep",
+  "title": "Wait for rate limit cooldown",
+  "io": {
+    "inputJsonPath": "tasks/01KH6M8G4QKKPATPY4MERA50W8/input.json",
+    "outputJsonPath": "tasks/01KH6M8G4QKKPATPY4MERA50W8/result.json"
+  },
+  "inputs": {
+    "durationMs": 12577,
+    "reason": "Wait for rate limit cooldown"
+  }
+}

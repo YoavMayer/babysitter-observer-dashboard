@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T13:10:49.039Z",
+  "data": {
+    "effectId": "01KHGPSNYFZJR7W37VR2VV366M",
+    "invocationKey": "hockey/stats-ingest:S000008:write-test-specifications",
+    "invocationHash": "5f178b2bd49ba29b2a65b780395d712a9005e7a1a08c5a98e82e9215b28c0586",
+    "stepId": "S000008",
+    "taskId": "write-test-specifications",
+    "kind": "agent",
+    "label": "Write test specifications",
+    "taskDefRef": "tasks/01KHGPSNYFZJR7W37VR2VV366M/task.json"
+  },
+  "checksum": "ad96c0ec1918a06b94983f67bbb9f5fcdff4ba89a04fb8d8a4fbc03d19304e43"
+}

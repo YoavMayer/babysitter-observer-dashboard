@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T08:07:24.107Z",
+  "data": {
+    "effectId": "01KHG5E3PBCKY1J4X71EVGN3CP",
+    "invocationKey": "hockey/schedule-sync:S000006:execute-test-suite",
+    "invocationHash": "9524de4031f1b05f7c6c799322f56536e044b0e7c1f008dcf8b78c76d3ff253c",
+    "stepId": "S000006",
+    "taskId": "execute-test-suite",
+    "kind": "shell",
+    "label": "Execute test suite",
+    "taskDefRef": "tasks/01KHG5E3PBCKY1J4X71EVGN3CP/task.json"
+  },
+  "checksum": "f5e156f8872bc3bea66fcd330f8e9e75b6fc9347a013ee6488b698948a0d9575"
+}

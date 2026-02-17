@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-14T18:11:25.673Z",
+  "data": {
+    "effectId": "01KHENKCV9EVYBX94152C4CH5M",
+    "invocationKey": "hockey/roster-update:S000003:sync-s3-bucket",
+    "invocationHash": "9975a599dd9782ace1329baa6432e7e58be9667441c29d4a7d931baa1e0214fc",
+    "stepId": "S000003",
+    "taskId": "sync-s3-bucket",
+    "kind": "shell",
+    "label": "Sync S3 bucket",
+    "taskDefRef": "tasks/01KHENKCV9EVYBX94152C4CH5M/task.json"
+  },
+  "checksum": "862fdb56afad63f72a7762c64317efe24112a6bf5543d34fc1a332351c2adafa"
+}

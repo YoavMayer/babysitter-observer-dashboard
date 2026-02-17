@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHKJS6RJ6ZWJJ82N6V6GFW5N",
+  "taskId": "run-database-migration",
+  "invocationKey": "podcast-intel/transcribe:S000022:run-database-migration",
+  "stepId": "S000022",
+  "kind": "shell",
+  "title": "Run database migration",
+  "io": {
+    "inputJsonPath": "tasks/01KHKJS6RJ6ZWJJ82N6V6GFW5N/input.json",
+    "outputJsonPath": "tasks/01KHKJS6RJ6ZWJJ82N6V6GFW5N/result.json"
+  },
+  "inputs": {
+    "command": "npm",
+    "args": [
+      "sync",
+      "--env=dev"
+    ],
+    "cwd": "/workspace/podcast-intel",
+    "timeout": 36000
+  }
+}

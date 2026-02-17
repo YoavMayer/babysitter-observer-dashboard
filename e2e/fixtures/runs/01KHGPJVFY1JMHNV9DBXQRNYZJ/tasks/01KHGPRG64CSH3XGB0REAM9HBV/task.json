@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHGPRG64CSH3XGB0REAM9HBV",
+  "taskId": "generate-coverage-report",
+  "invocationKey": "hockey/stats-ingest:S000007:generate-coverage-report",
+  "stepId": "S000007",
+  "kind": "shell",
+  "title": "Generate coverage report",
+  "io": {
+    "inputJsonPath": "tasks/01KHGPRG64CSH3XGB0REAM9HBV/input.json",
+    "outputJsonPath": "tasks/01KHGPRG64CSH3XGB0REAM9HBV/result.json"
+  },
+  "inputs": {
+    "command": "aws",
+    "args": [
+      "build",
+      "--env=dev"
+    ],
+    "cwd": "/workspace/hockey-7-shifts",
+    "timeout": 34000
+  }
+}

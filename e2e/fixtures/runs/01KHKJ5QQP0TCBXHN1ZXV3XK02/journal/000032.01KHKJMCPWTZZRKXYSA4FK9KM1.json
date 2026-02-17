@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-16T15:55:44.732Z",
+  "data": {
+    "effectId": "01KHKJMCPWM1BXBJ95KV52MFR7",
+    "invocationKey": "podcast-intel/transcribe:S000016:analyze-competitor-data",
+    "invocationHash": "9474a90d679f13abe5b26a73f8a51efb116c32d5c5a35c7228e8d078009900d2",
+    "stepId": "S000016",
+    "taskId": "analyze-competitor-data",
+    "kind": "agent",
+    "label": "Analyze competitor data",
+    "taskDefRef": "tasks/01KHKJMCPWM1BXBJ95KV52MFR7/task.json"
+  },
+  "checksum": "fecd46e14c3ff60e18cc86b5115b5c7274f12d6137849268e40b46232c3f1e0f"
+}

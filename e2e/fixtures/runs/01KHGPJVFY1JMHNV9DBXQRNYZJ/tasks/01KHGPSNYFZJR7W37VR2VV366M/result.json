@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHGPSNYFZJR7W37VR2VV366M",
+  "taskId": "write-test-specifications",
+  "invocationKey": "hockey/stats-ingest:S000008:write-test-specifications",
+  "status": "ok",
+  "startedAt": "2026-02-15T13:10:50.705Z",
+  "finishedAt": "2026-02-15T13:11:31.251Z",
+  "result": {
+    "summary": "Generated review for Write test specifications",
+    "sections": 8,
+    "wordCount": 2329,
+    "confidence": 0.934,
+    "recommendations": [
+      "Consider caching for frequently accessed data",
+      "Add input validation for user-facing fields",
+      "Consider caching for frequently accessed data",
+      "Add input validation for user-facing fields",
+      "Implement retry logic for external API calls"
+    ]
+  },
+  "value": {
+    "summary": "Generated review for Write test specifications",
+    "sections": 8,
+    "wordCount": 2329,
+    "confidence": 0.934,
+    "recommendations": [
+      "Consider caching for frequently accessed data",
+      "Add input validation for user-facing fields",
+      "Consider caching for frequently accessed data",
+      "Add input validation for user-facing fields",
+      "Implement retry logic for external API calls"
+    ]
+  }
+}

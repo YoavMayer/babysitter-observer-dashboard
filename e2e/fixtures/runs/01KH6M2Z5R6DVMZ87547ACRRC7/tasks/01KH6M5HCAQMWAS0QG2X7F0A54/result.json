@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KH6M5HCAQMWAS0QG2X7F0A54",
+  "taskId": "parse-xml-feed",
+  "invocationKey": "hockey/stats-ingest:S000003:parse-xml-feed",
+  "status": "ok",
+  "startedAt": "2026-02-11T15:12:28.383Z",
+  "finishedAt": "2026-02-11T15:13:27.967Z",
+  "result": {
+    "processed": 3688,
+    "failed": 182,
+    "skipped": 13,
+    "duration_ms": 59584,
+    "outputPath": "output/parse-xml-feed-7F0A54.json"
+  },
+  "value": {
+    "processed": 3688,
+    "failed": 182,
+    "skipped": 13,
+    "duration_ms": 59584,
+    "outputPath": "output/parse-xml-feed-7F0A54.json"
+  }
+}

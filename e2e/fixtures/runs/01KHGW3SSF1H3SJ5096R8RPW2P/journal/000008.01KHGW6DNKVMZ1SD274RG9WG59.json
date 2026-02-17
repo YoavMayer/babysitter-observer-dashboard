@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T14:45:09.427Z",
+  "data": {
+    "effectId": "01KHGW6DNK53NDQ86TKHFBYSBZ",
+    "invocationKey": "podcast-intel/transcribe:S000004:review-pull-request",
+    "invocationHash": "046374fcd63c14d88ffeaf588c9758c2d0e415f459a2cbc78c3786b8ee640c54",
+    "stepId": "S000004",
+    "taskId": "review-pull-request",
+    "kind": "agent",
+    "label": "Review pull request",
+    "taskDefRef": "tasks/01KHGW6DNK53NDQ86TKHFBYSBZ/task.json"
+  },
+  "checksum": "bbfcb0315069391db1de9aa9516111f4a915856087af940db07f0e0bc31fc74f"
+}

@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-14T18:10:22.697Z",
+  "data": {
+    "effectId": "01KHENHFB9GVVFWT73XF0HR22G",
+    "invocationKey": "hockey/roster-update:S000002:validate-schema",
+    "invocationHash": "1a1105ba3730cef2cb56178d15f3d18392c354d9276eef4923d701a772898ff9",
+    "stepId": "S000002",
+    "taskId": "validate-schema",
+    "kind": "node",
+    "label": "Validate schema",
+    "taskDefRef": "tasks/01KHENHFB9GVVFWT73XF0HR22G/task.json"
+  },
+  "checksum": "7faa06e340e677d8e8f7d8d8cfd54b50e111c7c778934d5912614af0b6f53611"
+}

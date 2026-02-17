@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHHSFKZESS9VAT3TA61MT90G",
+  "taskId": "review-pull-request",
+  "invocationKey": "hockey/stats-ingest:S000004:review-pull-request",
+  "status": "ok",
+  "startedAt": "2026-02-15T23:17:00.173Z",
+  "finishedAt": "2026-02-15T23:17:18.525Z",
+  "result": {
+    "summary": "Generated review for Review pull request",
+    "sections": 3,
+    "wordCount": 2940,
+    "confidence": 0.872,
+    "recommendations": [
+      "Consider caching for frequently accessed data"
+    ]
+  },
+  "value": {
+    "summary": "Generated review for Review pull request",
+    "sections": 3,
+    "wordCount": 2940,
+    "confidence": 0.872,
+    "recommendations": [
+      "Consider caching for frequently accessed data"
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-14T22:35:15.300Z",
+  "data": {
+    "effectId": "01KHF4PFF4DFDXFEVHSQNB775G",
+    "invocationKey": "hockey/stats-ingest:S000004:draft-release-notes",
+    "invocationHash": "ab114b7a394e044e0e466bbb56f4a1bac2ef8c2e78b77381793287f2b85b4897",
+    "stepId": "S000004",
+    "taskId": "draft-release-notes",
+    "kind": "agent",
+    "label": "Draft release notes",
+    "taskDefRef": "tasks/01KHF4PFF4DFDXFEVHSQNB775G/task.json"
+  },
+  "checksum": "e36723e13f06dd7d136ef897bce541da44ce98b44d5f5be545040169eeb40d31"
+}

@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T17:44:35.725Z",
+  "data": {
+    "effectId": "01KHH6EZMDWKNERB7H4TWTE1VF",
+    "invocationKey": "podcast-intel/summarize:S000004:enrich-metadata",
+    "invocationHash": "140888cfe282432064901473900b4157f9e1f80e3406d95cfc6e4461d2842d89",
+    "stepId": "S000004",
+    "taskId": "enrich-metadata",
+    "kind": "node",
+    "label": "Enrich metadata",
+    "taskDefRef": "tasks/01KHH6EZMDWKNERB7H4TWTE1VF/task.json"
+  },
+  "checksum": "36db631bd0c19849abdcdee1c164a4da8f05f6d7973e9b6fbf1b4f7742e13ba8"
+}

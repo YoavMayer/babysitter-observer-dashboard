@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHM58PSVBYA0SQ4JJDNZBJWD",
+  "taskId": "build-docker-image",
+  "invocationKey": "hockey/roster-update:S000004:build-docker-image",
+  "stepId": "S000004",
+  "kind": "shell",
+  "title": "Build Docker image",
+  "io": {
+    "inputJsonPath": "tasks/01KHM58PSVBYA0SQ4JJDNZBJWD/input.json",
+    "outputJsonPath": "tasks/01KHM58PSVBYA0SQ4JJDNZBJWD/result.json"
+  },
+  "inputs": {
+    "command": "npm",
+    "args": [
+      "exec",
+      "--env=prod"
+    ],
+    "cwd": "/workspace/hockey-7-shifts",
+    "timeout": 93000
+  }
+}

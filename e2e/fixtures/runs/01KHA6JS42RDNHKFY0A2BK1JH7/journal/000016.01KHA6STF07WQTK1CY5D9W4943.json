@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-13T00:35:49.856Z",
+  "data": {
+    "effectId": "01KHA6STF0VNFWGWVZYWBC23NH",
+    "invocationKey": "podcast-intel/publish:S000008:synthesize-user-feedback",
+    "invocationHash": "5f9c3f8f45033220a60cc468912c31aee75a7aeb55690cd09a1d88b41ea748a9",
+    "stepId": "S000008",
+    "taskId": "synthesize-user-feedback",
+    "kind": "agent",
+    "label": "Synthesize user feedback",
+    "taskDefRef": "tasks/01KHA6STF0VNFWGWVZYWBC23NH/task.json"
+  },
+  "checksum": "cd4a3b10f4742059bd021d888e790cf0950f23e5832730491523cccc83c0421e"
+}

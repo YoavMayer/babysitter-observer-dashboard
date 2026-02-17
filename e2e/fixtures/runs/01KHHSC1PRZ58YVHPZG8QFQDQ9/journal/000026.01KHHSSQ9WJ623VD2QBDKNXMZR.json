@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T23:22:30.588Z",
+  "data": {
+    "effectId": "01KHHSSQ9WEKMCQZ12DDF6EZJM",
+    "invocationKey": "hockey/stats-ingest:S000013:generate-executive-summary",
+    "invocationHash": "1bd07447d47954c06fa063b8bb28d4514b3a227fa7eef0c22136158c891dfe5e",
+    "stepId": "S000013",
+    "taskId": "generate-executive-summary",
+    "kind": "agent",
+    "label": "Generate executive summary",
+    "taskDefRef": "tasks/01KHHSSQ9WEKMCQZ12DDF6EZJM/task.json"
+  },
+  "checksum": "7c2f16cb547ebaf4acc013f6e235fc38dee354d04c551fb559cd31d10df9a0ba"
+}

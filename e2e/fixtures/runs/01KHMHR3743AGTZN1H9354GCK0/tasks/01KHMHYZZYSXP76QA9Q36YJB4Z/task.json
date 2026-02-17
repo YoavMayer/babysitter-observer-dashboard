@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHMHYZZYSXP76QA9Q36YJB4Z",
+  "taskId": "parse-xml-feed",
+  "invocationKey": "hockey/roster-update:S000009:parse-xml-feed",
+  "stepId": "S000009",
+  "kind": "node",
+  "title": "Parse XML feed",
+  "io": {
+    "inputJsonPath": "tasks/01KHMHYZZYSXP76QA9Q36YJB4Z/input.json",
+    "outputJsonPath": "tasks/01KHMHYZZYSXP76QA9Q36YJB4Z/result.json"
+  },
+  "inputs": {
+    "records": 9533,
+    "batchSize": 203,
+    "source": "postgres",
+    "destination": "elasticsearch"
+  }
+}

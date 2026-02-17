@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-16T15:57:11.315Z",
+  "data": {
+    "effectId": "01KHKJQ18KW2ZPN6X9BD9P23A3",
+    "invocationKey": "podcast-intel/transcribe:S000020:generate-executive-summary",
+    "invocationHash": "4ad09a540eba5ebb7ef7b424a877b41bfc00fec2c5d77454af111dcf7a1813e1",
+    "stepId": "S000020",
+    "taskId": "generate-executive-summary",
+    "kind": "agent",
+    "label": "Generate executive summary",
+    "taskDefRef": "tasks/01KHKJQ18KW2ZPN6X9BD9P23A3/task.json"
+  },
+  "checksum": "22379b3b3e618ed46d279f1bfc3d26491f047f8faad675abc6196b91a5a81653"
+}

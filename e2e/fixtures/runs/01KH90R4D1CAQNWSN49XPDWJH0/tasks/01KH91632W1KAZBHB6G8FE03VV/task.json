@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KH91632W1KAZBHB6G8FE03VV",
+  "taskId": "compute-aggregates",
+  "invocationKey": "hockey/schedule-sync:S000013:compute-aggregates",
+  "stepId": "S000013",
+  "kind": "node",
+  "title": "Compute aggregates",
+  "io": {
+    "inputJsonPath": "tasks/01KH91632W1KAZBHB6G8FE03VV/input.json",
+    "outputJsonPath": "tasks/01KH91632W1KAZBHB6G8FE03VV/result.json"
+  },
+  "inputs": {
+    "records": 4439,
+    "batchSize": 113,
+    "source": "redis",
+    "destination": "postgres"
+  }
+}

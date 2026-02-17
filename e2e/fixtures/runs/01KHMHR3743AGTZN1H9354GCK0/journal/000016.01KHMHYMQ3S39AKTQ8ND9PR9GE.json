@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-17T01:03:06.467Z",
+  "data": {
+    "effectId": "01KHMHYMQ3JNPH0YTKG2J2V19G",
+    "invocationKey": "hockey/roster-update:S000008:review-pull-request",
+    "invocationHash": "fe265a61a0afb1655375674e9e4d2485b5341fd4c6474cb8649f60ef85a5c9fe",
+    "stepId": "S000008",
+    "taskId": "review-pull-request",
+    "kind": "agent",
+    "label": "Review pull request",
+    "taskDefRef": "tasks/01KHMHYMQ3JNPH0YTKG2J2V19G/task.json"
+  },
+  "checksum": "03ff297fb365e1b0d3c8eeb50bc5f4cc35d397dfcc495879440a17aff83490de"
+}

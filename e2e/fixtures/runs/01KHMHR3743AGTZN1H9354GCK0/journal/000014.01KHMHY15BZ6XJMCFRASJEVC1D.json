@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-17T01:02:46.443Z",
+  "data": {
+    "effectId": "01KHMHY15BBTN1R0D2E6QPSW2Y",
+    "invocationKey": "hockey/roster-update:S000007:review-generated-content-befor",
+    "invocationHash": "d1097e91327543c1c09d8cd1456f4ce5cbaea486cecf60ecc09a3e20ea708b62",
+    "stepId": "S000007",
+    "taskId": "review-generated-content-befor",
+    "kind": "breakpoint",
+    "label": "Review generated content before publishing?",
+    "taskDefRef": "tasks/01KHMHY15BBTN1R0D2E6QPSW2Y/task.json"
+  },
+  "checksum": "9e9483998b0e92076f0e7957a518e854d54753d66dd44c11aeb17c4e23d724ac"
+}

@@ -1,0 +1,12 @@
+{
+  "type": "EFFECT_RESOLVED",
+  "recordedAt": "2026-02-15T13:10:48.447Z",
+  "data": {
+    "effectId": "01KHGPRG64CSH3XGB0REAM9HBV",
+    "status": "ok",
+    "resultRef": "tasks/01KHGPRG64CSH3XGB0REAM9HBV/result.json",
+    "startedAt": "2026-02-15T13:10:12.311Z",
+    "finishedAt": "2026-02-15T13:10:48.269Z"
+  },
+  "checksum": "b6d0870c4a05a9e6b7c00637bb2b88a3c9f9061fe68fa8ceff96e4bc793f5c09"
+}

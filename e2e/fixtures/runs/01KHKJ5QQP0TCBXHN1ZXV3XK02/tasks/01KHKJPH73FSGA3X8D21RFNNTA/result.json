@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHKJPH73FSGA3X8D21RFNNTA",
+  "taskId": "merge-datasets",
+  "invocationKey": "podcast-intel/transcribe:S000019:merge-datasets",
+  "status": "ok",
+  "startedAt": "2026-02-16T15:56:56.366Z",
+  "finishedAt": "2026-02-16T15:57:09.235Z",
+  "result": {
+    "processed": 3265,
+    "failed": 83,
+    "skipped": 29,
+    "duration_ms": 12869,
+    "outputPath": "output/merge-datasets-RFNNTA.json"
+  },
+  "value": {
+    "processed": 3265,
+    "failed": 83,
+    "skipped": 29,
+    "duration_ms": 12869,
+    "outputPath": "output/merge-datasets-RFNNTA.json"
+  }
+}

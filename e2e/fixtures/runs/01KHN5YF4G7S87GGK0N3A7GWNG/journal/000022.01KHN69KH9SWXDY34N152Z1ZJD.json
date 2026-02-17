@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-17T06:58:37.225Z",
+  "data": {
+    "effectId": "01KHN69KH9AZRXZZX15PEYK7TH",
+    "invocationKey": "hockey/schedule-sync:S000011:review-pull-request",
+    "invocationHash": "df1b22870ae0df5d5b211780f1b465fceba20b82e7d504694aba11cf7a011b1c",
+    "stepId": "S000011",
+    "taskId": "review-pull-request",
+    "kind": "agent",
+    "label": "Review pull request",
+    "taskDefRef": "tasks/01KHN69KH9AZRXZZX15PEYK7TH/task.json"
+  },
+  "checksum": "75cfeb20461ca7e731141715ac15cebac8652f77adbf9cad33366bd303026e98"
+}

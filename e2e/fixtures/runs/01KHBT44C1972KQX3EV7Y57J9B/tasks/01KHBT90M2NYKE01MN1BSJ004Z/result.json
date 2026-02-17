@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHBT90M2NYKE01MN1BSJ004Z",
+  "taskId": "analyze-competitor-data",
+  "invocationKey": "podcast-intel/transcribe:S000007:analyze-competitor-data",
+  "status": "ok",
+  "startedAt": "2026-02-13T15:35:25.640Z",
+  "finishedAt": "2026-02-13T15:35:53.123Z",
+  "result": {
+    "summary": "Generated analysis for Analyze competitor data",
+    "sections": 6,
+    "wordCount": 3890,
+    "confidence": 0.987,
+    "recommendations": [
+      "Add input validation for user-facing fields",
+      "Add structured logging for debugging",
+      "Review error handling in async paths"
+    ]
+  },
+  "value": {
+    "summary": "Generated analysis for Analyze competitor data",
+    "sections": 6,
+    "wordCount": 3890,
+    "confidence": 0.987,
+    "recommendations": [
+      "Add input validation for user-facing fields",
+      "Add structured logging for debugging",
+      "Review error handling in async paths"
+    ]
+  }
+}

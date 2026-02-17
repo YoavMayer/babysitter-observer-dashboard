@@ -1,0 +1,6 @@
+{
+  "feedUrl": "https://feeds.example.com/startup-stories/rss",
+  "maxEpisodes": 13,
+  "language": "en",
+  "outputFormat": "markdown"
+}

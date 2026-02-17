@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-17T06:53:53.957Z",
+  "data": {
+    "effectId": "01KHN60YX55GYBX2B04VN3AM7Q",
+    "invocationKey": "hockey/schedule-sync:S000003:research-market-trends",
+    "invocationHash": "1bb846ebab9a39d9cf97844ca11ab9165a31a77dc03a9320cc00d118cb11d0fa",
+    "stepId": "S000003",
+    "taskId": "research-market-trends",
+    "kind": "agent",
+    "label": "Research market trends",
+    "taskDefRef": "tasks/01KHN60YX55GYBX2B04VN3AM7Q/task.json"
+  },
+  "checksum": "7ac6c58a9351d7c10dd1fe49e361a77f2c88a6abbd477e935b0cbdc3b4e3c22e"
+}

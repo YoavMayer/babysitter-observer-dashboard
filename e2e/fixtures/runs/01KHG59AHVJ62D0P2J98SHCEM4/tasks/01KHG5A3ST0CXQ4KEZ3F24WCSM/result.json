@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHG5A3ST0CXQ4KEZ3F24WCSM",
+  "taskId": "review-pull-request",
+  "invocationKey": "hockey/schedule-sync:S000002:review-pull-request",
+  "status": "ok",
+  "startedAt": "2026-02-15T08:05:13.837Z",
+  "finishedAt": "2026-02-15T08:05:19.593Z",
+  "result": {
+    "summary": "Generated analysis for Review pull request",
+    "sections": 3,
+    "wordCount": 4558,
+    "confidence": 0.872,
+    "recommendations": [
+      "Add structured logging for debugging",
+      "Increase test coverage for edge cases"
+    ]
+  },
+  "value": {
+    "summary": "Generated analysis for Review pull request",
+    "sections": 3,
+    "wordCount": 4558,
+    "confidence": 0.872,
+    "recommendations": [
+      "Add structured logging for debugging",
+      "Increase test coverage for edge cases"
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-12T13:32:32.733Z",
+  "data": {
+    "effectId": "01KH90VA2XCYDKDXGZSAVMC06E",
+    "invocationKey": "hockey/schedule-sync:S000004:index-search-documents",
+    "invocationHash": "450e4893353e56c00d4e3dc81308077c99535308e063927f2891e89f06e2e746",
+    "stepId": "S000004",
+    "taskId": "index-search-documents",
+    "kind": "node",
+    "label": "Index search documents",
+    "taskDefRef": "tasks/01KH90VA2XCYDKDXGZSAVMC06E/task.json"
+  },
+  "checksum": "20780f73b993943dd49f9adf3b4c45ed874f5b96a8855a7ba777612da158c021"
+}

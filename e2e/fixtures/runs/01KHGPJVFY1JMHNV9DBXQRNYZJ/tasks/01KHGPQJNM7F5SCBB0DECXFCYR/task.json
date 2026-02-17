@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHGPQJNM7F5SCBB0DECXFCYR",
+  "taskId": "restart-service",
+  "invocationKey": "hockey/stats-ingest:S000006:restart-service",
+  "stepId": "S000006",
+  "kind": "shell",
+  "title": "Restart service",
+  "io": {
+    "inputJsonPath": "tasks/01KHGPQJNM7F5SCBB0DECXFCYR/input.json",
+    "outputJsonPath": "tasks/01KHGPQJNM7F5SCBB0DECXFCYR/result.json"
+  },
+  "inputs": {
+    "command": "docker",
+    "args": [
+      "run",
+      "--env=dev"
+    ],
+    "cwd": "/workspace/hockey-7-shifts",
+    "timeout": 251000
+  }
+}

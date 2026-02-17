@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T14:47:53.228Z",
+  "data": {
+    "effectId": "01KHGWBDMCNSJJBQG1Z2A5AZTS",
+    "invocationKey": "podcast-intel/transcribe:S000009:compress-assets",
+    "invocationHash": "ae48c16aa9e1e98b70ceec315021e9b7028ae56603da952f5b7a9f6d168e5d7f",
+    "stepId": "S000009",
+    "taskId": "compress-assets",
+    "kind": "shell",
+    "label": "Compress assets",
+    "taskDefRef": "tasks/01KHGWBDMCNSJJBQG1Z2A5AZTS/task.json"
+  },
+  "checksum": "edc702cff0b1e938058f3602b2bfc03cfa1688ae9686188c23ef14bf370d54d1"
+}

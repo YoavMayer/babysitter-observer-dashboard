@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KH90SKX0VB8C74C49QTETAFA",
+  "taskId": "generate-api-documentation",
+  "invocationKey": "hockey/schedule-sync:S000002:generate-api-documentation",
+  "stepId": "S000002",
+  "kind": "agent",
+  "title": "Generate API documentation",
+  "io": {
+    "inputJsonPath": "tasks/01KH90SKX0VB8C74C49QTETAFA/input.json",
+    "outputJsonPath": "tasks/01KH90SKX0VB8C74C49QTETAFA/result.json"
+  },
+  "inputs": {
+    "context": "Process hockey/schedule-sync step S000002",
+    "maxTokens": 7411,
+    "temperature": 0.31,
+    "model": "claude-sonnet-4-20250514"
+  },
+  "agent": {
+    "name": "generate-api-documentation",
+    "prompt": {
+      "role": "architect",
+      "task": "Generate API documentation",
+      "instructions": [
+        "Analyze the provided data for hockey-7-shifts",
+        "Follow the project coding standards",
+        "Return structured JSON output",
+        "Use chain-of-thought reasoning"
+      ]
+    }
+  }
+}

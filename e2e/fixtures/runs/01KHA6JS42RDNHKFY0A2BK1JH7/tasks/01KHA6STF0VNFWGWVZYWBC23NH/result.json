@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHA6STF0VNFWGWVZYWBC23NH",
+  "taskId": "synthesize-user-feedback",
+  "invocationKey": "podcast-intel/publish:S000008:synthesize-user-feedback",
+  "status": "ok",
+  "startedAt": "2026-02-13T00:35:49.982Z",
+  "finishedAt": "2026-02-13T00:36:06.464Z",
+  "result": {
+    "summary": "Generated review for Synthesize user feedback",
+    "sections": 3,
+    "wordCount": 1914,
+    "confidence": 0.832,
+    "recommendations": [
+      "Review error handling in async paths",
+      "Review error handling in async paths"
+    ]
+  },
+  "value": {
+    "summary": "Generated review for Synthesize user feedback",
+    "sections": 3,
+    "wordCount": 1914,
+    "confidence": 0.832,
+    "recommendations": [
+      "Review error handling in async paths",
+      "Review error handling in async paths"
+    ]
+  }
+}

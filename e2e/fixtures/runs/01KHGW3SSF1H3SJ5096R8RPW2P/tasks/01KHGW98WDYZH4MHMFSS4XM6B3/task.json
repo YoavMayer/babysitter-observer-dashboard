@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHGW98WDYZH4MHMFSS4XM6B3",
+  "taskId": "index-search-documents",
+  "invocationKey": "podcast-intel/transcribe:S000007:index-search-documents",
+  "stepId": "S000007",
+  "kind": "node",
+  "title": "Index search documents",
+  "io": {
+    "inputJsonPath": "tasks/01KHGW98WDYZH4MHMFSS4XM6B3/input.json",
+    "outputJsonPath": "tasks/01KHGW98WDYZH4MHMFSS4XM6B3/result.json"
+  },
+  "inputs": {
+    "records": 8240,
+    "batchSize": 128,
+    "source": "redis",
+    "destination": "elasticsearch"
+  }
+}

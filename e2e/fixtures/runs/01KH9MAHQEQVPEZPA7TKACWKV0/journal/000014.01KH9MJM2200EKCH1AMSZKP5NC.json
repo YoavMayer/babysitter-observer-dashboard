@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-12T19:17:19.554Z",
+  "data": {
+    "effectId": "01KH9MJM22PHSW5V180F9P77F5",
+    "invocationKey": "podcast-intel/transcribe:S000007:transform-csv-to-json",
+    "invocationHash": "b2628fe5bb185e4799eef50a7f8d7737a376cb95bc78e3b42ce4719be500b8f6",
+    "stepId": "S000007",
+    "taskId": "transform-csv-to-json",
+    "kind": "node",
+    "label": "Transform CSV to JSON",
+    "taskDefRef": "tasks/01KH9MJM22PHSW5V180F9P77F5/task.json"
+  },
+  "checksum": "7053dd8fd5ce92df6a199efbef3f6f72b853c293e0fb7d0dd2a067af6108eb49"
+}

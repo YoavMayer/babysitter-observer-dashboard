@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHG5KT6D29J1AD5BJ1XW4RAC",
+  "taskId": "execute-test-suite",
+  "invocationKey": "hockey/schedule-sync:S000011:execute-test-suite",
+  "stepId": "S000011",
+  "kind": "shell",
+  "title": "Execute test suite",
+  "io": {
+    "inputJsonPath": "tasks/01KHG5KT6D29J1AD5BJ1XW4RAC/input.json",
+    "outputJsonPath": "tasks/01KHG5KT6D29J1AD5BJ1XW4RAC/result.json"
+  },
+  "inputs": {
+    "command": "npm",
+    "args": [
+      "build",
+      "--env=prod"
+    ],
+    "cwd": "/workspace/hockey-7-shifts",
+    "timeout": 38000
+  }
+}

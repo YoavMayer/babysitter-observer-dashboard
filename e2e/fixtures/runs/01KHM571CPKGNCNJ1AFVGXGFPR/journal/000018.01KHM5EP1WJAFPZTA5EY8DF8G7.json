@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-16T21:24:40.636Z",
+  "data": {
+    "effectId": "01KHM5EP1WBTWZ3885P9WBMZYF",
+    "invocationKey": "hockey/roster-update:S000009:draft-outreach-email",
+    "invocationHash": "e7690182b82ab0868f78b982dd583becfdf08deecccb4bcd607047c22fe22d7e",
+    "stepId": "S000009",
+    "taskId": "draft-outreach-email",
+    "kind": "agent",
+    "label": "Draft outreach email",
+    "taskDefRef": "tasks/01KHM5EP1WBTWZ3885P9WBMZYF/task.json"
+  },
+  "checksum": "f393f69444210800b9bc28395ba3e0e7bd8865eadb97cc844c452bc295d88f0e"
+}

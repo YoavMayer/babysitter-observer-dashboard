@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHM5G3YV1ZG4PQJ8V8ENSVK6",
+  "taskId": "review-pull-request",
+  "invocationKey": "hockey/roster-update:S000012:review-pull-request",
+  "status": "ok",
+  "startedAt": "2026-02-16T21:25:28.370Z",
+  "finishedAt": "2026-02-16T21:26:11.931Z",
+  "result": {
+    "summary": "Generated draft for Review pull request",
+    "sections": 6,
+    "wordCount": 1577,
+    "confidence": 0.892,
+    "recommendations": [
+      "Add input validation for user-facing fields",
+      "Review error handling in async paths",
+      "Review error handling in async paths"
+    ]
+  },
+  "value": {
+    "summary": "Generated draft for Review pull request",
+    "sections": 6,
+    "wordCount": 1577,
+    "confidence": 0.892,
+    "recommendations": [
+      "Add input validation for user-facing fields",
+      "Review error handling in async paths",
+      "Review error handling in async paths"
+    ]
+  }
+}

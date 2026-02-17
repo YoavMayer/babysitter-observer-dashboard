@@ -1,0 +1,17 @@
+{
+  "type": "EFFECT_RESOLVED",
+  "recordedAt": "2026-02-16T21:32:52.138Z",
+  "data": {
+    "effectId": "01KHM5X496YF8EHGS4MMYEYMEE",
+    "status": "error",
+    "resultRef": "tasks/01KHM5X496YF8EHGS4MMYEYMEE/result.json",
+    "startedAt": "2026-02-16T21:32:34.362Z",
+    "finishedAt": "2026-02-16T21:32:51.839Z",
+    "error": {
+      "name": "TimeoutError",
+      "message": "Task exceeded 120s timeout",
+      "stack": "TimeoutError: Task exceeded 120s timeout\n    at processTask (tasks/01KHM5X496YF8EHGS4MMYEYMEE/handler.js:42:11)\n    at async runStep (lib/runner.js:187:5)"
+    }
+  },
+  "checksum": "87dcaa55632cd24caebc74bc364efc666e98eb62bd6a8802d9d365971bcff640"
+}

@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-15T08:08:45.892Z",
+  "data": {
+    "effectId": "01KHG5GKJ4HH6BPFBW456GWFTH",
+    "invocationKey": "hockey/schedule-sync:S000008:compress-assets",
+    "invocationHash": "da8f06563a8eb0679c2072aa5a02c26128a1a3914768c8066574a0ec3ef23b6e",
+    "stepId": "S000008",
+    "taskId": "compress-assets",
+    "kind": "shell",
+    "label": "Compress assets",
+    "taskDefRef": "tasks/01KHG5GKJ4HH6BPFBW456GWFTH/task.json"
+  },
+  "checksum": "cc4fb6f1e840da5f9260c7db671e3b9ee05b156153b73c85c45e43f368d9d132"
+}

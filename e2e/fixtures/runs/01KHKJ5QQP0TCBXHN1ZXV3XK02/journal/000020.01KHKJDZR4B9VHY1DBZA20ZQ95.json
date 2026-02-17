@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-16T15:52:14.852Z",
+  "data": {
+    "effectId": "01KHKJDZR48DPJXAYBB2NRTD00",
+    "invocationKey": "podcast-intel/transcribe:S000010:process-payment-webhook",
+    "invocationHash": "52f5d5e4215568037f438a5b55da473e34f8ab349b7a9e3f4532a9c3b3fcdeb0",
+    "stepId": "S000010",
+    "taskId": "process-payment-webhook",
+    "kind": "skill",
+    "label": "Process payment webhook",
+    "taskDefRef": "tasks/01KHKJDZR48DPJXAYBB2NRTD00/task.json"
+  },
+  "checksum": "799c94fedb099f958f4c0fc0167d7b7d6ae7ef5f0ad95d0895736fbbb8b2929c"
+}

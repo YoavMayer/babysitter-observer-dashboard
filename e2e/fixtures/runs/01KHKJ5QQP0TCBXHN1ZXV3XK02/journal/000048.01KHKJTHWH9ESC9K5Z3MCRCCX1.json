@@ -1,0 +1,14 @@
+{
+  "type": "RUN_FAILED",
+  "recordedAt": "2026-02-16T15:59:06.641Z",
+  "data": {
+    "runId": "01KHKJ5QQP0TCBXHN1ZXV3XK02",
+    "status": "failed",
+    "error": {
+      "name": "NetworkError",
+      "message": "ECONNREFUSED: Connection refused to upstream API",
+      "stack": "NetworkError: ECONNREFUSED: Connection refused to upstream API\n    at processTask (tasks/01KHKJTEC807MCD653V9GDJK3M/handler.js:42:11)\n    at async runStep (lib/runner.js:187:5)"
+    }
+  },
+  "checksum": "7123fa170b4def4336781f3949d1f917a2469d5ab2d884ca81021e3c670f64e2"
+}

@@ -1,0 +1,15 @@
+{
+  "type": "EFFECT_REQUESTED",
+  "recordedAt": "2026-02-11T15:11:58.325Z",
+  "data": {
+    "effectId": "01KH6M4MVNE0K7M9033BK8ZP5T",
+    "invocationKey": "hockey/stats-ingest:S000002:review-pull-request",
+    "invocationHash": "552fcff76dcdb4dfd3bda938c14d85a32ff5410e54f69c888b40f66c9c26f6a1",
+    "stepId": "S000002",
+    "taskId": "review-pull-request",
+    "kind": "agent",
+    "label": "Review pull request",
+    "taskDefRef": "tasks/01KH6M4MVNE0K7M9033BK8ZP5T/task.json"
+  },
+  "checksum": "0c7134b53777f7c9cef2e4778a6caad63305c5e5e595e55cea667b3c16febf87"
+}

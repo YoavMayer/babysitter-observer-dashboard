@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHEJR6PKS623SNGX1N56Q97E",
+  "taskId": "generate-api-documentation",
+  "invocationKey": "podcast-intel/publish:S000004:generate-api-documentation",
+  "status": "ok",
+  "startedAt": "2026-02-14T17:21:38.480Z",
+  "finishedAt": "2026-02-14T17:21:56.001Z",
+  "result": {
+    "summary": "Generated report for Generate API documentation",
+    "sections": 4,
+    "wordCount": 3611,
+    "confidence": 0.869,
+    "recommendations": [
+      "Add input validation for user-facing fields",
+      "Consider caching for frequently accessed data",
+      "Increase test coverage for edge cases",
+      "Add input validation for user-facing fields",
+      "Implement retry logic for external API calls"
+    ]
+  },
+  "value": {
+    "summary": "Generated report for Generate API documentation",
+    "sections": 4,
+    "wordCount": 3611,
+    "confidence": 0.869,
+    "recommendations": [
+      "Add input validation for user-facing fields",
+      "Consider caching for frequently accessed data",
+      "Increase test coverage for edge cases",
+      "Add input validation for user-facing fields",
+      "Implement retry logic for external API calls"
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "2026.01.results-v1",
+  "effectId": "01KHKJS6RJ6ZWJJ82N6V6GFW5N",
+  "taskId": "run-database-migration",
+  "invocationKey": "podcast-intel/transcribe:S000022:run-database-migration",
+  "status": "ok",
+  "startedAt": "2026-02-16T15:58:24.322Z",
+  "finishedAt": "2026-02-16T15:59:01.009Z",
+  "result": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 192 items",
+    "stderr": "",
+    "duration_ms": 36687
+  },
+  "value": {
+    "exitCode": 0,
+    "stdout": "[OK] Command completed successfully\nProcessed 192 items",
+    "stderr": "",
+    "duration_ms": 36687
+  }
+}

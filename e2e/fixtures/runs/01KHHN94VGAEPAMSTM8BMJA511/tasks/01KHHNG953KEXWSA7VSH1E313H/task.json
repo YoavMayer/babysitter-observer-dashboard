@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "2026.01.tasks-v1",
+  "effectId": "01KHHNG953KEXWSA7VSH1E313H",
+  "taskId": "sync-s3-bucket",
+  "invocationKey": "podcast-intel/summarize:S000006:sync-s3-bucket",
+  "stepId": "S000006",
+  "kind": "shell",
+  "title": "Sync S3 bucket",
+  "io": {
+    "inputJsonPath": "tasks/01KHHNG953KEXWSA7VSH1E313H/input.json",
+    "outputJsonPath": "tasks/01KHHNG953KEXWSA7VSH1E313H/result.json"
+  },
+  "inputs": {
+    "command": "aws",
+    "args": [
+      "build",
+      "--env=staging"
+    ],
+    "cwd": "/workspace/podcast-intel",
+    "timeout": 178000
+  }
+}
