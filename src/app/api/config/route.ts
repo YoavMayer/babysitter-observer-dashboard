@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getConfig, invalidateConfigCache, writeConfig } from "@/lib/config";
+import { invalidateAll, discoverAndCacheAll } from "@/lib/run-cache";
 
 export const dynamic = "force-dynamic";
 
@@ -88,11 +89,17 @@ export async function POST(request: Request) {
     // Write to disk
     await writeConfig(configToSave);
 
-    // Invalidate cache so next getConfig() reads fresh
+    // Invalidate caches so next request reads fresh
     invalidateConfigCache();
+    invalidateAll(); // Clear run cache so re-discovery uses new sources
 
     // Read back the full merged config
     const savedConfig = await getConfig();
+
+    // Re-discover all runs with new sources (fire and forget)
+    discoverAndCacheAll().catch((err) =>
+      console.error("Failed to re-discover runs after config change:", err)
+    );
 
     return NextResponse.json(savedConfig);
   } catch (err) {

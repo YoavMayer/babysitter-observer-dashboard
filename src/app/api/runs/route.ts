@@ -4,6 +4,7 @@ import { ensureInitialized } from "@/lib/server-init";
 import {
   getProjectSummaries,
   getRunCached,
+  discoverAndCacheAll,
 } from "@/lib/run-cache";
 import type { Run } from "@/types";
 
@@ -39,8 +40,13 @@ export async function GET(request: Request) {
 
     // Mode: projects - return lightweight project summaries from cache
     // Cache is populated by ensureInitialized() + watcher handles updates
+    // If cache is empty (after invalidation), re-discover
     if (mode === "projects") {
-      const projects = getProjectSummaries();
+      let projects = getProjectSummaries();
+      if (projects.length === 0) {
+        await discoverAndCacheAll();
+        projects = getProjectSummaries();
+      }
 
       // Sort projects: active runs first, then by latest update
       projects.sort((a, b) => {

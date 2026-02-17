@@ -11,7 +11,7 @@ import { MetricsRow } from "@/components/shared/metrics-row";
 import { useNotificationContext } from "@/components/notifications/notification-provider";
 import { NotificationPanel } from "@/components/notifications/notification-panel";
 import { cn } from "@/lib/cn";
-import { Loader2, X } from "lucide-react";
+import { Loader2, X, ArrowLeft } from "lucide-react";
 import type { JournalEvent, EffectRequestedPayload } from "@/types";
 
 export default function RunDetailPage({ params }: { params: { runId: string } }) {
@@ -161,6 +161,25 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
 
   return (
     <div className="flex flex-col h-screen bg-background">
+      {/* Navigation header with back button */}
+      <div className="flex items-center gap-3 px-4 py-2 border-b border-border bg-background-secondary/40">
+        <button
+          onClick={() => router.push("/")}
+          className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-xs font-medium text-foreground-muted hover:text-foreground hover:border-primary/50 hover:shadow-neon-glow-primary-ring transition-all duration-200"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Dashboard
+        </button>
+        <span className="text-xs text-foreground-muted">/</span>
+        <span className="text-xs font-mono text-foreground-secondary">{run.runId.slice(0, 8)}...</span>
+        {run.processId && (
+          <>
+            <span className="text-xs text-foreground-muted">/</span>
+            <span className="text-xs text-foreground-secondary">{run.processId}</span>
+          </>
+        )}
+      </div>
+
       {/* Outcome Banner - Top of page */}
       <OutcomeBanner run={run} />
 

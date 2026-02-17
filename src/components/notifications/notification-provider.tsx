@@ -39,20 +39,47 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     interval: 3000,
   });
   const prevDigestRef = useRef<DigestResponse | null>(null);
+  const initRef = useRef(false);
+  // Cooldown: track last notification time per run+type to prevent spam
+  const cooldownRef = useRef<Map<string, number>>(new Map());
+  const COOLDOWN_MS = 30000; // 30 seconds between same notification type per run
 
   useEffect(() => {
-    if (!digest || !prevDigestRef.current) {
+    if (!digest) return;
+
+    // Skip notifications on first two digest loads (initial cache population)
+    if (!prevDigestRef.current) {
+      prevDigestRef.current = digest;
+      return;
+    }
+    if (!initRef.current) {
+      initRef.current = true;
       prevDigestRef.current = digest;
       return;
     }
 
     const prev = prevDigestRef.current;
     const prevMap = new Map(prev.runs.map((r) => [r.runId, r]));
+    const now = Date.now();
+
+    const throttledNotify = (
+      key: string,
+      title: string,
+      body: string,
+      type?: AppNotification["type"],
+      href?: string,
+    ) => {
+      const lastTime = cooldownRef.current.get(key) || 0;
+      if (now - lastTime < COOLDOWN_MS) return;
+      cooldownRef.current.set(key, now);
+      notify(title, body, type, href);
+    };
 
     for (const run of digest.runs) {
       const prevRun = prevMap.get(run.runId);
       if (!prevRun) {
-        notify(
+        throttledNotify(
+          `${run.runId}:new`,
           "New Run Started",
           `${formatShortId(run.runId, 4)} started`,
           "info",
@@ -63,7 +90,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
       // Run completed
       if (run.status === "completed" && prevRun.status !== "completed") {
-        notify(
+        throttledNotify(
+          `${run.runId}:completed`,
           "Run Completed",
           `${formatShortId(run.runId, 4)} finished successfully`,
           "success",
@@ -73,7 +101,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
       // Run failed
       if (run.status === "failed" && prevRun.status !== "failed") {
-        notify(
+        throttledNotify(
+          `${run.runId}:failed`,
           "Run Failed",
           `${formatShortId(run.runId, 4)} failed`,
           "error",
@@ -81,10 +110,11 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         );
       }
 
-      // New tasks completed
+      // New tasks completed — only notify for significant changes (not every single task)
       if (run.completedTasks > prevRun.completedTasks) {
         const diff = run.completedTasks - prevRun.completedTasks;
-        notify(
+        throttledNotify(
+          `${run.runId}:tasks`,
           "Tasks Completed",
           `${diff} task${diff > 1 ? "s" : ""} completed in ${formatShortId(run.runId, 4)}`,
           "info",
@@ -95,7 +125,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       // Run transitioned to waiting (breakpoint hit)
       if (run.status === "waiting" && prevRun.status !== "waiting") {
         const breakpointTitle = run.breakpointQuestion || "Review required";
-        notify(
+        throttledNotify(
+          `${run.runId}:waiting`,
           `Run ${formatShortId(run.runId, 4)} needs attention`,
           breakpointTitle,
           "warning",

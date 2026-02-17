@@ -133,7 +133,15 @@ export async function getConfig(): Promise<ObserverConfig> {
   const defaultSources = getDefaultSources();
 
   // Merge: registry sources take priority, defaults as fallback
-  const sources = registry.sources.length > 0 ? registry.sources : defaultSources;
+  // Deduplicate sources by normalized path to prevent duplicate discovery
+  const rawSources = registry.sources.length > 0 ? registry.sources : defaultSources;
+  const seen = new Set<string>();
+  const sources = rawSources.filter((s) => {
+    const normalized = path.resolve(s.path);
+    if (seen.has(normalized)) return false;
+    seen.add(normalized);
+    return true;
+  });
 
   // Priority: registry file > env vars > defaults
   const envPollInterval = process.env.OBSERVER_POLL_INTERVAL || process.env.POLL_INTERVAL;

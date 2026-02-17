@@ -233,11 +233,12 @@ export function getProjectSummaries(): ProjectSummary[] {
 export async function discoverAndCacheAll(): Promise<void> {
   const discovered = await discoverAllRunDirs();
 
-  // Deduplicate by runDir - keep the first occurrence (most specific source)
+  // Deduplicate by normalized runDir path - keep the first occurrence (most specific source)
   const seen = new Set<string>();
   const unique = discovered.filter((d: DiscoveredRun) => {
-    if (seen.has(d.runDir)) return false;
-    seen.add(d.runDir);
+    const normalized = path.resolve(d.runDir);
+    if (seen.has(normalized)) return false;
+    seen.add(normalized);
     return true;
   });
 
