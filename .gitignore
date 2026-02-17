@@ -20,3 +20,8 @@ coverage/
 
 # debug
 npm-debug.log*
+
+# local tooling / build artifacts
+.a5c/
+dist/
+nul
