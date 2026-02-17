@@ -32,54 +32,59 @@ const NotificationContext = createContext<NotificationContextValue>({
 
 export const useNotificationContext = () => useContext(NotificationContext);
 
+// Watermark per run: tracks the highest-seen state so notifications only fire once
+interface RunWatermark {
+  status: string;
+  completedTasks: number;
+  notifiedCompleted: boolean;
+  notifiedFailed: boolean;
+  notifiedWaiting: boolean;
+}
+
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const { notifications, notify, dismiss, requestPermission, permission } =
     useNotifications();
   const { data: digest } = usePolling<DigestResponse>("/api/digest", {
     interval: 3000,
   });
-  const prevDigestRef = useRef<DigestResponse | null>(null);
-  const initRef = useRef(false);
-  // Cooldown: track last notification time per run+type to prevent spam
-  const cooldownRef = useRef<Map<string, number>>(new Map());
-  const COOLDOWN_MS = 30000; // 30 seconds between same notification type per run
+  // Permanent watermark: tracks highest-seen state per run across all polls
+  const watermarkRef = useRef<Map<string, RunWatermark>>(new Map());
+  const initCountRef = useRef(0);
+  const INIT_SKIP = 2; // Skip first 2 digest loads to seed watermarks
 
   useEffect(() => {
     if (!digest) return;
 
-    // Skip notifications on first two digest loads (initial cache population)
-    if (!prevDigestRef.current) {
-      prevDigestRef.current = digest;
+    const watermarks = watermarkRef.current;
+
+    // Seed phase: populate watermarks without firing notifications
+    if (initCountRef.current < INIT_SKIP) {
+      initCountRef.current++;
+      for (const run of digest.runs) {
+        watermarks.set(run.runId, {
+          status: run.status,
+          completedTasks: run.completedTasks,
+          notifiedCompleted: run.status === "completed",
+          notifiedFailed: run.status === "failed",
+          notifiedWaiting: run.status === "waiting",
+        });
+      }
       return;
     }
-    if (!initRef.current) {
-      initRef.current = true;
-      prevDigestRef.current = digest;
-      return;
-    }
-
-    const prev = prevDigestRef.current;
-    const prevMap = new Map(prev.runs.map((r) => [r.runId, r]));
-    const now = Date.now();
-
-    const throttledNotify = (
-      key: string,
-      title: string,
-      body: string,
-      type?: AppNotification["type"],
-      href?: string,
-    ) => {
-      const lastTime = cooldownRef.current.get(key) || 0;
-      if (now - lastTime < COOLDOWN_MS) return;
-      cooldownRef.current.set(key, now);
-      notify(title, body, type, href);
-    };
 
     for (const run of digest.runs) {
-      const prevRun = prevMap.get(run.runId);
-      if (!prevRun) {
-        throttledNotify(
-          `${run.runId}:new`,
+      const wm = watermarks.get(run.runId);
+
+      if (!wm) {
+        // Genuinely new run — seed watermark and notify
+        watermarks.set(run.runId, {
+          status: run.status,
+          completedTasks: run.completedTasks,
+          notifiedCompleted: run.status === "completed",
+          notifiedFailed: run.status === "failed",
+          notifiedWaiting: run.status === "waiting",
+        });
+        notify(
           "New Run Started",
           `${formatShortId(run.runId, 4)} started`,
           "info",
@@ -88,10 +93,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         continue;
       }
 
-      // Run completed
-      if (run.status === "completed" && prevRun.status !== "completed") {
-        throttledNotify(
-          `${run.runId}:completed`,
+      // Run completed — only notify once ever
+      if (run.status === "completed" && !wm.notifiedCompleted) {
+        wm.notifiedCompleted = true;
+        notify(
           "Run Completed",
           `${formatShortId(run.runId, 4)} finished successfully`,
           "success",
@@ -99,10 +104,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         );
       }
 
-      // Run failed
-      if (run.status === "failed" && prevRun.status !== "failed") {
-        throttledNotify(
-          `${run.runId}:failed`,
+      // Run failed — only notify once ever
+      if (run.status === "failed" && !wm.notifiedFailed) {
+        wm.notifiedFailed = true;
+        notify(
           "Run Failed",
           `${formatShortId(run.runId, 4)} failed`,
           "error",
@@ -110,11 +115,11 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         );
       }
 
-      // New tasks completed — only notify for significant changes (not every single task)
-      if (run.completedTasks > prevRun.completedTasks) {
-        const diff = run.completedTasks - prevRun.completedTasks;
-        throttledNotify(
-          `${run.runId}:tasks`,
+      // Tasks completed — only notify when count exceeds watermark
+      if (run.completedTasks > wm.completedTasks) {
+        const diff = run.completedTasks - wm.completedTasks;
+        wm.completedTasks = run.completedTasks;
+        notify(
           "Tasks Completed",
           `${diff} task${diff > 1 ? "s" : ""} completed in ${formatShortId(run.runId, 4)}`,
           "info",
@@ -122,20 +127,25 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         );
       }
 
-      // Run transitioned to waiting (breakpoint hit)
-      if (run.status === "waiting" && prevRun.status !== "waiting") {
+      // Run transitioned to waiting (breakpoint) — only notify once per waiting episode
+      if (run.status === "waiting" && !wm.notifiedWaiting) {
+        wm.notifiedWaiting = true;
         const breakpointTitle = run.breakpointQuestion || "Review required";
-        throttledNotify(
-          `${run.runId}:waiting`,
+        notify(
           `Run ${formatShortId(run.runId, 4)} needs attention`,
           breakpointTitle,
           "warning",
           `/runs/${run.runId}`,
         );
       }
-    }
 
-    prevDigestRef.current = digest;
+      // Reset waiting flag when run leaves waiting state (allows re-notification on next breakpoint)
+      if (run.status !== "waiting" && wm.notifiedWaiting) {
+        wm.notifiedWaiting = false;
+      }
+
+      wm.status = run.status;
+    }
   }, [digest, notify]);
 
   return (
