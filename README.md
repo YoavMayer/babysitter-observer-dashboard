@@ -159,7 +159,7 @@ The observer persists user-configured settings to `~/.a5c/observer.json`. This f
 
 ## API Reference
 
-All endpoints return JSON and include `Cache-Control: no-cache, no-store` headers.
+All endpoints include `Cache-Control: no-cache, no-store` headers and return JSON unless noted otherwise.
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -184,11 +184,6 @@ All endpoints return JSON and include `Cache-Control: no-cache, no-store` header
 ### Setup
 
 ```bash
-# From the repository root
-npm install
-
-# Or from this package directly
-cd packages/observer
 npm install
 ```
 
@@ -203,7 +198,7 @@ The dashboard starts at [http://localhost:3000](http://localhost:3000).
 To point at a specific watch directory:
 
 ```bash
-npm run dev:cli -- --dir /path/to/project
+npm run dev:cli -- --watch-dir /path/to/project
 ```
 
 ### Build for Production
