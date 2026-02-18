@@ -119,7 +119,7 @@ export default function DashboardPage() {
           <h1 className="text-base font-semibold text-foreground">Babysitter Observer</h1>
           <span className="text-[10px] leading-tight font-medium text-primary/60 tracking-wide hidden sm:block">a5c.ai</span>
           <span className="rounded-full bg-primary/10 border border-primary/20 px-1.5 py-px text-[10px] leading-tight font-medium text-primary tabular-nums hidden sm:block">
-            v0.1.0
+            v{process.env.NEXT_PUBLIC_APP_VERSION}
           </span>
           <span className="text-xs text-foreground-muted hidden sm:block">
             Real-time orchestration dashboard
