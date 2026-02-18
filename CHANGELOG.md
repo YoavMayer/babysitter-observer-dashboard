@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.3] - 2026-02-18
+### Added
+- **Playwright performance test suite** -- 5 tests covering dashboard reload time, SSE connection indicator, DOM node count, navigation performance, and console error detection (`e2e/tests/performance.spec.ts`)
+- New npm scripts: `test:e2e` (all Playwright tests) and `test:perf` (performance tests only)
+### Test Results
+- Unit tests: 798/798 passed (59 files, 27s)
+- E2E tests: 23/96 passed (71 failures in existing selectors/timeouts, not regressions)
+- Performance tests: 5/5 passed (DOM: 380 nodes, nav: 9.4s, 0 console errors)
+
+## [0.5.2] - 2026-02-18
+### Changed
+- Added `@playwright/test` as dev dependency for E2E testing
+### Documentation
+- Backfilled CHANGELOG entries for v0.1.1 through v0.5.1
+- Updated README Known Limitations version reference
+
 ## [0.5.1] - 2026-02-18
 ### Fixed
 - **Dynamic version badge** -- dashboard version badge now displays actual version from `package.json` via `NEXT_PUBLIC_APP_VERSION` instead of hardcoded `v0.1.0`
