@@ -53,6 +53,25 @@ function isAbortError(err: unknown): boolean {
 }
 
 /**
+ * Detect if response text is HTML rather than JSON.
+ * Next.js dev server can return various HTML fragments during HMR:
+ * - Full HTML pages (<!DOCTYPE html>, <html>)
+ * - Error fragments (<pre>missing required error components...</pre>)
+ * - Script-only recovery pages (<script>...)
+ */
+function looksLikeHtml(text: string): boolean {
+  const trimmed = text.trimStart();
+  return (
+    trimmed.startsWith("<!DOCTYPE") ||
+    trimmed.startsWith("<html") ||
+    trimmed.startsWith("<pre") ||
+    trimmed.startsWith("<script") ||
+    trimmed.startsWith("<div") ||
+    trimmed.startsWith("<head")
+  );
+}
+
+/**
  * Sleep for `ms` milliseconds. Resolves early (with rejection) when the
  * provided signal is aborted so we don't keep waiting between retries after
  * the caller has cancelled the request.
@@ -245,16 +264,25 @@ export async function resilientFetch<T>(
         try {
           data = (await response.json()) as T;
         } catch {
+          // JSON parse failed — likely an HTML response that slipped past the
+          // content-type check (e.g. "missing required error components").
+          // Treat as retryable since the API will recover after recompilation.
           cleanup();
-          return {
-            ok: false,
-            error: {
-              status: response.status,
-              message: `Expected JSON response from ${url}`,
-              isRetryable: false,
-              isAborted: false,
-            },
+          lastError = {
+            status: response.status,
+            message: "Server temporarily unavailable (recompiling)",
+            isRetryable: true,
+            isAborted: false,
           };
+          if (attempt < retries) {
+            const delay = retryDelay * Math.pow(2, attempt);
+            try {
+              await sleep(delay, externalSignal);
+            } catch {
+              return { ok: false, error: { status: 0, message: "Request aborted", isRetryable: false, isAborted: true } };
+            }
+          }
+          continue;
         }
 
         // Cache the ETag and response data for future 304 handling
@@ -273,9 +301,9 @@ export async function resilientFetch<T>(
       let errorMessage: string;
       try {
         const text = await response.text();
-        // Detect HTML responses (e.g. Next.js 404 page during HMR recompilation)
-        // and replace the raw HTML with a clean, user-friendly message.
-        if (text && (text.trimStart().startsWith("<!DOCTYPE") || text.trimStart().startsWith("<html"))) {
+        // Detect HTML responses (e.g. Next.js 404 page or "missing required
+        // error components" during HMR) and replace with a clean message.
+        if (text && looksLikeHtml(text)) {
           errorMessage = `Server temporarily unavailable (HTTP ${response.status})`;
         } else {
           errorMessage = text || `HTTP ${response.status}`;
