@@ -11,6 +11,8 @@ import {
   Loader2,
   Check,
   CalendarDays,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { resilientFetch } from "@/lib/fetcher";
@@ -28,6 +30,7 @@ interface ConfigData {
   pollInterval: number;
   theme: "dark" | "light";
   retentionDays: number;
+  hiddenProjects: string[];
 }
 
 interface SettingsModalProps {
@@ -48,6 +51,10 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
   const [pollInterval, setPollInterval] = useState(2000);
   const [selectedTheme, setSelectedTheme] = useState<"dark" | "light">("dark");
   const [retentionDays, setRetentionDays] = useState(30);
+  const [hiddenProjects, setHiddenProjects] = useState<string[]>([]);
+
+  // Discovered project names (fetched from API)
+  const [allProjectNames, setAllProjectNames] = useState<string[]>([]);
 
   // Save state
   const [saving, setSaving] = useState(false);
@@ -69,19 +76,34 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
     fetchAbortRef.current?.abort();
     fetchAbortRef.current = new AbortController();
 
-    resilientFetch<ConfigData>("/api/config", { signal: fetchAbortRef.current.signal })
-      .then((result) => {
-        if (!result.ok) {
-          if (result.error.isAborted) return;
-          setFetchError(result.error.message);
+    const signal = fetchAbortRef.current.signal;
+
+    // Fetch config and project names in parallel
+    Promise.all([
+      resilientFetch<ConfigData>("/api/config", { signal }),
+      resilientFetch<{ projects: { projectName: string }[] }>("/api/runs?mode=projects", { signal }),
+    ])
+      .then(([configResult, projectsResult]) => {
+        if (!configResult.ok) {
+          if (configResult.error.isAborted) return;
+          setFetchError(configResult.error.message);
           return;
         }
-        const data = result.data;
+        const data = configResult.data;
         setServerConfig(data);
         setSources(data.sources.map((s) => ({ ...s })));
         setPollInterval(data.pollInterval);
         setSelectedTheme(data.theme);
         setRetentionDays(data.retentionDays);
+        setHiddenProjects(data.hiddenProjects ?? []);
+
+        // Build full project list: visible projects from API + currently hidden projects from config
+        const visibleNames = projectsResult.ok
+          ? projectsResult.data.projects.map((p) => p.projectName)
+          : [];
+        const hiddenNames = data.hiddenProjects ?? [];
+        const combined = Array.from(new Set([...visibleNames, ...hiddenNames])).sort();
+        setAllProjectNames(combined);
       })
       .finally(() => setFetchLoading(false));
 
@@ -126,6 +148,7 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
       setPollInterval(serverConfig.pollInterval);
       setSelectedTheme(serverConfig.theme);
       setRetentionDays(serverConfig.retentionDays);
+      setHiddenProjects(serverConfig.hiddenProjects ?? []);
     }
     setSaveResult(null);
     setSaveError(null);
@@ -148,6 +171,7 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
         pollInterval,
         theme: selectedTheme,
         retentionDays,
+        hiddenProjects,
       }),
       signal: saveAbortRef.current.signal,
     });
@@ -166,6 +190,7 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
     setPollInterval(saved.pollInterval);
     setSelectedTheme(saved.theme);
     setRetentionDays(saved.retentionDays);
+    setHiddenProjects(saved.hiddenProjects ?? []);
     setSaveResult("success");
 
     // Apply theme change locally if it changed
@@ -176,7 +201,7 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
     // Auto-dismiss success after 2s
     setTimeout(() => setSaveResult(null), 2000);
     setSaving(false);
-  }, [sources, pollInterval, selectedTheme, retentionDays, currentTheme, toggleTheme]);
+  }, [sources, pollInterval, selectedTheme, retentionDays, hiddenProjects, currentTheme, toggleTheme]);
 
   if (!open) return null;
 
@@ -186,7 +211,9 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
       JSON.stringify(serverConfig.sources) ||
       pollInterval !== serverConfig.pollInterval ||
       selectedTheme !== serverConfig.theme ||
-      retentionDays !== serverConfig.retentionDays);
+      retentionDays !== serverConfig.retentionDays ||
+      JSON.stringify(hiddenProjects.slice().sort()) !==
+        JSON.stringify((serverConfig.hiddenProjects ?? []).slice().sort()));
 
   return (
     <div className="fixed inset-0 z-50" onClick={onClose}>
@@ -239,7 +266,7 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
                       >
                         <div className="flex items-start gap-2">
                           <div className="flex-1">
-                            <label className="text-[10px] uppercase tracking-wider text-foreground-muted mb-1 block">
+                            <label className="text-xs uppercase tracking-wider text-foreground-muted mb-1 block">
                               Path
                             </label>
                             <input
@@ -262,7 +289,7 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
                         </div>
                         <div className="flex items-center gap-3">
                           <div className="w-20">
-                            <label className="text-[10px] uppercase tracking-wider text-foreground-muted mb-1 block">
+                            <label className="text-xs uppercase tracking-wider text-foreground-muted mb-1 block">
                               Depth
                             </label>
                             <input
@@ -281,7 +308,7 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
                             />
                           </div>
                           <div className="flex-1">
-                            <label className="text-[10px] uppercase tracking-wider text-foreground-muted mb-1 block">
+                            <label className="text-xs uppercase tracking-wider text-foreground-muted mb-1 block">
                               Label
                             </label>
                             <input
@@ -382,10 +409,65 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
                     />
                     <span className="text-xs text-foreground-muted">days</span>
                   </div>
-                  <p className="text-[10px] text-foreground-muted/60 mt-1.5">
+                  <p className="text-xs text-foreground-muted mt-1.5">
                     Older completed/failed runs are hidden from the dashboard. Active runs are always shown.
                   </p>
                 </section>
+
+                {/* Project Visibility */}
+                {allProjectNames.length > 0 && (
+                  <section>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Eye className="h-4 w-4 text-foreground-muted" />
+                      <span className="text-xs font-medium text-foreground-secondary">
+                        Project Visibility
+                      </span>
+                    </div>
+                    <p className="text-xs text-foreground-muted mb-2">
+                      Hidden projects will not appear on the dashboard.
+                    </p>
+                    <div className="space-y-1">
+                      {allProjectNames.map((name) => {
+                        const isHidden = hiddenProjects.includes(name);
+                        return (
+                          <div
+                            key={name}
+                            className="flex items-center justify-between rounded-md border border-border bg-background px-2.5 py-1.5"
+                          >
+                            <span className={cn(
+                              "text-xs font-mono truncate",
+                              isHidden ? "text-foreground-muted line-through" : "text-foreground"
+                            )}>
+                              {name}
+                            </span>
+                            <button
+                              onClick={() => {
+                                setHiddenProjects((prev) =>
+                                  isHidden
+                                    ? prev.filter((p) => p !== name)
+                                    : [...prev, name]
+                                );
+                              }}
+                              className={cn(
+                                "rounded-md p-1 transition-colors",
+                                isHidden
+                                  ? "text-foreground-muted hover:text-foreground hover:bg-background-secondary"
+                                  : "text-foreground-secondary hover:text-foreground-muted hover:bg-background-secondary"
+                              )}
+                              title={isHidden ? "Show project" : "Hide project"}
+                            >
+                              {isHidden ? (
+                                <EyeOff className="h-3.5 w-3.5" />
+                              ) : (
+                                <Eye className="h-3.5 w-3.5" />
+                              )}
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </section>
+                )}
 
                 {/* Save result feedback */}
                 {saveResult === "success" && (
@@ -406,7 +488,7 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
           {/* Footer */}
           {serverConfig && (
             <div className="flex items-center justify-between border-t border-border px-4 py-3">
-              <p className="text-[10px] text-foreground-muted">
+              <p className="text-xs text-foreground-muted">
                 Config file: <span className="font-mono">~/.a5c/observer.json</span>
               </p>
               <div className="flex items-center gap-2">

@@ -121,7 +121,7 @@ function ResultOutput({ value }: { value: unknown }) {
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="mt-1.5 flex items-center gap-1 text-[10px] leading-tight text-foreground-muted hover:text-primary transition-colors"
+          className="mt-1.5 flex items-center gap-1 text-xs leading-tight text-foreground-muted hover:text-primary transition-colors"
         >
           {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
           {expanded ? "Collapse" : `Expand (${fullText.length.toLocaleString()} chars)`}
@@ -193,7 +193,7 @@ export function AgentPanel({ task }: { task: TaskDetail | null }) {
             <ol className="space-y-2">
               {(prompt.instructions as string[]).map((inst: string, i: number) => (
                 <li key={i} className="flex items-start gap-2.5 text-sm text-foreground-secondary">
-                  <span className="flex-shrink-0 flex items-center justify-center h-5 w-5 rounded-full bg-secondary-muted text-secondary text-[10px] leading-tight font-medium mt-px">
+                  <span className="flex-shrink-0 flex items-center justify-center h-5 w-5 rounded-full bg-secondary-muted text-secondary text-xs leading-tight font-medium mt-px">
                     {i + 1}
                   </span>
                   <span className="leading-relaxed">{inst}</span>

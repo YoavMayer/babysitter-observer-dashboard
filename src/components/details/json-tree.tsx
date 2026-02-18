@@ -174,7 +174,7 @@ function JsonNode({ keyName, value, defaultExpanded, isLast = true }: JsonNodePr
         <span className="text-foreground-muted">{openBracket}</span>
         {!expanded && (
           <>
-            <span className="mx-1 text-[10px] leading-tight text-foreground-muted bg-background-tertiary px-1.5 py-0.5 rounded">
+            <span className="mx-1 text-xs leading-tight text-foreground-muted bg-background-tertiary px-1.5 py-0.5 rounded">
               {countLabel}
             </span>
             <span className="text-foreground-muted">{closeBracket}</span>
@@ -454,7 +454,7 @@ function ScoreBar({ score }: { score: number }) {
           style={{ width: `${clamped}%` }}
         />
       </div>
-      <span className="text-[10px] text-foreground-muted">/100</span>
+      <span className="text-xs text-foreground-muted">/100</span>
     </div>
   );
 }
@@ -593,7 +593,7 @@ function FindingCard({
           <button
             type="button"
             onClick={() => setExpanded((p) => !p)}
-            className="ml-1 text-[10px] text-primary hover:text-primary-hover transition-colors"
+            className="ml-1 text-xs text-primary hover:text-primary-hover transition-colors"
           >
             {expanded ? "Show less" : "Show more"}
           </button>
@@ -633,7 +633,7 @@ function FindingsSection({
             <SmartSectionHeader className="flex items-center gap-1.5">
               <Icon className={cn("h-3 w-3", iconColor)} />
               {formatLabel(key)}
-              <span className="ml-1 inline-flex items-center justify-center h-4 min-w-[16px] px-1 rounded-full bg-primary-muted text-primary text-[10px] font-bold">
+              <span className="ml-1 inline-flex items-center justify-center h-4 min-w-[16px] px-1 rounded-full bg-primary-muted text-primary text-xs font-bold">
                 {items.length}
               </span>
             </SmartSectionHeader>
@@ -732,7 +732,7 @@ function MetadataGrid({
       )}
       {complexEntries.map(({ key, value }) => (
         <div key={key} className="rounded-md bg-background-secondary/50 border border-border/40 px-3 py-2">
-          <div className="text-[10px] text-foreground-muted uppercase tracking-wider mb-1">
+          <div className="text-xs text-foreground-muted uppercase tracking-wider mb-1">
             {formatLabel(key)}
           </div>
           <div className="font-mono text-xs">
@@ -760,7 +760,7 @@ function MetadataRow({
     if (rel) {
       return (
         <div className="flex items-baseline gap-2 py-0.5 min-w-0">
-          <span className="text-[10px] text-foreground-muted uppercase tracking-wider shrink-0">
+          <span className="text-xs text-foreground-muted uppercase tracking-wider shrink-0">
             {formatLabel(label)}
           </span>
           <span
@@ -783,7 +783,7 @@ function MetadataRow({
         : value;
     return (
       <div className="flex items-baseline gap-2 py-0.5 min-w-0">
-        <span className="text-[10px] text-foreground-muted uppercase tracking-wider shrink-0">
+        <span className="text-xs text-foreground-muted uppercase tracking-wider shrink-0">
           {formatLabel(label)}
         </span>
         <span
@@ -801,7 +801,7 @@ function MetadataRow({
   if (typeof value === "boolean") {
     return (
       <div className="flex items-baseline gap-2 py-0.5 min-w-0">
-        <span className="text-[10px] text-foreground-muted uppercase tracking-wider shrink-0">
+        <span className="text-xs text-foreground-muted uppercase tracking-wider shrink-0">
           {formatLabel(label)}
         </span>
         <span
@@ -819,7 +819,7 @@ function MetadataRow({
   // Default
   return (
     <div className="flex items-baseline gap-2 py-0.5 min-w-0">
-      <span className="text-[10px] text-foreground-muted uppercase tracking-wider shrink-0">
+      <span className="text-xs text-foreground-muted uppercase tracking-wider shrink-0">
         {formatLabel(label)}
       </span>
       <span className="text-xs text-foreground-secondary font-mono truncate" title={strVal}>
@@ -867,7 +867,7 @@ function CollapsibleRawJson({ data }: { data: unknown }) {
           Raw JSON
         </span>
         {!expanded && (
-          <span className="text-[10px] text-foreground-muted">
+          <span className="text-xs text-foreground-muted">
             (click to expand)
           </span>
         )}
@@ -878,7 +878,7 @@ function CollapsibleRawJson({ data }: { data: unknown }) {
               e.stopPropagation();
               handleCopyAll();
             }}
-            className="ml-auto inline-flex items-center gap-1 text-[10px] text-foreground-muted hover:text-primary transition-colors px-1.5 py-0.5 rounded"
+            className="ml-auto inline-flex items-center gap-1 text-xs text-foreground-muted hover:text-primary transition-colors px-1.5 py-0.5 rounded"
             title="Copy all JSON"
           >
             {copied ? (

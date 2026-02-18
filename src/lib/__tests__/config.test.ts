@@ -78,14 +78,14 @@ describe('config', () => {
       expect(config.sources.length).toBeGreaterThan(0);
     });
 
-    it('uses cwd as default source when no env vars are set', async () => {
+    it('uses parent of cwd as default source when no env vars are set', async () => {
       mockReadFile.mockRejectedValue(new Error('ENOENT'));
 
       const config = await getConfig();
 
-      expect(config.sources[0].path).toBe(process.cwd());
-      expect(config.sources[0].label).toBe('cwd');
-      expect(config.sources[0].depth).toBe(2);
+      expect(config.sources[0].path).toBe(path.resolve(process.cwd(), '..'));
+      expect(config.sources[0].label).toBe('parent');
+      expect(config.sources[0].depth).toBe(3);
     });
 
     it('uses OBSERVER_WATCH_DIR env var when set', async () => {
@@ -271,9 +271,9 @@ describe('config', () => {
 
       const config = await getConfig();
 
-      // Should fall back to default sources (cwd)
+      // Should fall back to default sources (parent of cwd)
       expect(config.sources.length).toBeGreaterThan(0);
-      expect(config.sources[0].path).toBe(process.cwd());
+      expect(config.sources[0].path).toBe(path.resolve(process.cwd(), '..'));
     });
   });
 

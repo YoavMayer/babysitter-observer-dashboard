@@ -29,7 +29,7 @@ function NumberedPre({ text, colorClass, limit }: { text: string; colorClass: st
       {isLong && !showAll && (
         <button
           onClick={() => setShowAll(true)}
-          className="w-full flex items-center justify-center gap-1.5 py-1.5 text-[10px] leading-tight text-foreground-muted hover:text-primary bg-background-secondary/30 hover:bg-background-secondary hover:shadow-neon-glow-primary-xs transition-all border-t border-border/30"
+          className="w-full flex items-center justify-center gap-1.5 py-1.5 text-xs leading-tight text-foreground-muted hover:text-primary bg-background-secondary/30 hover:bg-background-secondary hover:shadow-neon-glow-primary-xs transition-all border-t border-border/30"
         >
           <ChevronDown className="h-3 w-3" />
           Show all {allLines.length} lines
@@ -53,7 +53,7 @@ function LogCopyButton({ text }: { text: string }) {
     <button
       type="button"
       onClick={handleCopy}
-      className="inline-flex items-center gap-1 text-[10px] leading-tight text-foreground-muted hover:text-primary hover:shadow-glow-primary transition-all px-1.5 py-0.5 rounded hover:bg-primary-muted"
+      className="inline-flex items-center gap-1 text-xs leading-tight text-foreground-muted hover:text-primary hover:shadow-glow-primary transition-all px-1.5 py-0.5 rounded hover:bg-primary-muted"
       title="Copy all"
     >
       {copied ? <Check className="h-3 w-3 text-success" /> : <Copy className="h-3 w-3" />}

@@ -86,7 +86,8 @@ export class RunDetailPage {
 
   /** Navigate directly to a run detail page. */
   async goto(runId: string) {
-    await this.page.goto(`/runs/${runId}`);
+    // Use domcontentloaded because SSE keeps the "load" event open
+    await this.page.goto(`/runs/${runId}`, { waitUntil: "domcontentloaded" });
   }
 
   /* ---- Queries ---- */

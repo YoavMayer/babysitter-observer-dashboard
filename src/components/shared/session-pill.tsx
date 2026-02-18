@@ -49,7 +49,7 @@ export function SessionPill({ sessionId, active = false, className }: SessionPil
             />
             {formatShortId(sessionId, 4)}
             {copied && (
-              <span className="absolute -top-7 left-1/2 -translate-x-1/2 rounded-md bg-primary px-2 py-0.5 text-[10px] leading-tight font-sans font-medium text-primary-foreground whitespace-nowrap animate-slide-in-right">
+              <span className="absolute -top-7 left-1/2 -translate-x-1/2 rounded-md bg-primary px-2 py-0.5 text-xs leading-tight font-sans font-medium text-primary-foreground whitespace-nowrap animate-slide-in-right">
                 Copied!
               </span>
             )}
@@ -60,7 +60,7 @@ export function SessionPill({ sessionId, active = false, className }: SessionPil
             {copied ? "Copied!" : `Session: ${sessionId}`}
           </p>
           {!copied && (
-            <p className="text-foreground-muted text-[10px] leading-tight mt-0.5">Click to copy</p>
+            <p className="text-foreground-muted text-xs leading-tight mt-0.5">Click to copy</p>
           )}
         </TooltipContent>
       </Tooltip>

@@ -119,13 +119,42 @@ function createMergedSignal(
 }
 
 // ---------------------------------------------------------------------------
+// ETag cache — stores last ETag + response body per URL for 304 handling
+// ---------------------------------------------------------------------------
+
+interface ETagCacheEntry<T = unknown> {
+  etag: string;
+  data: T;
+}
+
+const etagCache = new Map<string, ETagCacheEntry>();
+
+// Limit ETag cache size to avoid unbounded growth
+const MAX_ETAG_CACHE_SIZE = 100;
+
+function pruneEtagCache(): void {
+  if (etagCache.size <= MAX_ETAG_CACHE_SIZE) return;
+  // Delete the oldest entries (first inserted)
+  const keysToDelete = Array.from(etagCache.keys()).slice(0, etagCache.size - MAX_ETAG_CACHE_SIZE);
+  for (const key of keysToDelete) {
+    etagCache.delete(key);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Main export
 // ---------------------------------------------------------------------------
 
 /**
- * Perform an HTTP fetch with built-in **retry**, **timeout**, and **abort**
- * support.  Returns a discriminated-union result so callers never need to
- * catch exceptions.
+ * Perform an HTTP fetch with built-in **retry**, **timeout**, **abort**,
+ * and **ETag** support.  Returns a discriminated-union result so callers
+ * never need to catch exceptions.
+ *
+ * ETag behaviour:
+ * - On successful responses with an ETag header, the response data and ETag
+ *   are cached.  On subsequent requests to the same URL, an `If-None-Match`
+ *   header is sent.  If the server returns 304, the cached data is returned
+ *   without re-parsing JSON, saving bandwidth and CPU.
  *
  * Retry behaviour:
  * - Network errors and 5xx responses are retried up to `options.retries`
@@ -158,9 +187,16 @@ export async function resilientFetch<T>(
     retryDelay = 1000,
     timeout = 10_000,
     method = "GET",
-    headers,
+    headers: userHeaders,
     body,
   } = options;
+
+  // Build headers, injecting If-None-Match for ETag-based caching
+  const mergedHeaders: Record<string, string> = { ...userHeaders };
+  const cachedEntry = etagCache.get(url);
+  if (cachedEntry && method === "GET") {
+    mergedHeaders["If-None-Match"] = cachedEntry.etag;
+  }
 
   let lastError: FetchError | undefined;
 
@@ -171,10 +207,16 @@ export async function resilientFetch<T>(
     try {
       const response = await fetch(url, {
         method,
-        headers,
+        headers: mergedHeaders,
         body,
         signal,
       });
+
+      // 304 Not Modified — return cached data without re-parsing
+      if (response.status === 304 && cachedEntry) {
+        cleanup();
+        return { ok: true, data: cachedEntry.data as T, status: 304 };
+      }
 
       if (response.ok) {
         let data: T;
@@ -192,6 +234,14 @@ export async function resilientFetch<T>(
             },
           };
         }
+
+        // Cache the ETag and response data for future 304 handling
+        const etag = response.headers.get("ETag");
+        if (etag) {
+          etagCache.set(url, { etag, data });
+          pruneEtagCache();
+        }
+
         cleanup();
         return { ok: true, data, status: response.status };
       }

@@ -26,6 +26,10 @@ Real-time observability dashboard for [babysitter](https://github.com/a5c-ai/bab
 - **Resilient networking** -- automatic retry with exponential backoff for transient API failures and AbortSignal integration
 - **CLI launcher** -- single command to start the dashboard pointing at any directory
 - **Lightweight digest endpoint** -- efficient polling endpoint that returns only run metadata, avoiding full payload transfers
+- **Global search** -- search runs by ID, title, or project name across all projects (Ctrl+K)
+- **Sort and filter tabs** -- filter by All, Active, Completed, or Failed runs; sort by most recent activity
+- **Project visibility** -- hide/show projects from the settings panel without removing watch sources
+- **WCAG AA accessibility** -- minimum 12px text sizes, 4.5:1+ contrast ratios in both light and dark themes
 
 ## Quick Start
 
@@ -360,14 +364,14 @@ BABYSITTER_CLI=/usr/local/bin/babysitter babysitter-observer-dashboard
 
 ## Known Limitations
 
-This is version `0.5.3`. The API and configuration format may change between minor versions.
+This is version `0.6.0`. The API and configuration format may change between minor versions.
 
 - **Local only** -- The observer reads run data from the local filesystem. There is no remote/cloud mode.
 - **No authentication** -- The dashboard and API endpoints are unauthenticated. Do not expose to untrusted networks.
 - **No persistent storage** -- All run state is held in an in-memory cache rebuilt from journal files on startup. Restarting the server reloads from disk.
 - **WSL2 file-watching latency** -- On Windows Subsystem for Linux 2, cross-filesystem file-system events may be delayed. The observer compensates with polling but updates may lag behind native Linux or macOS.
 - **Single-instance only** -- Running multiple observer instances watching the same directories is untested and may produce duplicate SSE events.
-- **Large run directories** -- Discovery scans directories up to the configured depth on every poll cycle. The configurable retention window (default 30 days) helps keep the dashboard responsive, but thousands of active run directories may still cause latency.
+- **Large run directories** -- Discovery scans are cached and debounced (filesystem rescans happen at most once per 60 seconds, triggered by the watcher on new-run events). The digest API reads purely from the in-memory cache with zero filesystem I/O. Thousands of run directories are handled efficiently, though initial startup may take a few seconds for the first scan.
 - **No run deletion or archival** -- The observer is read-only (except for breakpoint resolution). There is no UI to delete, archive, or export runs.
 - **Browser notifications** -- Notification support depends on browser permissions and may not work in all environments.
 

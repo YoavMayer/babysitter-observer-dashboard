@@ -12,6 +12,10 @@ import path from "path";
 
 const fixtureRunsDir = path.resolve(__dirname, "e2e/fixtures/runs");
 
+// Use a dedicated test port to avoid collisions with a running dev server.
+// The dev server on port 3000 uses real data; the E2E server on 3099 uses fixtures.
+const testPort = parseInt(process.env.OBSERVER_PORT || "4173", 10);
+
 export default defineConfig({
   testDir: "e2e/tests",
   fullyParallel: true,
@@ -24,7 +28,7 @@ export default defineConfig({
   reporter: [["html", { open: "never" }]],
 
   use: {
-    baseURL: `http://localhost:${process.env.OBSERVER_PORT || "3000"}`,
+    baseURL: `http://localhost:${testPort}`,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
@@ -38,14 +42,14 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: "npm run dev",
-    port: parseInt(process.env.OBSERVER_PORT || "3000", 10),
-    reuseExistingServer: !process.env.CI,
+    command: `node node_modules/next/dist/bin/next dev --port ${testPort}`,
+    port: testPort,
+    reuseExistingServer: false,
     timeout: 120_000,
     env: {
       WATCH_DIR: fixtureRunsDir,
       OBSERVER_REGISTRY: path.resolve(__dirname, "e2e/fixtures/.observer-test.json"),
-      PORT: process.env.OBSERVER_PORT || "3000",
+      PORT: String(testPort),
       OBSERVER_STALE_THRESHOLD_MS: "999999999999",
     },
   },

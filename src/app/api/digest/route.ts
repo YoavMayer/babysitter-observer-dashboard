@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { discoverAllRunDirs } from "@/lib/config";
 import { ensureInitialized } from "@/lib/server-init";
-import { getDigestCached, discoverAndCacheAll } from "@/lib/run-cache";
+import { getAllCachedDigests } from "@/lib/run-cache";
 import { normalizeError } from "@/lib/error-handler";
 
 export const dynamic = "force-dynamic";
@@ -18,15 +17,9 @@ export async function GET() {
       );
     }
 
-    // Use cached digests for consistent, fast responses
-    // This prevents notification spam from inconsistent fresh reads
-    const allRuns = await discoverAllRunDirs();
-
-    const runs = await Promise.all(
-      allRuns.map(async ({ runDir, source, projectName }) => {
-        return await getDigestCached(runDir, source, projectName);
-      })
-    );
+    // Pure cache read — no filesystem scanning.
+    // Cache is populated by server-init and kept fresh by the watcher + periodic discovery.
+    const runs = getAllCachedDigests();
 
     // Sort by updatedAt descending (most recent first)
     runs.sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));

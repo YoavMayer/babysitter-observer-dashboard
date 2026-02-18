@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { cn } from "@/lib/cn";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { KindBadge } from "@/components/shared/kind-badge";
@@ -18,7 +18,7 @@ interface StepCardProps {
   stepNumber?: number;
 }
 
-export function StepCard({ task, runId, onSelect, isSelected, defaultExpanded = false, stepNumber }: StepCardProps) {
+export const StepCard = memo(function StepCard({ task, runId, onSelect, isSelected, defaultExpanded = false, stepNumber }: StepCardProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const isRunning = task.status === "requested";
   const isBreakpointWaiting = task.kind === "breakpoint" && task.status === "requested";
@@ -78,7 +78,7 @@ export function StepCard({ task, runId, onSelect, isSelected, defaultExpanded = 
               <div className="h-2 w-2 rounded-full bg-info animate-pulse-dot shrink-0 shadow-step-running-dot" />
             ) : null}
             {stepNumber && (
-              <span className="flex-shrink-0 w-5 h-5 rounded-full bg-background-tertiary text-[10px] font-mono text-foreground-muted flex items-center justify-center">
+              <span className="flex-shrink-0 w-5 h-5 rounded-full bg-background-tertiary text-xs font-mono text-foreground-muted flex items-center justify-center">
                 {stepNumber}
               </span>
             )}
@@ -93,7 +93,7 @@ export function StepCard({ task, runId, onSelect, isSelected, defaultExpanded = 
           <div className="flex items-center gap-1 mt-1.5 text-xs text-warning">
             <Hand className="h-3 w-3 shrink-0 drop-shadow-[var(--drop-glow-warning-sm)]" />
             <span className="font-medium">Waiting for approval</span>
-            <span className="font-mono text-warning/70 animate-pulse">{formatDuration(elapsedMs)}</span>
+            <span className="font-mono text-warning animate-pulse">{formatDuration(elapsedMs)}</span>
           </div>
         ) : (task.duration || isRunning) ? (
           <div className="flex items-center gap-1 mt-1.5 text-xs text-foreground-muted">
@@ -163,4 +163,4 @@ export function StepCard({ task, runId, onSelect, isSelected, defaultExpanded = 
       </div>
     </div>
   );
-}
+});

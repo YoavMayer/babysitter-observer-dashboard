@@ -39,7 +39,7 @@ export function KindBadge({ kind, className }: { kind: TaskKind; className?: str
   const config = kindConfig[kind] || kindConfig.agent;
   return (
     <span className={cn(
-      "inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] leading-tight font-medium uppercase tracking-wider",
+      "inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs leading-tight font-medium uppercase tracking-wider",
       config.bgTint,
       config.color,
       className

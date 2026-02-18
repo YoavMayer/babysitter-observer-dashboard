@@ -54,7 +54,7 @@ export class DashboardPage {
     this.heading = page.getByRole("heading", { name: "Babysitter Observer" });
     this.kpiGrid = page.getByTestId("kpi-grid");
     this.filterBar = page.getByTestId("filter-bar");
-    this.projectGrid = page.getByTestId("project-grid");
+    this.projectGrid = page.getByTestId("project-grid-active").or(page.getByTestId("project-grid-filtered")).or(page.getByTestId("project-grid-history"));
     this.projectCount = page.getByTestId("project-count");
     this.loadingSkeletons = page.locator(".animate-pulse");
     this.errorBanner = page.getByTestId("error-banner");
@@ -68,7 +68,8 @@ export class DashboardPage {
 
   /** Navigate to the dashboard root. */
   async goto() {
-    await this.page.goto("/");
+    // Use domcontentloaded because SSE keeps the "load" event open
+    await this.page.goto("/", { waitUntil: "domcontentloaded" });
   }
 
   /* ---- Queries ---- */
@@ -76,10 +77,12 @@ export class DashboardPage {
   /**
    * Return all visible ProjectHealthCard elements.
    * Each card is a `<div>` rendered by the `Card` component inside
-   * `ProjectHealthCard`.
+   * `ProjectHealthCard`. Cards may span multiple grid containers
+   * (active runs, filtered results, recent history), so we locate
+   * them by their data-testid prefix.
    */
   getProjectCards(): Locator {
-    return this.projectGrid.locator("> *");
+    return this.page.locator("[data-testid^='project-card-']");
   }
 
   /**
@@ -162,6 +165,47 @@ export class DashboardPage {
     await searchInput.fill(query);
   }
 
+  /**
+   * Expand collapsed run sub-sections (Failed Runs, Completed History)
+   * within an already-expanded project card so that all run cards
+   * become visible. This is needed because the ProjectHealthCard
+   * collapses completed and failed runs by default.
+   */
+  async expandRunSubSections() {
+    // Wait for the expanded card's run data to finish loading.
+    // The ProjectHealthCard shows loading skeletons while fetching runs.
+    // We wait for those to disappear (or for run links to appear) before
+    // looking for the collapsible sub-section buttons.
+    await this.page
+      .locator("[data-testid^='project-card-'] .animate-pulse")
+      .first()
+      .waitFor({ state: "hidden", timeout: 15_000 })
+      .catch(() => {
+        // Skeletons may never appear if data loads fast enough
+      });
+
+    // Also wait for at least one run link OR a sub-section button to appear,
+    // confirming that the run data has loaded and rendered.
+    const runContent = this.page.locator('a[href^="/runs/"]')
+      .or(this.page.locator("button").filter({ hasText: "Failed Runs" }))
+      .or(this.page.locator("button").filter({ hasText: "Completed History" }));
+    await runContent.first().waitFor({ state: "visible", timeout: 15_000 }).catch(() => {
+      // No runs or sub-sections found — card may be empty
+    });
+
+    // Click "Failed Runs" section header if present
+    const failedSection = this.page.locator("button").filter({ hasText: "Failed Runs" });
+    if (await failedSection.isVisible({ timeout: 2_000 }).catch(() => false)) {
+      await failedSection.click();
+    }
+
+    // Click "Completed History" section header if present
+    const completedSection = this.page.locator("button").filter({ hasText: "Completed History" });
+    if (await completedSection.isVisible({ timeout: 2_000 }).catch(() => false)) {
+      await completedSection.click();
+    }
+  }
+
   /* ---- Waiters ---- */
 
   /**
@@ -175,9 +219,16 @@ export class DashboardPage {
       // Skeletons may never appear if data loads fast enough
     });
 
-    // At least one of these states should be present
+    // At least one of these states should be present:
+    // - One of the project grids (active or filtered)
+    // - The recent history section (when no active runs exist)
+    // - The error banner or empty state
+    const projectContent = this.projectGrid
+      .or(this.page.getByTestId("recent-history-section"))
+      .or(this.page.getByTestId("idle-empty-state"))
+      .or(this.page.getByTestId("idle-with-history-banner"));
     await expect(
-      this.projectGrid.or(this.errorBanner).or(this.emptyState)
+      projectContent.or(this.errorBanner).or(this.emptyState)
     ).toBeVisible({ timeout: 30_000 });
   }
 }

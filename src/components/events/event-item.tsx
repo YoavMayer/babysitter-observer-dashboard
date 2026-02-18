@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { cn } from "@/lib/cn";
 import { Badge } from "@/components/ui/badge";
 import { formatRelativeTime, formatDuration } from "@/lib/utils";
@@ -26,7 +27,7 @@ interface EventItemProps {
   onClick?: () => void;
 }
 
-export function EventItem({ event, onClick }: EventItemProps) {
+export const EventItem = memo(function EventItem({ event, onClick }: EventItemProps) {
   const config = typeConfig[event.type] || typeConfig.EFFECT_REQUESTED;
   const payload = event.payload as Record<string, unknown>;
   const label = (payload.label as string) || "";
@@ -54,10 +55,10 @@ export function EventItem({ event, onClick }: EventItemProps) {
     >
       {/* Primary line */}
       <div className="flex items-center gap-2">
-        <span className="font-mono text-[10px] leading-tight text-secondary/70 shrink-0 tabular-nums w-12 text-right">
+        <span className="font-mono text-xs leading-tight text-secondary shrink-0 tabular-nums w-12 text-right">
           {formatRelativeTime(event.ts)}
         </span>
-        <Badge variant={config.variant} className="text-[10px] leading-tight shrink-0">
+        <Badge variant={config.variant} className="text-xs leading-tight shrink-0">
           {config.label}
         </Badge>
 
@@ -65,7 +66,7 @@ export function EventItem({ event, onClick }: EventItemProps) {
           <>
             <span className="text-xs text-foreground truncate font-medium">{label || "Task"}</span>
             {kind && (
-              <span className={cn("rounded px-1.5 py-0.5 text-[9px] leading-tight font-medium shrink-0", kindColors[kind] || "bg-muted text-foreground-muted")}>
+              <span className={cn("rounded px-1.5 py-0.5 text-xs leading-tight font-medium shrink-0", kindColors[kind] || "bg-muted text-foreground-muted")}>
                 {kind}
               </span>
             )}
@@ -81,7 +82,7 @@ export function EventItem({ event, onClick }: EventItemProps) {
               status === "ok" ? "bg-success shadow-[0_0_4px_var(--success)]" : status === "error" ? "bg-error shadow-[0_0_4px_var(--error)]" : "bg-foreground-muted"
             )} />
             {resolvedDuration != null && resolvedDuration > 0 && (
-              <span className="text-[10px] leading-tight font-mono text-foreground-muted shrink-0">{formatDuration(resolvedDuration)}</span>
+              <span className="text-xs leading-tight font-mono text-foreground-muted shrink-0">{formatDuration(resolvedDuration)}</span>
             )}
           </>
         )}
@@ -110,11 +111,11 @@ export function EventItem({ event, onClick }: EventItemProps) {
 
       {/* Secondary metadata line */}
       {(stepId || taskId) && (
-        <div className="flex items-center gap-2 mt-0.5 ml-14 text-[10px] leading-tight text-foreground-muted/70">
+        <div className="flex items-center gap-2 mt-0.5 ml-14 text-xs leading-tight text-foreground-muted">
           {stepId && <span className="font-mono truncate">step: {stepId}</span>}
           {taskId && <span className="font-mono truncate">task: {taskId}</span>}
         </div>
       )}
     </button>
   );
-}
+});

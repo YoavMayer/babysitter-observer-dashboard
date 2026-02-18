@@ -64,7 +64,7 @@ export function ProjectSectionHeader({
         )}
       </div>
 
-      <span className="ml-auto text-[10px] leading-tight text-foreground-muted shrink-0 tabular-nums">
+      <span className="ml-auto text-xs leading-tight text-foreground-muted shrink-0 tabular-nums">
         {totalRuns} run{totalRuns !== 1 ? "s" : ""}
         {latestUpdate && ` \u00b7 ${formatRelativeTime(latestUpdate)}`}
       </span>

@@ -78,9 +78,9 @@ describe('StatusBadge', () => {
     expect(screen.getByText('Waiting: Breakpoint')).toBeInTheDocument();
   });
 
-  it('renders "Waiting: Task" when status is waiting and waitingKind is task', () => {
+  it('renders "Working" when status is waiting and waitingKind is task', () => {
     render(<StatusBadge status="waiting" waitingKind="task" />);
-    expect(screen.getByText('Waiting: Task')).toBeInTheDocument();
+    expect(screen.getByText('Working')).toBeInTheDocument();
   });
 
   it('renders with stale styling when isStale is true', () => {
@@ -93,6 +93,6 @@ describe('StatusBadge', () => {
     render(<StatusBadge status="waiting" />);
     expect(screen.getByText('Waiting')).toBeInTheDocument();
     expect(screen.queryByText('Waiting: Breakpoint')).not.toBeInTheDocument();
-    expect(screen.queryByText('Waiting: Task')).not.toBeInTheDocument();
+    expect(screen.queryByText('Working')).not.toBeInTheDocument();
   });
 });

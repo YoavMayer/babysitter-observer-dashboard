@@ -16,6 +16,7 @@ export interface ObserverConfig {
   staleThresholdMs: number;
   recentCompletionWindowMs: number;
   retentionDays: number;
+  hiddenProjects: string[];
 }
 
 // Default registry path
@@ -33,6 +34,12 @@ export function invalidateConfigCache(): void {
   cacheTime = 0;
 }
 
+// Force re-discovery on next call (called when new runs are detected by watcher)
+export function invalidateDiscoveryCache(): void {
+  discoveryCache = [];
+  discoveryCacheTime = 0;
+}
+
 // Write config to the registry file (~/.a5c/observer.json)
 export async function writeConfig(data: {
   sources: WatchSource[];
@@ -41,6 +48,7 @@ export async function writeConfig(data: {
   staleThresholdMs?: number;
   recentCompletionWindowMs?: number;
   retentionDays?: number;
+  hiddenProjects?: string[];
 }): Promise<void> {
   const dir = path.dirname(REGISTRY_PATH);
   await fs.mkdir(dir, { recursive: true });
@@ -62,6 +70,7 @@ export async function writeConfig(data: {
     ...(data.staleThresholdMs !== undefined ? { staleThresholdMs: data.staleThresholdMs } : {}),
     ...(data.recentCompletionWindowMs !== undefined ? { recentCompletionWindowMs: data.recentCompletionWindowMs } : {}),
     ...(data.retentionDays !== undefined ? { retentionDays: data.retentionDays } : {}),
+    ...(data.hiddenProjects !== undefined ? { hiddenProjects: data.hiddenProjects } : {}),
   };
 
   await fs.writeFile(REGISTRY_PATH, JSON.stringify(merged, null, 2) + "\n", "utf-8");
@@ -74,6 +83,7 @@ interface RegistryData {
   staleThresholdMs?: number;
   recentCompletionWindowMs?: number;
   retentionDays?: number;
+  hiddenProjects?: string[];
 }
 
 async function loadRegistry(): Promise<RegistryData> {
@@ -94,6 +104,7 @@ async function loadRegistry(): Promise<RegistryData> {
       staleThresholdMs: typeof parsed.staleThresholdMs === "number" ? parsed.staleThresholdMs : undefined,
       recentCompletionWindowMs: typeof parsed.recentCompletionWindowMs === "number" ? parsed.recentCompletionWindowMs : undefined,
       retentionDays: typeof parsed.retentionDays === "number" ? parsed.retentionDays : undefined,
+      hiddenProjects: Array.isArray(parsed.hiddenProjects) ? parsed.hiddenProjects.filter((s: unknown) => typeof s === "string") : undefined,
     };
   } catch {
     return { sources: [] };
@@ -121,12 +132,13 @@ function getDefaultSources(): WatchSource[] {
     }
   }
 
-  // cwd fallback
+  // Default: parent of cwd — users typically run from inside a project dir
+  // but want to observe ALL sibling projects in the parent folder
   if (sources.length === 0) {
     sources.push({
-      path: process.cwd(),
-      depth: 2,
-      label: "cwd",
+      path: path.resolve(process.cwd(), ".."),
+      depth: 3,
+      label: "parent",
     });
   }
 
@@ -168,6 +180,7 @@ export async function getConfig(): Promise<ObserverConfig> {
     staleThresholdMs: registry.staleThresholdMs ?? (envStaleThreshold ? parseInt(envStaleThreshold, 10) : 3600000),
     recentCompletionWindowMs: registry.recentCompletionWindowMs ?? (envRecentWindow ? parseInt(envRecentWindow, 10) : 14400000),
     retentionDays: registry.retentionDays ?? (envRetentionDays ? parseInt(envRetentionDays, 10) : 30),
+    hiddenProjects: registry.hiddenProjects ?? [],
   };
   cacheTime = now;
 
@@ -250,8 +263,18 @@ function extractProjectName(runsDir: string): { projectName: string; projectPath
   return { projectName, projectPath };
 }
 
+// Cache discovery results to avoid repeated filesystem scanning
+let discoveryCache: DiscoveredRun[] = [];
+let discoveryCacheTime = 0;
+const DISCOVERY_CACHE_TTL = 10000; // 10s — watcher handles real-time changes
+
 // Get all run directories across all sources
 export async function discoverAllRunDirs(): Promise<DiscoveredRun[]> {
+  const now = Date.now();
+  if (discoveryCache.length > 0 && now - discoveryCacheTime < DISCOVERY_CACHE_TTL) {
+    return discoveryCache;
+  }
+
   const config = await getConfig();
   const allRuns: DiscoveredRun[] = [];
 
@@ -334,7 +357,10 @@ export async function discoverAllRunDirs(): Promise<DiscoveredRun[]> {
     }
   }
 
-  return Array.from(seenRunIds.values());
+  const result = Array.from(seenRunIds.values());
+  discoveryCache = result;
+  discoveryCacheTime = Date.now();
+  return result;
 }
 
 // Find a specific run directory by runId across all sources

@@ -2,8 +2,8 @@ import { watch, type FSWatcher } from "fs";
 import { promises as fs } from "fs";
 import path from "path";
 import { EventEmitter } from "events";
-import { discoverAllRunDirs } from "./config";
-import { invalidateRun } from "./run-cache";
+import { discoverAllRunDirs, invalidateDiscoveryCache } from "./config";
+import { invalidateRun, requestDiscovery } from "./run-cache";
 
 // Persist event emitter across HMR reloads
 const WATCHER_EVENTS_KEY = '__observer_watcher_events__';
@@ -78,6 +78,9 @@ function handleJournalChange(journalDir: string) {
 
 function handleRunsParentChange(runsDir: string) {
   debounceChange(runsDir, () => {
+    // Invalidate caches so new runs are picked up on next request
+    invalidateDiscoveryCache();
+    requestDiscovery();
     watcherEvents.emit("change", {
       type: "new-run",
       runDir: runsDir,

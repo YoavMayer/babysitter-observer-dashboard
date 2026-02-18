@@ -13,6 +13,7 @@ interface UseProjectRunsOptions {
   offset?: number;
   search?: string;
   status?: string;
+  sort?: 'status' | 'activity';
   enabled?: boolean;
 }
 
@@ -20,13 +21,14 @@ export function useProjectRuns(
   projectName: string,
   options: UseProjectRunsOptions = {}
 ) {
-  const { limit = 10, offset = 0, search = '', status = '', enabled = true } = options;
+  const { limit = 10, offset = 0, search = '', status = '', sort = 'status', enabled = true } = options;
   const params = new URLSearchParams();
   params.set('project', projectName);
   params.set('limit', String(limit));
   params.set('offset', String(offset));
   if (search) params.set('search', search);
   if (status) params.set('status', status);
+  if (sort && sort !== 'status') params.set('sort', sort);
 
   const url = `/api/runs?${params.toString()}`;
 

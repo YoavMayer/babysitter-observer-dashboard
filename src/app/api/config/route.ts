@@ -86,6 +86,16 @@ export async function POST(request: Request) {
       }
     }
 
+    // Validate hiddenProjects
+    if (body.hiddenProjects !== undefined) {
+      if (!Array.isArray(body.hiddenProjects) || body.hiddenProjects.some((p: unknown) => typeof p !== "string")) {
+        return NextResponse.json(
+          { error: "hiddenProjects must be an array of strings" },
+          { status: 400 }
+        );
+      }
+    }
+
     // Build config to save
     const configToSave = {
       sources: body.sources.map((s: { path: string; depth: number; label?: string }) => ({
@@ -97,6 +107,7 @@ export async function POST(request: Request) {
       ...(body.theme !== undefined ? { theme: body.theme } : {}),
       ...(body.staleThresholdMs !== undefined ? { staleThresholdMs: body.staleThresholdMs } : {}),
       ...(body.retentionDays !== undefined ? { retentionDays: body.retentionDays } : {}),
+      ...(body.hiddenProjects !== undefined ? { hiddenProjects: body.hiddenProjects } : {}),
     };
 
     // Write to disk

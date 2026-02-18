@@ -26,7 +26,7 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
   const [activeTab, setActiveTab] = useState("agent");
   const breakpointPanelRef = useRef<{ triggerApprove: () => void; triggerReject: () => void } | null>(null);
 
-  const handleSelectEffect = (effectId: string) => {
+  const handleSelectEffect = useCallback((effectId: string) => {
     setSelectedEffectId(effectId);
     setShowDetail(true);
 
@@ -35,14 +35,14 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
     if (task?.kind === "breakpoint") {
       setActiveTab("breakpoint");
     }
-  };
+  }, [run?.tasks]);
 
-  const handleEventClick = (event: JournalEvent) => {
+  const handleEventClick = useCallback((event: JournalEvent) => {
     const payload = event.payload as unknown as EffectRequestedPayload;
     if (payload?.effectId) {
       handleSelectEffect(payload.effectId);
     }
-  };
+  }, [handleSelectEffect]);
 
   const handleBreakpointResolved = useCallback((approved: boolean) => {
     if (approved) {
@@ -52,7 +52,7 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
     }
   }, [notify]);
 
-  const tasks = run?.tasks || [];
+  const tasks = useMemo(() => run?.tasks || [], [run?.tasks]);
 
   // Determine if the currently selected task is a waiting breakpoint
   const selectedTask = useMemo(() => {

@@ -30,3 +30,18 @@ nul
 test-output.log
 test-output.txt
 vitest-output.txt
+/test-results/.last-run.json
+/tmp-commit-msg.txt
+/tmp-reword-msg.txt
+/vitest-run-output.txt
+/Defects List/22485d80-a6ea-4a2f-a47c-d60bcd58f790.jpg
+/Defects List/2f5e10f2-73e8-4c2a-9879-6d3b80192d84.jpg
+/Defects List/42259d08-aecf-4a50-8423-1c775a270482.jpg
+/Defects List/5c13283c-511b-4a7b-b07f-53fc48ea1385.jpg
+/Defects List/9366196b-2c8c-41ef-9d71-13171185cd3b.jpg
+/Defects List/a3e28d20-9d1a-4e31-94bd-511a8652407e.jpg
+/Defects List/defect list.md
+/Defects List/eb2ee02f-80b7-412d-90e0-d51cc251b503.jpg
+/Defects List/got 3 active terminals and only 1 is visiblle on the dashboard .png
+/Defects List/instead of waiting task should be shown running or working.jpeg
+/STAKEHOLDER-UX-REVIEW.md

@@ -20,7 +20,7 @@ function MetricCard({ icon, label, value, valueColor, testId }: MetricCardProps)
     <div data-testid={testId} className="bg-background-secondary/60 rounded-lg px-4 py-2.5 flex items-center gap-3">
       <div className="text-foreground-muted">{icon}</div>
       <div className="flex flex-col">
-        <span className="text-[10px] leading-tight text-foreground-muted uppercase tracking-wider font-medium">{label}</span>
+        <span className="text-xs leading-tight text-foreground-muted uppercase tracking-wider font-medium">{label}</span>
         <span className={cn("text-lg font-semibold tabular-nums", valueColor || "text-foreground")}>{value}</span>
       </div>
     </div>

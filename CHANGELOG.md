@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.0] - 2026-02-18
+### Fixed — Defect List (#1)
+- **"Waiting: Task" status misleading** -- status badge now shows "Working" (info/cyan) instead of "Waiting: Task" for runs actively executing tasks
+- **Unknown step / error display** -- outcome banner shows human-readable error messages with formatted details instead of raw "An error occurred"
+- **Breakpoint visibility** -- pending breakpoints now display a prominent pulsing banner at the top of the dashboard with question text and approve/reject buttons
+- **Collapse state lost on navigation** -- project expand/collapse state persisted to `localStorage` via `usePersistedState` hook; returning from run detail restores previous state
+- **Sort and filter tabs** -- dashboard runs sortable by most recent activity; filter tabs (All, Active, Completed, Failed) let users view specific run states
+- **Global search** -- search runs by ID, title, or project name across all projects from the dashboard header
+- **Hide projects from dashboard** -- projects can be hidden/shown via settings modal visibility toggles without removing watch sources
+
+### Fixed — Defect List (#2)
+- **Projects fail to load (timeout)** -- critical performance fix: digest API now reads from in-memory cache instead of scanning filesystem on every 2s poll; added discovery result caching (10s TTL) and watcher-driven cache invalidation; response time improved from 60s+ timeout to ~50ms
+- **"Active Runs" label duplication** -- renamed "Active" metric and "Active Runs" section header to "In Progress" to avoid redundancy with the "Active" filter tab
+
+### Changed
+- **WCAG accessibility** -- all `text-[10px]` and `text-[9px]` instances (73+) upgraded to `text-xs` (12px minimum) across 22 component files for WCAG AA compliance
+- **Light theme contrast** -- `--foreground-muted` raised from `#a1a1aa` to `#71717a` (4.6:1 contrast ratio); border and card opacities increased for better visibility
+- **Opacity stacking removed** -- removed `/60`, `/70`, `/80` opacity modifiers on already-muted text colors across all components for reliable contrast
+- **Discovery caching** -- filesystem discovery results cached with 10s TTL; discovery debounce increased from 3s to 60s; watcher invalidates both discovery cache and run cache on new-run events
+- **Run cache optimization** -- `discoverAndCacheAll()` skips filesystem scan when cache is populated and no new runs detected via `discoveryNeeded` flag
+
+### Added
+- **`getAllCachedDigests()`** -- zero-I/O function for pure cache reads from digest API endpoint
+- **`requestDiscovery()`** -- watcher-triggered flag to signal when new runs may exist
+- **`invalidateDiscoveryCache()`** -- cache invalidation for discovery results on filesystem changes
+- **`usePersistedState` hook** -- generic localStorage-backed state persistence for UI preferences
+- **Breakpoint banner component** -- `breakpoint-banner.tsx` with pulsing indicator, question preview, and inline approve/reject
+- **Global search component** -- `global-search.tsx` with keyboard shortcut (Ctrl+K), debounced search, and result highlighting
+
 ## [0.5.3] - 2026-02-18
 ### Added
 - **Playwright performance test suite** -- 5 tests covering dashboard reload time, SSE connection indicator, DOM node count, navigation performance, and console error detection (`e2e/tests/performance.spec.ts`)

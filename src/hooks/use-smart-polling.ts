@@ -38,7 +38,11 @@ export function useSmartPolling<T>(
       return;
     }
     if (mountedRef.current) {
-      setData(result.data);
+      // Skip state update on 304 Not Modified — data is identical to
+      // what we already have, so avoid triggering a re-render cascade.
+      if (result.status !== 304) {
+        setData(result.data);
+      }
       setError(null);
       setLoading(false);
     }

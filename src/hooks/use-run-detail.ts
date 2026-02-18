@@ -1,18 +1,45 @@
 "use client";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { useSmartPolling } from "./use-smart-polling";
-import type { RunDetailResponse, TaskDetailResponse } from "@/types";
+import type { RunDetailResponse, TaskDetailResponse, RunStatus } from "@/types";
 
-export function useRunDetail(runId: string, interval = 3000) {
+// Poll intervals by run status:
+// - Active/waiting runs change frequently, poll every 3s
+// - Completed/failed runs are static, poll every 30s (just in case of late events)
+const POLL_ACTIVE = 3000;
+const POLL_COMPLETED = 30000;
+
+function getIntervalForStatus(status: RunStatus | undefined): number {
+  if (!status) return POLL_ACTIVE;
+  return status === "completed" || status === "failed"
+    ? POLL_COMPLETED
+    : POLL_ACTIVE;
+}
+
+export function useRunDetail(runId: string, intervalOverride?: number) {
+  // Track last known run status to adapt poll interval.
+  // useRef avoids triggering re-render; the interval change takes effect
+  // on the next useSmartPolling dependency cycle.
+  const lastStatusRef = useRef<RunStatus | undefined>(undefined);
+
+  const adaptiveInterval = intervalOverride ?? getIntervalForStatus(lastStatusRef.current);
+
   const { data, loading, error, refresh } = useSmartPolling<RunDetailResponse>(
     `/api/runs/${runId}?maxEvents=50`,
     {
-      interval,
+      interval: adaptiveInterval,
       sseFilter: (event) => event.runId === runId // Only refetch for this run's updates
     }
   );
 
   const run = data?.run || null;
+
+  // Update status ref so next render picks up the adaptive interval.
+  // When status transitions (e.g. "waiting" -> "completed"), the interval
+  // changes from 3s to 30s, and useSmartPolling restarts its timer.
+  if (run && run.status !== lastStatusRef.current) {
+    lastStatusRef.current = run.status;
+  }
 
   // Detect if any breakpoint tasks are waiting for approval
   const hasBreakpointWaiting = useMemo(() => {
