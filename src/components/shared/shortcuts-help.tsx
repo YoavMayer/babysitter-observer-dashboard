@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Kbd } from "./kbd";
 import { X } from "lucide-react";
 import { useKeyboard } from "@/hooks/use-keyboard";
@@ -29,6 +29,13 @@ export function ShortcutsHelp() {
     { key: "?", action: () => setOpen(true), description: "Show shortcuts help" },
     { key: "Escape", action: () => setOpen(false), description: "Close shortcuts help" },
   ]);
+
+  // Allow external components to open the shortcuts panel via custom event
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener("open-shortcuts-help", handler);
+    return () => window.removeEventListener("open-shortcuts-help", handler);
+  }, []);
 
   if (!open) return null;
 

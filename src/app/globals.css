@@ -524,3 +524,28 @@ body {
     var(--pending-muted) 5px
   );
 }
+
+/* Accessibility: respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse-dot,
+  .animate-spin-smooth,
+  .animate-slide-in-right,
+  .animate-breakpoint-glow,
+  .animate-pulse {
+    animation: none !important;
+  }
+
+  .card-hover-lift:hover {
+    transform: none;
+  }
+
+  .transition-panel,
+  .transition-expand {
+    transition: none;
+  }
+
+  /* Keep breakpoint glow visible but static */
+  .animate-breakpoint-glow {
+    box-shadow: 0 0 14px 4px rgba(255, 0, 224, 0.12), 0 0 8px 2px rgba(255, 215, 0, 0.08);
+  }
+}

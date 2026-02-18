@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "Babysitter Observer | a5c.ai",
   description: "Real-time observability for babysitter orchestration runs",
   icons: {
-    icon: "/favicon.ico",
+    icon: "/icon.svg",
   },
 };
 

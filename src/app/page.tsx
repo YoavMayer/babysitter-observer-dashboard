@@ -1,20 +1,10 @@
 "use client";
 import { useState, useMemo, useCallback } from "react";
 import { useProjects } from "@/hooks/use-projects";
-import { useKeyboard } from "@/hooks/use-keyboard";
 import { usePersistedState } from "@/hooks/use-persisted-state";
-import { useNotificationContext } from "@/components/notifications/notification-provider";
-import { NotificationPanel } from "@/components/notifications/notification-panel";
 import { ProjectHealthCard } from "@/components/dashboard/project-health-card";
 import { BreakpointBanner } from "@/components/dashboard/breakpoint-banner";
-import { useTheme } from "@/components/shared/theme-provider";
-import { SettingsModal } from "@/components/shared/settings-modal";
-import { useEventStream } from "@/hooks/use-event-stream";
 import {
-  Eye,
-  Sun,
-  Moon,
-  Settings,
   FolderOpen,
   Activity,
   CheckCircle2,
@@ -25,6 +15,7 @@ import {
   ChevronDown,
   ChevronUp,
   ArrowUpDown,
+  Eye,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { ErrorBoundary } from "@/components/shared/error-boundary";
@@ -41,13 +32,8 @@ const filters: { label: string; value: RunStatus | "all" | "stale" }[] = [
 
 export default function DashboardPage() {
   const { projects, recentCompletionWindowMs, loading, error, refresh } = useProjects();
-  const { theme, toggle: toggleTheme } = useTheme();
-  const { connected: sseConnected } = useEventStream();
-  const { notifications, dismiss } = useNotificationContext();
   const [statusFilter, setStatusFilter] = useState<RunStatus | "all" | "stale">("all");
   const [sortMode, setSortMode] = usePersistedState<"status" | "activity">("observer:sort-mode", "status");
-  const [showNotificationPanel, setShowNotificationPanel] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
 
   // Toggle filter from metric tile: clicking active filter clears it
   const toggleMetricFilter = useCallback((filter: RunStatus | "all" | "stale") => {
@@ -58,14 +44,6 @@ export default function DashboardPage() {
     // Refresh projects list to remove the hidden project from the dashboard
     refresh();
   }, [refresh]);
-
-  const toggleNotificationPanel = useCallback(() => {
-    setShowNotificationPanel((v) => !v);
-  }, []);
-
-  useKeyboard([
-    { key: "n", action: toggleNotificationPanel, description: "Toggle notifications" },
-  ]);
 
   // Aggregate metrics across all projects
   const metrics = useMemo(() => {
@@ -135,48 +113,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-brand">
-      {/* Top bar */}
-      <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-md">
-        <div className="mx-auto max-w-[1600px] px-6 py-3 flex items-center gap-3">
-          <Eye className="h-5 w-5 text-primary" />
-          <h1 className="text-base font-semibold text-foreground">Babysitter Observer</h1>
-          <span className="text-xs leading-tight font-medium text-primary/80 tracking-wide hidden sm:block">a5c.ai</span>
-          <span className="rounded-full bg-primary/10 border border-primary/20 px-1.5 py-px text-xs leading-tight font-medium text-primary tabular-nums hidden sm:block">
-            v{process.env.NEXT_PUBLIC_APP_VERSION}
-          </span>
-          <span className="text-xs text-foreground-muted hidden sm:block">
-            Real-time orchestration dashboard
-          </span>
-          <div className="ml-auto flex items-center gap-1.5">
-            <span
-              className={cn(
-                "h-2 w-2 rounded-full mr-1 transition-all",
-                sseConnected
-                  ? "bg-success shadow-[0_0_6px_var(--success)]"
-                  : "bg-foreground-muted/30"
-              )}
-              title={sseConnected ? "Live updates connected" : "Live updates disconnected"}
-            />
-            <span className="text-xs text-foreground-muted mr-1 hidden sm:block">
-              {sseConnected ? "Live" : "Offline"}
-            </span>
-            <button
-              onClick={() => setShowSettings(true)}
-              className="rounded-md p-2 text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary transition-colors"
-              title="Settings"
-            >
-              <Settings className="h-4 w-4" />
-            </button>
-            <button
-              onClick={toggleTheme}
-              className="rounded-md p-2 text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary transition-colors"
-              title={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
-            >
-              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </button>
-          </div>
-        </div>
-      </header>
+      {/* Header and footer are now in AppHeader/AppFooter via Providers */}
 
       <div className="mx-auto max-w-[1600px] px-6 py-6">
         {/* Global Search */}
@@ -332,7 +269,7 @@ export default function DashboardPage() {
             <p className="text-xs text-foreground-muted/60">
               Configure watch sources in{" "}
               <button
-                onClick={() => setShowSettings(true)}
+                onClick={() => window.dispatchEvent(new CustomEvent("open-settings"))}
                 className="text-primary hover:underline"
               >
                 Settings
@@ -447,17 +384,7 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Notification Panel */}
-      {showNotificationPanel && (
-        <NotificationPanel
-          notifications={notifications}
-          onDismiss={dismiss}
-          onClose={() => setShowNotificationPanel(false)}
-        />
-      )}
-
-      {/* Settings Modal */}
-      <SettingsModal open={showSettings} onClose={() => setShowSettings(false)} />
+      {/* Notifications and settings are now in AppHeader */}
     </div>
   );
 }
