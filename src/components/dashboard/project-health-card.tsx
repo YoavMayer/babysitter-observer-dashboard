@@ -136,25 +136,29 @@ export function ProjectHealthCard({ project, statusFilter }: ProjectHealthCardPr
               {formatRelativeTime(project.latestUpdate)}
             </span>
           </div>
-          {/* Compact status badges */}
+          {/* Compact status badges with icons */}
           <div className="flex items-center gap-1.5 shrink-0">
             {project.activeRuns > 0 && (
-              <span className="inline-flex items-center rounded-full bg-warning/10 border border-warning/20 px-1.5 py-0.5 text-[10px] leading-tight font-medium text-warning tabular-nums">
+              <span className="inline-flex items-center gap-0.5 rounded-full bg-warning/10 border border-warning/20 px-1.5 py-0.5 text-xs leading-tight font-medium text-warning tabular-nums" title={`${project.activeRuns} active`}>
+                <Activity className="h-3 w-3" />
                 {project.activeRuns}
               </span>
             )}
             {project.staleRuns > 0 && (
-              <span className="inline-flex items-center rounded-full bg-zinc-500/10 border border-zinc-500/20 px-1.5 py-0.5 text-[10px] leading-tight font-medium text-zinc-500 tabular-nums">
+              <span className="inline-flex items-center gap-0.5 rounded-full bg-zinc-500/10 border border-zinc-500/20 px-1.5 py-0.5 text-xs leading-tight font-medium text-zinc-500 tabular-nums" title={`${project.staleRuns} stale`}>
+                <Pause className="h-3 w-3" />
                 {project.staleRuns}
               </span>
             )}
             {project.completedRuns > 0 && (
-              <span className="inline-flex items-center rounded-full bg-success/10 border border-success/20 px-1.5 py-0.5 text-[10px] leading-tight font-medium text-success tabular-nums">
+              <span className="inline-flex items-center gap-0.5 rounded-full bg-success/10 border border-success/20 px-1.5 py-0.5 text-xs leading-tight font-medium text-success tabular-nums" title={`${project.completedRuns} completed`}>
+                <CheckCircle2 className="h-3 w-3" />
                 {project.completedRuns}
               </span>
             )}
             {project.failedRuns > 0 && (
-              <span className="inline-flex items-center rounded-full bg-error/10 border border-error/20 px-1.5 py-0.5 text-[10px] leading-tight font-medium text-error tabular-nums">
+              <span className="inline-flex items-center gap-0.5 rounded-full bg-error/10 border border-error/20 px-1.5 py-0.5 text-xs leading-tight font-medium text-error tabular-nums" title={`${project.failedRuns} failed`}>
+                <AlertCircle className="h-3 w-3" />
                 {project.failedRuns}
               </span>
             )}
@@ -165,10 +169,10 @@ export function ProjectHealthCard({ project, statusFilter }: ProjectHealthCardPr
         {project.totalTasks > 0 && (
           <div>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[10px] leading-tight text-foreground-muted">
+              <span className="text-xs leading-tight text-foreground-muted">
                 {project.completedTasksAggregate}/{project.totalTasks} tasks
               </span>
-              <span className="text-[10px] leading-tight text-foreground-muted tabular-nums">
+              <span className="text-xs leading-tight text-foreground-muted tabular-nums">
                 {taskProgress}%
               </span>
             </div>
@@ -228,7 +232,7 @@ export function ProjectHealthCard({ project, statusFilter }: ProjectHealthCardPr
                     <div className="flex items-center gap-2 mb-2">
                       <Activity className="h-3.5 w-3.5 text-warning animate-pulse-dot" />
                       <span className="text-xs font-semibold text-foreground">Active Runs</span>
-                      <span className="rounded-full bg-warning/10 border border-warning/20 px-2 py-px text-[10px] font-semibold text-warning tabular-nums">
+                      <span className="rounded-full bg-warning/10 border border-warning/20 px-2 py-px text-xs font-semibold text-warning tabular-nums">
                         {activeRuns.length}
                       </span>
                     </div>
@@ -247,7 +251,7 @@ export function ProjectHealthCard({ project, statusFilter }: ProjectHealthCardPr
                     >
                       <AlertCircle className="h-3.5 w-3.5 text-error/70" />
                       <span className="font-semibold text-error/80 group-hover:text-error transition-colors">Failed Runs</span>
-                      <span className="rounded-full bg-error/10 border border-error/20 px-2 py-px text-[10px] font-semibold text-error tabular-nums">
+                      <span className="rounded-full bg-error/10 border border-error/20 px-2 py-px text-xs font-semibold text-error tabular-nums">
                         {failedRuns.length}
                       </span>
                       {showFailed ? (
@@ -273,7 +277,7 @@ export function ProjectHealthCard({ project, statusFilter }: ProjectHealthCardPr
                     >
                       <History className="h-3.5 w-3.5 text-foreground-muted/70" />
                       <span className="font-semibold text-foreground-muted group-hover:text-foreground-secondary transition-colors">Completed History</span>
-                      <span className="rounded-full bg-background-secondary border border-border px-2 py-px text-[10px] font-semibold text-foreground-muted tabular-nums">
+                      <span className="rounded-full bg-background-secondary border border-border px-2 py-px text-xs font-semibold text-foreground-muted tabular-nums">
                         {successRuns.length}
                       </span>
                       {showCompleted ? (
@@ -315,7 +319,7 @@ function MiniKpiPill({ icon, count, label, colorClass, bgClass, pulse }: {
       <span className={cn(colorClass, pulse && "animate-pulse")}>{icon}</span>
       <div>
         <p className={cn("text-sm font-bold tabular-nums leading-none", colorClass)}>{count}</p>
-        <p className="text-[9px] leading-tight text-foreground-muted uppercase tracking-wider">{label}</p>
+        <p className="text-xs leading-tight text-foreground-muted uppercase tracking-wider">{label}</p>
       </div>
     </div>
   );

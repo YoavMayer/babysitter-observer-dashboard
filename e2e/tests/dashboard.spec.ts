@@ -58,10 +58,13 @@ test.describe("KPI Metric Tiles", () => {
     await dashboardPage.waitForData();
   });
 
-  test("displays all 4 KPI metric tiles", async ({ dashboardPage }) => {
+  test("displays KPI metric tiles (4 base, or 5 with Stale)", async ({ dashboardPage }) => {
     await expect(dashboardPage.kpiGrid).toBeVisible();
     const tiles = dashboardPage.getKPITiles();
-    await expect(tiles).toHaveCount(4);
+    const count = await tiles.count();
+    // 4 base tiles (Total Runs, Active, Completed, Failed) + optional Stale tile
+    expect(count).toBeGreaterThanOrEqual(4);
+    expect(count).toBeLessThanOrEqual(5);
   });
 
   test("Total Runs tile shows the correct count", async ({ dashboardPage }) => {
@@ -186,6 +189,9 @@ test.describe("Project Health Cards", () => {
     const firstCard = dashboardPage.getProjectCards().first();
     await firstCard.click();
 
+    // Expand collapsed sub-sections (Failed Runs, Completed History) if present
+    await dashboardPage.expandRunSubSections();
+
     // Wait for run cards to appear inside the expanded card
     const runCards = dashboardPage.getRunCards();
     await expect(runCards.first()).toBeVisible({ timeout: 15_000 });
@@ -202,9 +208,12 @@ test.describe("Filter Pills", () => {
     await dashboardPage.waitForData();
   });
 
-  test("displays all 4 filter pills", async ({ dashboardPage }) => {
+  test("displays all filter pills (4 base, or 5 with Stale)", async ({ dashboardPage }) => {
     const pills = dashboardPage.getFilterPills();
-    await expect(pills).toHaveCount(4);
+    const count = await pills.count();
+    // 4 base pills (All, Running, Completed, Failed) + optional Stale pill
+    expect(count).toBeGreaterThanOrEqual(4);
+    expect(count).toBeLessThanOrEqual(5);
   });
 
   test("All filter pill is active by default", async ({ dashboardPage }) => {
@@ -376,6 +385,9 @@ test.describe("Run Cards", () => {
     const firstCard = dashboardPage.getProjectCards().first();
     await firstCard.click();
 
+    // Expand collapsed sub-sections (Failed Runs, Completed History) if present
+    await dashboardPage.expandRunSubSections();
+
     // Wait for run cards to load
     const runCards = dashboardPage.getRunCards();
     await expect(runCards.first()).toBeVisible({ timeout: 15_000 });
@@ -401,6 +413,9 @@ test.describe("Run Cards", () => {
     const firstCard = dashboardPage.getProjectCards().first();
     await firstCard.click();
 
+    // Expand collapsed sub-sections (Failed Runs, Completed History) if present
+    await dashboardPage.expandRunSubSections();
+
     const runCards = dashboardPage.getRunCards();
     await expect(runCards.first()).toBeVisible({ timeout: 15_000 });
 
@@ -413,6 +428,9 @@ test.describe("Run Cards", () => {
     // Expand the first project card
     const firstCard = dashboardPage.getProjectCards().first();
     await firstCard.click();
+
+    // Expand collapsed sub-sections (Failed Runs, Completed History) if present
+    await dashboardPage.expandRunSubSections();
 
     const runCards = dashboardPage.getRunCards();
     await expect(runCards.first()).toBeVisible({ timeout: 15_000 });
@@ -430,6 +448,9 @@ test.describe("Run Cards", () => {
     // Expand the first project card
     const firstCard = dashboardPage.getProjectCards().first();
     await firstCard.click();
+
+    // Expand collapsed sub-sections (Failed Runs, Completed History) if present
+    await dashboardPage.expandRunSubSections();
 
     // Wait for run cards
     const runCards = dashboardPage.getRunCards();
@@ -451,6 +472,9 @@ test.describe("Run Cards", () => {
     // Expand the first project card
     const firstCard = dashboardPage.getProjectCards().first();
     await firstCard.click();
+
+    // Expand collapsed sub-sections (Failed Runs, Completed History) if present
+    await dashboardPage.expandRunSubSections();
 
     const runCards = dashboardPage.getRunCards();
     await expect(runCards.first()).toBeVisible({ timeout: 15_000 });
@@ -490,6 +514,9 @@ test.describe("Pagination", () => {
     const card = dashboardPage.getProjectCard(projectName);
     await card.click();
 
+    // Expand collapsed sub-sections (Failed Runs, Completed History) if present
+    await dashboardPage.expandRunSubSections();
+
     // Wait for run cards to load
     const runCards = page.locator(
       `[data-testid="project-card-${projectName}"] a[href^="/runs/"]`
@@ -523,6 +550,9 @@ test.describe("Pagination", () => {
     const projectName = projectsWithManyRuns[0];
     const card = dashboardPage.getProjectCard(projectName);
     await card.click();
+
+    // Expand collapsed sub-sections (Failed Runs, Completed History) if present
+    await dashboardPage.expandRunSubSections();
 
     // Wait for runs to load
     const projectCard = page.getByTestId(`project-card-${projectName}`);
@@ -629,6 +659,9 @@ test.describe("Empty State", () => {
     const card = dashboardPage.getProjectCard(projectName);
     await card.click();
 
+    // Expand collapsed sub-sections (Failed Runs, Completed History) if present
+    await dashboardPage.expandRunSubSections();
+
     // Wait for run list to appear
     const runCards = card.locator('a[href^="/runs/"]');
     await expect(runCards.first()).toBeVisible({ timeout: 15_000 });
@@ -733,6 +766,9 @@ test.describe("Dashboard Accessibility", () => {
     const projectName = projectsWithManyRuns[0];
     const card = dashboardPage.getProjectCard(projectName);
     await card.click();
+
+    // Expand collapsed sub-sections (Failed Runs, Completed History) if present
+    await dashboardPage.expandRunSubSections();
 
     // Wait for runs
     const runCards = card.locator('a[href^="/runs/"]');

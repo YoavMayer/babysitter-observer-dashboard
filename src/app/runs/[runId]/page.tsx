@@ -9,7 +9,6 @@ import { TaskDetailPanel } from "@/components/details/task-detail";
 import { OutcomeBanner } from "@/components/shared/outcome-banner";
 import { MetricsRow } from "@/components/shared/metrics-row";
 import { useNotificationContext } from "@/components/notifications/notification-provider";
-import { NotificationPanel } from "@/components/notifications/notification-panel";
 import { cn } from "@/lib/cn";
 import { Loader2, X, ArrowLeft } from "lucide-react";
 import type { JournalEvent, EffectRequestedPayload } from "@/types";
@@ -18,11 +17,10 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
   const { runId } = params;
   const router = useRouter();
   const { run, loading, error, hasBreakpointWaiting } = useRunDetail(runId);
-  const { notify, notifications, dismiss } = useNotificationContext();
+  const { notify } = useNotificationContext();
   const [selectedEffectId, setSelectedEffectId] = useState<string | null>(null);
   const [showDetail, setShowDetail] = useState(false);
   const [showEventStream, setShowEventStream] = useState(true);
-  const [showNotificationPanel, setShowNotificationPanel] = useState(false);
   const [activeTab, setActiveTab] = useState("agent");
   const breakpointPanelRef = useRef<{ triggerApprove: () => void; triggerReject: () => void } | null>(null);
 
@@ -93,10 +91,6 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
     setShowEventStream((v) => !v);
   }, []);
 
-  const toggleNotificationPanel = useCallback(() => {
-    setShowNotificationPanel((v) => !v);
-  }, []);
-
   const tabKeys: Record<string, string> = {
     "1": "agent",
     "2": "timing",
@@ -131,7 +125,6 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
     { key: "k", action: moveUp, description: "Previous item" },
     { key: "Escape", action: goBack, description: "Go back / Close" },
     { key: "e", action: toggleEventStream, description: "Toggle event stream" },
-    { key: "n", action: toggleNotificationPanel, description: "Toggle notifications" },
     { key: "1", action: () => switchTab("1"), description: "Agent tab" },
     { key: "2", action: () => switchTab("2"), description: "Timing tab" },
     { key: "3", action: () => switchTab("3"), description: "Logs tab" },
@@ -143,7 +136,7 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
 
   if (loading && !run) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center flex-1">
         <Loader2 className="h-6 w-6 animate-spin text-foreground-muted" />
       </div>
     );
@@ -151,7 +144,7 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
 
   if (error || !run) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center flex-1">
         <div data-testid="run-error-message" className="rounded-lg border border-error/20 bg-error-muted p-4 text-sm text-error">
           {error || "Run not found"}
         </div>
@@ -160,7 +153,7 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="flex flex-col flex-1 bg-background">
       {/* Navigation header with back button */}
       <div className="flex items-center gap-3 px-4 py-2 border-b border-border bg-background-secondary/40">
         <button
@@ -241,14 +234,6 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
         )}
       </div>
 
-      {/* Notification Panel */}
-      {showNotificationPanel && (
-        <NotificationPanel
-          notifications={notifications}
-          onDismiss={dismiss}
-          onClose={() => setShowNotificationPanel(false)}
-        />
-      )}
     </div>
   );
 }

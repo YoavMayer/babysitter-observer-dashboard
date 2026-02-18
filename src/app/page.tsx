@@ -1,18 +1,9 @@
 "use client";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { useProjects } from "@/hooks/use-projects";
-import { useKeyboard } from "@/hooks/use-keyboard";
-import { useNotificationContext } from "@/components/notifications/notification-provider";
-import { NotificationPanel } from "@/components/notifications/notification-panel";
 import { ProjectHealthCard } from "@/components/dashboard/project-health-card";
-import { useTheme } from "@/components/shared/theme-provider";
-import { SettingsModal } from "@/components/shared/settings-modal";
-import { useEventStream } from "@/hooks/use-event-stream";
 import {
   Eye,
-  Sun,
-  Moon,
-  Settings,
   FolderOpen,
   Activity,
   CheckCircle2,
@@ -37,20 +28,7 @@ const filters: { label: string; value: RunStatus | "all" | "stale" }[] = [
 
 export default function DashboardPage() {
   const { projects, recentCompletionWindowMs, loading, error } = useProjects();
-  const { theme, toggle: toggleTheme } = useTheme();
-  const { connected: sseConnected } = useEventStream();
-  const { notifications, dismiss } = useNotificationContext();
   const [statusFilter, setStatusFilter] = useState<RunStatus | "all" | "stale">("all");
-  const [showNotificationPanel, setShowNotificationPanel] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-
-  const toggleNotificationPanel = useCallback(() => {
-    setShowNotificationPanel((v) => !v);
-  }, []);
-
-  useKeyboard([
-    { key: "n", action: toggleNotificationPanel, description: "Toggle notifications" },
-  ]);
 
   // Aggregate metrics across all projects
   const metrics = useMemo(() => {
@@ -111,55 +89,12 @@ export default function DashboardPage() {
   const kpiCols = hasStaleRuns ? "grid-cols-2 sm:grid-cols-5" : "grid-cols-2 sm:grid-cols-4";
 
   return (
-    <div className="min-h-screen bg-gradient-brand">
-      {/* Top bar */}
-      <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-md">
-        <div className="mx-auto max-w-[1600px] px-6 py-3 flex items-center gap-3">
-          <Eye className="h-5 w-5 text-primary" />
-          <h1 className="text-base font-semibold text-foreground">Babysitter Observer</h1>
-          <span className="text-[10px] leading-tight font-medium text-primary/60 tracking-wide hidden sm:block">a5c.ai</span>
-          <span className="rounded-full bg-primary/10 border border-primary/20 px-1.5 py-px text-[10px] leading-tight font-medium text-primary tabular-nums hidden sm:block">
-            v{process.env.NEXT_PUBLIC_APP_VERSION}
-          </span>
-          <span className="text-xs text-foreground-muted hidden sm:block">
-            Real-time orchestration dashboard
-          </span>
-          <div className="ml-auto flex items-center gap-1.5">
-            <span
-              className={cn(
-                "h-2 w-2 rounded-full mr-1 transition-all",
-                sseConnected
-                  ? "bg-success shadow-[0_0_6px_var(--success)]"
-                  : "bg-foreground-muted/30"
-              )}
-              title={sseConnected ? "Live updates connected" : "Live updates disconnected"}
-            />
-            <span className="text-[10px] text-foreground-muted mr-1 hidden sm:block">
-              {sseConnected ? "Live" : "Offline"}
-            </span>
-            <button
-              onClick={() => setShowSettings(true)}
-              className="rounded-md p-2 text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary transition-colors"
-              title="Settings"
-            >
-              <Settings className="h-4 w-4" />
-            </button>
-            <button
-              onClick={toggleTheme}
-              className="rounded-md p-2 text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary transition-colors"
-              title={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
-            >
-              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </button>
-          </div>
-        </div>
-      </header>
-
+    <div className="bg-gradient-brand flex-1">
       <div className="mx-auto max-w-[1600px] px-6 py-6">
         {/* KPI Metrics Row */}
         {!loading && !error && projects.length > 0 && (
           <ErrorBoundary section="KPI Metrics">
-            <div data-testid="kpi-grid" className={cn("grid gap-3 mb-6", kpiCols)}>
+            <div data-testid="kpi-grid" aria-live="polite" aria-label="Key metrics" className={cn("grid gap-3 mb-6", kpiCols)}>
               <MetricTile
                 label="Total Runs"
                 value={metrics.totalRuns}
@@ -226,7 +161,7 @@ export default function DashboardPage() {
                   {f.label}
                   {count > 0 && (
                     <span className={cn(
-                      "rounded-full px-1.5 py-px text-[10px] leading-tight font-semibold tabular-nums",
+                      "rounded-full px-1.5 py-px text-xs leading-tight font-semibold tabular-nums",
                       statusFilter === f.value
                         ? f.value === "stale"
                           ? "bg-zinc-500/20 text-zinc-500"
@@ -273,14 +208,7 @@ export default function DashboardPage() {
             <FolderOpen className="h-10 w-10 text-foreground-muted/30 mx-auto mb-3" />
             <p className="text-sm text-foreground-muted mb-1">No projects found</p>
             <p className="text-xs text-foreground-muted/60">
-              Configure watch sources in{" "}
-              <button
-                onClick={() => setShowSettings(true)}
-                className="text-primary hover:underline"
-              >
-                Settings
-              </button>{" "}
-              or edit <span className="font-mono">~/.a5c/observer.json</span>
+              Configure watch sources in Settings or edit <span className="font-mono">~/.a5c/observer.json</span>
             </p>
           </div>
         ) : (
@@ -311,11 +239,11 @@ export default function DashboardPage() {
                   <div className="flex items-center gap-2 mb-3">
                     <Activity className="h-4 w-4 text-warning animate-pulse-dot" />
                     <h2 className="text-sm font-semibold text-foreground">Active Runs</h2>
-                    <span className="rounded-full bg-warning/10 border border-warning/20 px-2 py-px text-[10px] font-semibold text-warning tabular-nums">
+                    <span className="rounded-full bg-warning/10 border border-warning/20 px-2 py-px text-xs font-semibold text-warning tabular-nums">
                       {activeProjects.length}
                     </span>
                   </div>
-                  <div data-testid="project-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
+                  <div data-testid="project-grid-active" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
                     {activeProjects.map((project) => (
                       <ProjectHealthCard
                         key={project.projectName}
@@ -328,12 +256,10 @@ export default function DashboardPage() {
               </ErrorBoundary>
             )}
 
-            {/* When filter is "waiting", show all filteredProjects (already filtered to active) — handled above */}
-
             {/* When filter is "completed" or "failed", show filteredProjects directly without sectioning */}
             {(statusFilter === "completed" || statusFilter === "failed") && (
               <ErrorBoundary section="Filtered Results">
-                <div data-testid="project-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
+                <div data-testid="project-grid-filtered" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
                   {filteredProjects.map((project) => (
                     <ProjectHealthCard
                       key={project.projectName}
@@ -357,7 +283,7 @@ export default function DashboardPage() {
                     <h2 className="text-sm font-semibold text-foreground-muted group-hover:text-foreground-secondary transition-colors">
                       Recent History
                     </h2>
-                    <span className="rounded-full bg-background-secondary border border-border px-2 py-px text-[10px] font-semibold text-foreground-muted tabular-nums">
+                    <span className="rounded-full bg-background-secondary border border-border px-2 py-px text-xs font-semibold text-foreground-muted tabular-nums">
                       {historyProjects.length}
                     </span>
                     {historyCollapsed ? (
@@ -368,7 +294,7 @@ export default function DashboardPage() {
                   </button>
                   {!historyCollapsed && (
                     <div className="opacity-70">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
+                      <div data-testid="project-grid-history" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
                         {historyProjects.map((project) => (
                           <ProjectHealthCard
                             key={project.projectName}
@@ -385,18 +311,6 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
-
-      {/* Notification Panel */}
-      {showNotificationPanel && (
-        <NotificationPanel
-          notifications={notifications}
-          onDismiss={dismiss}
-          onClose={() => setShowNotificationPanel(false)}
-        />
-      )}
-
-      {/* Settings Modal */}
-      <SettingsModal open={showSettings} onClose={() => setShowSettings(false)} />
     </div>
   );
 }
@@ -434,7 +348,7 @@ function MetricTile({ label, value, icon, color, pulse, testId }: MetricTileProp
         <p className={cn("text-lg font-bold tabular-nums leading-none mb-0.5", c.text)}>
           {value}
         </p>
-        <p className="text-[10px] leading-tight text-foreground-muted uppercase tracking-wider font-medium">
+        <p className="text-xs leading-tight text-foreground-muted uppercase tracking-wider font-medium">
           {label}
         </p>
       </div>

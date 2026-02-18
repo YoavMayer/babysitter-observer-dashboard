@@ -18,14 +18,14 @@ test.describe("Smoke Test", () => {
         // Skeletons may never appear if data loads fast enough
       });
 
-    // Verify the project grid is visible (contains project health cards)
-    const projectGrid = page.locator(
-      ".grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-3"
-    );
+    // Verify at least one project grid is visible (active runs or filtered results)
+    const projectGrid = page.getByTestId("project-grid-active")
+      .or(page.getByTestId("project-grid-filtered"))
+      .or(page.getByTestId("project-grid-history"));
     await expect(projectGrid).toBeVisible({ timeout: 30_000 });
 
     // Verify the page has at least one project card with content
-    const projectCards = projectGrid.locator("> *");
+    const projectCards = page.locator("[data-testid^='project-card-']");
     await expect(projectCards.first()).toBeVisible({ timeout: 10_000 });
   });
 });

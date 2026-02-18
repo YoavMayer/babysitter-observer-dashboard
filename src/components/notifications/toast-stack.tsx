@@ -34,7 +34,7 @@ export function ToastStack({ notifications, onDismiss }: ToastStackProps) {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm">
+    <div role="log" aria-live="assertive" aria-label="Notifications" className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm">
       {notifications.map((notif) => (
         <div
           key={notif.id}
@@ -54,7 +54,8 @@ export function ToastStack({ notifications, onDismiss }: ToastStackProps) {
             </div>
             <button
               onClick={(e) => { e.stopPropagation(); onDismiss(notif.id); }}
-              className="shrink-0 text-foreground-muted hover:text-primary transition-colors"
+              className="shrink-0 p-1.5 -m-1 text-foreground-muted hover:text-primary transition-colors"
+              aria-label={`Dismiss ${notif.title}`}
             >
               <X className="h-3.5 w-3.5" />
             </button>

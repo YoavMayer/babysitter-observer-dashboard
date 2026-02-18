@@ -97,6 +97,8 @@ export function BreakpointPanel({ task, runId, onResolved, imperativeRef }: Brea
 
         {/* Question callout — sun yellow border with warm glow */}
         <div
+          role="alert"
+          aria-live="assertive"
           className={cn(
             "rounded-lg border-2 p-5",
             "bg-warning-muted border-warning/40",
@@ -107,7 +109,7 @@ export function BreakpointPanel({ task, runId, onResolved, imperativeRef }: Brea
           <div className="flex items-start gap-3">
             <Hand className="h-6 w-6 text-warning shrink-0 mt-0.5 animate-pulse-dot" />
             <div className="min-w-0">
-              <h4 className="text-[10px] leading-tight font-medium text-warning/80 uppercase tracking-widest mb-2">
+              <h4 className="text-xs leading-tight font-medium text-warning/80 uppercase tracking-widest mb-2">
                 Awaiting decision
               </h4>
               <p className="text-base text-foreground font-medium leading-relaxed whitespace-pre-wrap break-words">
@@ -169,7 +171,7 @@ export function BreakpointPanel({ task, runId, onResolved, imperativeRef }: Brea
             </div>
 
             <p className={cn(
-              "text-[10px] leading-tight text-center transition-colors duration-200",
+              "text-xs leading-tight text-center transition-colors duration-200",
               confirmTarget ? "text-warning" : "text-foreground-muted"
             )}>
               {confirmTarget
@@ -189,7 +191,7 @@ export function BreakpointPanel({ task, runId, onResolved, imperativeRef }: Brea
               <span className="text-sm text-success font-semibold block">
                 Approved
               </span>
-              <span className="text-[10px] leading-tight text-foreground-muted">
+              <span className="text-xs leading-tight text-foreground-muted">
                 Breakpoint has been resolved
               </span>
             </div>

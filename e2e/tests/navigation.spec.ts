@@ -32,6 +32,9 @@ test.describe("Navigation: Dashboard -> Run Detail -> Dashboard", () => {
     // 2. Expand a project card to reveal run cards
     await projectCards.first().locator("button").first().click();
 
+    // 2b. Expand collapsed sub-sections (Failed Runs, Completed History) if present
+    await dashboardPage.expandRunSubSections();
+
     // 3. Wait for run cards to appear, then click the first one
     const runCards = dashboardPage.getRunCards();
     await expect(runCards.first()).toBeVisible({ timeout: 15_000 });
@@ -75,6 +78,9 @@ test.describe("Navigation: Dashboard -> Run Detail -> Dashboard", () => {
     // 4. Expand the first project card to see runs
     await projectCards.first().locator("button").first().click();
 
+    // 4b. Expand collapsed sub-sections (Failed Runs, Completed History) if present
+    await dashboardPage.expandRunSubSections();
+
     // 5. Wait for run cards and click the first visible one
     const runCards = dashboardPage.getRunCards();
     await expect(runCards.first()).toBeVisible({ timeout: 15_000 });
@@ -103,6 +109,9 @@ test.describe("Navigation: Dashboard -> Run Detail -> Dashboard", () => {
     const projectCards = dashboardPage.getProjectCards();
     await expect(projectCards.first()).toBeVisible({ timeout: 15_000 });
     await projectCards.first().locator("button").first().click();
+
+    // 3b. Expand collapsed sub-sections (Failed Runs, Completed History) if present
+    await dashboardPage.expandRunSubSections();
 
     // 4. Click first run card
     const runCards = dashboardPage.getRunCards();
@@ -171,6 +180,9 @@ test.describe("Navigation: Rapid navigation between runs", () => {
     const projectCards = dashboardPage.getProjectCards();
     await expect(projectCards.first()).toBeVisible({ timeout: 30_000 });
     await projectCards.first().locator("button").first().click();
+
+    // 1b. Expand collapsed sub-sections (Failed Runs, Completed History) if present
+    await dashboardPage.expandRunSubSections();
 
     // 2. Wait for run cards to appear
     const runCards = dashboardPage.getRunCards();
