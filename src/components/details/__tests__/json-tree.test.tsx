@@ -146,7 +146,7 @@ describe('JsonTreeView', () => {
 
   it('renders copy button on leaf values', () => {
     render(<JsonTreeView data={{ name: 'test' }} />);
-    const copyButtons = screen.getAllByTitle('Copy value');
+    const copyButtons = screen.getAllByTitle('Copy');
     expect(copyButtons.length).toBeGreaterThanOrEqual(1);
   });
 

@@ -25,3 +25,8 @@ npm-debug.log*
 .a5c/
 dist/
 nul
+
+# test output artifacts
+test-output.log
+test-output.txt
+vitest-output.txt

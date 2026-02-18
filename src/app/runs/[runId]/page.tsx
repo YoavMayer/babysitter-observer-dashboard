@@ -203,7 +203,7 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
         {/* Task Detail - Center panel (shown when task selected) */}
         {showDetail && (
           <div className={cn(
-            "border-b lg:border-b-0 lg:border-r border-border transition-panel bg-card/50 backdrop-blur-sm",
+            "border-b lg:border-b-0 lg:border-r border-border transition-panel bg-card/50 backdrop-blur-sm overflow-hidden flex flex-col",
             showEventStream ? "lg:w-[30%]" : "lg:w-[65%]",
           )}>
             <div data-testid="task-detail-header" className="flex items-center justify-between p-3 border-b border-border bg-background-secondary/40">

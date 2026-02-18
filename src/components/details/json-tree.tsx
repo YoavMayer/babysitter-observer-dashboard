@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   ChevronRight,
   ChevronDown,
@@ -17,25 +17,43 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/cn";
 import type { TaskDetail } from "@/types";
 
-/** Tiny copy button shown on hover — magenta hover glow */
-function ValueCopyButton({ value }: { value: string }) {
+/** Type guard for plain objects */
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return v !== null && typeof v === "object" && !Array.isArray(v);
+}
+
+/** Unified copy button — size='sm' for inline JSON values, size='md' for metadata/findings */
+function CopyButton({ value, size = "md", className: extraClass }: { value: string; size?: "sm" | "md"; className?: string }) {
   const [copied, setCopied] = useState(false);
-  const handleCopy = useCallback((e: React.MouseEvent) => {
+  const handleCopy = (e: React.MouseEvent) => {
     e.stopPropagation();
     navigator.clipboard.writeText(value).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 1200);
-    });
-  }, [value]);
+    }).catch(() => {});
+  };
+
+  const sizeClasses = size === "sm"
+    ? "h-4 w-4"
+    : "h-5 w-5";
+  const iconClasses = size === "sm"
+    ? "h-2.5 w-2.5"
+    : "h-3 w-3";
 
   return (
     <button
       type="button"
       onClick={handleCopy}
-      className="opacity-0 group-hover/json-row:opacity-100 inline-flex items-center justify-center h-4 w-4 rounded text-foreground-muted hover:text-primary hover:bg-primary-muted transition-all ml-1"
-      title="Copy value"
+      className={cn(
+        "inline-flex items-center justify-center rounded text-foreground-muted hover:text-primary hover:bg-primary-muted transition-all",
+        sizeClasses,
+        size === "sm" && "opacity-0 group-hover/json-row:opacity-100 ml-1",
+        size === "md" && "shrink-0",
+        extraClass,
+      )}
+      title="Copy"
     >
-      {copied ? <Check className="h-2.5 w-2.5 text-success" /> : <Copy className="h-2.5 w-2.5" />}
+      {copied ? <Check className={cn(iconClasses, "text-success")} /> : <Copy className={iconClasses} />}
     </button>
   );
 }
@@ -85,7 +103,7 @@ function JsonNode({ keyName, value, defaultExpanded, isLast = true }: JsonNodePr
   const isExpandable = isObject || isArray;
 
   // Determine default expanded state based on size thresholds
-  const computeDefaultExpanded = useCallback((): boolean => {
+  const [expanded, setExpanded] = useState((): boolean => {
     if (defaultExpanded !== undefined) return defaultExpanded;
     if (isObject) {
       return Object.keys(value as Record<string, unknown>).length <= 10;
@@ -94,11 +112,9 @@ function JsonNode({ keyName, value, defaultExpanded, isLast = true }: JsonNodePr
       return (value as unknown[]).length <= 5;
     }
     return true;
-  }, [defaultExpanded, isObject, isArray, value]);
+  });
 
-  const [expanded, setExpanded] = useState(computeDefaultExpanded);
-
-  const toggle = useCallback(() => setExpanded((prev) => !prev), []);
+  const toggle = () => setExpanded((prev) => !prev);
 
   // Key label prefix — neon cyan for keys
   const keyLabel = keyName !== null ? (
@@ -116,7 +132,7 @@ function JsonNode({ keyName, value, defaultExpanded, isLast = true }: JsonNodePr
         {keyLabel}
         <PrimitiveValue value={value} />
         {!isLast && <span className="text-foreground-muted">,</span>}
-        <ValueCopyButton value={copyVal} />
+        <CopyButton value={copyVal} size="sm" />
       </div>
     );
   }
@@ -137,7 +153,7 @@ function JsonNode({ keyName, value, defaultExpanded, isLast = true }: JsonNodePr
     <div>
       {/* Toggle row */}
       <div
-        className="flex items-baseline py-px px-1 rounded cursor-pointer hover:bg-background-secondary transition-colors select-none"
+        className="flex items-baseline py-0.5 px-1 rounded cursor-pointer hover:bg-background-secondary transition-colors select-none"
         onClick={toggle}
         role="button"
         tabIndex={0}
@@ -256,11 +272,11 @@ function categorizeData(data: unknown): CategorizedData {
     metadata: [],
   };
 
-  if (!data || typeof data !== "object" || Array.isArray(data)) {
+  if (!isRecord(data)) {
     return result;
   }
 
-  const obj = data as Record<string, unknown>;
+  const obj = data;
   const consumed = new Set<string>();
 
   // Status
@@ -340,33 +356,12 @@ function categorizeData(data: unknown): CategorizedData {
 /*  Smart Summary Components                                            */
 /* ------------------------------------------------------------------ */
 
-/** Inline copy button for metadata and findings */
-function InlineCopyButton({ value }: { value: string }) {
-  const [copied, setCopied] = useState(false);
-  const handleCopy = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-      navigator.clipboard.writeText(value).then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1200);
-      });
-    },
-    [value]
-  );
-
+/** SmartSectionHeader — reusable section header with consistent styling */
+function SmartSectionHeader({ children, className: extraClass }: { children: React.ReactNode; className?: string }) {
   return (
-    <button
-      type="button"
-      onClick={handleCopy}
-      className="inline-flex items-center justify-center h-5 w-5 rounded text-foreground-muted hover:text-primary hover:bg-primary-muted transition-all shrink-0"
-      title="Copy"
-    >
-      {copied ? (
-        <Check className="h-3 w-3 text-success" />
-      ) : (
-        <Copy className="h-3 w-3" />
-      )}
-    </button>
+    <h4 className={cn("text-xs font-medium text-foreground-muted tracking-wider uppercase pl-2 border-l-2 border-primary", extraClass)}>
+      {children}
+    </h4>
   );
 }
 
@@ -517,7 +512,7 @@ function AtAGlanceHeader({
               ? taskId.slice(0, 6) + "\u2026" + taskId.slice(-4)
               : taskId}
           </span>
-          <InlineCopyButton value={taskId} />
+          <CopyButton value={taskId} />
         </span>
       )}
     </div>
@@ -534,9 +529,7 @@ function BooleanFlagsGrid({
 
   return (
     <div className="space-y-1.5">
-      <h4 className="text-[11px] font-medium text-foreground-muted tracking-wider uppercase pl-2 border-l-2 border-primary">
-        Flags
-      </h4>
+      <SmartSectionHeader>Flags</SmartSectionHeader>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
         {booleans.map(({ key, value }) => (
           <div
@@ -607,7 +600,7 @@ function FindingCard({
         )}
       </div>
       <span className="opacity-0 group-hover/finding:opacity-100 transition-opacity">
-        <InlineCopyButton value={text} />
+        <CopyButton value={text} />
       </span>
     </div>
   );
@@ -637,17 +630,17 @@ function FindingsSection({
 
         return (
           <div key={key} className="space-y-1.5">
-            <h4 className="flex items-center gap-1.5 text-[11px] font-medium text-foreground-muted tracking-wider uppercase pl-2 border-l-2 border-primary">
+            <SmartSectionHeader className="flex items-center gap-1.5">
               <Icon className={cn("h-3 w-3", iconColor)} />
               {formatLabel(key)}
               <span className="ml-1 inline-flex items-center justify-center h-4 min-w-[16px] px-1 rounded-full bg-primary-muted text-primary text-[10px] font-bold">
                 {items.length}
               </span>
-            </h4>
+            </SmartSectionHeader>
             <div className="space-y-1">
               {items.map((item, i) => (
                 <FindingCard
-                  key={i}
+                  key={`${key}-${i}`}
                   index={i + 1}
                   text={item}
                   isWarning={isWarning}
@@ -665,9 +658,7 @@ function FindingsSection({
 function SummaryBlock({ summary }: { summary: string }) {
   return (
     <div className="space-y-1.5">
-      <h4 className="text-[11px] font-medium text-foreground-muted tracking-wider uppercase pl-2 border-l-2 border-primary">
-        Summary
-      </h4>
+      <SmartSectionHeader>Summary</SmartSectionHeader>
       <div className="rounded-md bg-background-secondary/50 border border-border/40 border-l-[3px] border-l-secondary px-3 py-2.5">
         <p className="text-xs text-foreground-secondary leading-relaxed">
           {summary}
@@ -731,9 +722,7 @@ function MetadataGrid({
 
   return (
     <div className="space-y-1.5">
-      <h4 className="text-[11px] font-medium text-foreground-muted tracking-wider uppercase pl-2 border-l-2 border-primary">
-        Metadata
-      </h4>
+      <SmartSectionHeader>Metadata</SmartSectionHeader>
       {simpleEntries.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 rounded-md bg-background-secondary/50 border border-border/40 px-3 py-2">
           {simpleEntries.map(({ key, value }) => (
@@ -803,7 +792,7 @@ function MetadataRow({
         >
           {truncated}
         </span>
-        <InlineCopyButton value={value} />
+        <CopyButton value={value} />
       </div>
     );
   }
@@ -845,20 +834,28 @@ function CollapsibleRawJson({ data }: { data: unknown }) {
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const handleCopyAll = useCallback(() => {
-    const text = JSON.stringify(data, null, 2);
-    navigator.clipboard.writeText(text).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    });
-  }, [data]);
+  const handleCopyAll = () => {
+    try {
+      const text = JSON.stringify(data, null, 2);
+      navigator.clipboard.writeText(text).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+      }).catch(() => {});
+    } catch {
+      // JSON.stringify can throw on circular references
+    }
+  };
 
   return (
     <div className="space-y-0">
-      <button
-        type="button"
+      <div
+        role="button"
+        tabIndex={0}
         onClick={() => setExpanded((p) => !p)}
-        className="flex items-center gap-2 w-full text-left px-2 py-1.5 rounded-md hover:bg-background-secondary/50 transition-colors group"
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setExpanded((p) => !p); }
+        }}
+        className="flex items-center gap-2 w-full text-left px-2 py-1.5 rounded-md hover:bg-background-secondary/50 transition-colors group cursor-pointer select-none"
       >
         <ChevronDown
           className={cn(
@@ -866,7 +863,7 @@ function CollapsibleRawJson({ data }: { data: unknown }) {
             !expanded && "-rotate-90"
           )}
         />
-        <span className="text-[11px] font-medium text-foreground-muted tracking-wider uppercase">
+        <span className="text-xs font-medium text-foreground-muted tracking-wider uppercase">
           Raw JSON
         </span>
         {!expanded && (
@@ -892,7 +889,7 @@ function CollapsibleRawJson({ data }: { data: unknown }) {
             Copy All
           </button>
         )}
-      </button>
+      </div>
       {expanded && (
         <div className="animate-[fadeIn_100ms_ease-out] rounded-md bg-background-secondary p-3 mt-1">
           <JsonTreeView data={data} />
@@ -944,6 +941,7 @@ export function JsonTree({ task }: { task: TaskDetail | null }) {
       {/* 1. Input/Output Toggle */}
       <div className="flex items-center gap-2 mb-3">
         <button
+          type="button"
           onClick={() => setShowInput(true)}
           className={cn(
             "text-xs px-2 py-1 rounded transition-colors",
@@ -955,6 +953,7 @@ export function JsonTree({ task }: { task: TaskDetail | null }) {
           Input
         </button>
         <button
+          type="button"
           onClick={() => setShowInput(false)}
           className={cn(
             "text-xs px-2 py-1 rounded transition-colors",
@@ -967,7 +966,7 @@ export function JsonTree({ task }: { task: TaskDetail | null }) {
         </button>
       </div>
 
-      <ScrollArea className="max-h-[60vh]">
+      <ScrollArea>
         {isPrimitive ? (
           /* For non-object data, just show the raw tree */
           <div className="rounded-md bg-background-secondary p-3">
