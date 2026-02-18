@@ -715,10 +715,7 @@ test.describe("Settings Modal", () => {
     await dashboardPage.settingsButton.click();
 
     // Settings modal should become visible
-    // Look for the Settings heading inside the modal (not the button text)
-    await expect(
-      page.locator("h2").filter({ hasText: "Settings" })
-    ).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByTestId("settings-modal")).toBeVisible({ timeout: 10_000 });
   });
 });
 

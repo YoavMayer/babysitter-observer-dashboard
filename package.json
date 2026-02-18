@@ -1,6 +1,6 @@
 {
   "name": "@a5c-ai/babysitter-observer-dashboard",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "description": "Real-time observability dashboard for babysitter orchestration runs",
   "private": false,
   "license": "MIT",

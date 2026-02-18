@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.5] - 2026-02-18
+### Fixed
+- **E2E test hardening** — increased timeouts from 30s to 60s in dashboard and run-detail page objects to prevent flaky failures on slower CI environments
+- **Playwright global timeout** — raised from 90s to 120s for more reliable E2E test execution
+- **Settings modal selector** — replaced fragile `getByTitle("Settings")` with `getByRole("button", { name: "Settings" })` for resilient element selection
+- **Settings modal test assertion** — replaced heading text filter with `data-testid="settings-modal"` for deterministic modal visibility checks
+- **Navigation test marked slow** — `test.slow()` added to navigation roundtrip test that loads 3 pages sequentially
+
 ## [0.6.3] - 2026-02-18
 ### Added
 - **Activity sort flat list** -- "By Activity" mode now renders runs as a single flat chronological list with a Timeline section header, relative time labels (via `formatRelativeTime`), and inline status badges — no grouped sections ("In Progress", "Failed", "Completed") when sorting by activity

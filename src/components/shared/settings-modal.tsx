@@ -216,7 +216,7 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
         JSON.stringify((serverConfig.hiddenProjects ?? []).slice().sort()));
 
   return (
-    <div className="fixed inset-0 z-50" onClick={onClose}>
+    <div className="fixed inset-0 z-50" data-testid="settings-modal" onClick={onClose}>
       <div className="fixed inset-0 bg-black/60" />
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <div
