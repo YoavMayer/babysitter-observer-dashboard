@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.2] - 2026-02-18
+### Changed
+- **Sort mode visual distinction** -- "By Activity" now shows time-based sections ("Recent Activity" for last 24h, "Earlier" for older) with Clock icon and primary-colored badges; "By Status" keeps status-based sections ("In Progress", "Recent History") with pulsing Activity icon and warning-colored badges
+- **Settings: removed Label field** -- Watch Sources settings simplified to Path and Depth only; project labels already appear on each card, making the field redundant
+
 ## [0.6.0] - 2026-02-18
 ### Fixed — Defect List (#1)
 - **"Waiting: Task" status misleading** -- status badge now shows "Working" (info/cyan) instead of "Waiting: Task" for runs actively executing tasks

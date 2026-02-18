@@ -16,6 +16,7 @@ import {
   ChevronUp,
   ArrowUpDown,
   Eye,
+  Clock,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { ErrorBoundary } from "@/components/shared/error-boundary";
@@ -88,9 +89,21 @@ export default function DashboardPage() {
   // Determine the status filter to pass to ProjectHealthCard (map "stale" to "all" since it's not a RunStatus)
   const cardStatusFilter: RunStatus | "all" = statusFilter === "stale" ? "all" : statusFilter;
 
-  // Split filtered projects into active (has active/stale runs or recently completed) and history
+  // Split filtered projects into sections based on sort mode
+  // "status" mode: In Progress (active/stale/recent) vs Recent History
+  // "activity" mode: Recent Activity (last 24h) vs Earlier
   const { activeProjects, historyProjects } = useMemo(() => {
     const now = Date.now();
+    if (sortMode === "activity") {
+      const twentyFourHours = 24 * 60 * 60 * 1000;
+      const recent = filteredProjects.filter((p) =>
+        now - new Date(p.latestUpdate).getTime() < twentyFourHours
+      );
+      const earlier = filteredProjects.filter((p) =>
+        now - new Date(p.latestUpdate).getTime() >= twentyFourHours
+      );
+      return { activeProjects: recent, historyProjects: earlier };
+    }
     const active = filteredProjects.filter((p) =>
       p.activeRuns > 0 || p.staleRuns > 0 ||
       (now - new Date(p.latestUpdate).getTime() < recentCompletionWindowMs)
@@ -100,7 +113,7 @@ export default function DashboardPage() {
       (now - new Date(p.latestUpdate).getTime() >= recentCompletionWindowMs)
     );
     return { activeProjects: active, historyProjects: history };
-  }, [filteredProjects, recentCompletionWindowMs]);
+  }, [filteredProjects, recentCompletionWindowMs, sortMode]);
 
   const [historyCollapsed, setHistoryCollapsed] = usePersistedState(
     "observer:history-collapsed",
@@ -290,22 +303,35 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Idle with history: no active runs but has history */}
+            {/* Idle with history: no active/recent runs but has history */}
             {activeProjects.length === 0 && historyProjects.length > 0 && (statusFilter === "all" || statusFilter === "stale") && (
               <div data-testid="idle-with-history-banner" className="flex items-center gap-2 px-3 py-2 rounded-md bg-background-secondary/50 border border-border w-fit">
                 <Activity className="h-3.5 w-3.5 text-foreground-muted/50" />
-                <span className="text-xs text-foreground-muted">No runs in progress</span>
+                <span className="text-xs text-foreground-muted">
+                  {sortMode === "activity" ? "No activity in the last 24 hours" : "No runs in progress"}
+                </span>
               </div>
             )}
 
-            {/* Active Runs section */}
+            {/* Active / Recent section */}
             {activeProjects.length > 0 && (statusFilter === "all" || statusFilter === "stale" || statusFilter === "waiting") && (
               <ErrorBoundary section="Active Runs">
                 <section data-testid="active-runs-section">
                   <div className="flex items-center gap-2 mb-3">
-                    <Activity className="h-4 w-4 text-warning animate-pulse-dot" />
-                    <h2 className="text-sm font-semibold text-foreground">In Progress</h2>
-                    <span className="rounded-full bg-warning/10 border border-warning/20 px-2 py-px text-xs font-semibold text-warning tabular-nums">
+                    {sortMode === "activity" ? (
+                      <Clock className="h-4 w-4 text-primary" />
+                    ) : (
+                      <Activity className="h-4 w-4 text-warning animate-pulse-dot" />
+                    )}
+                    <h2 className="text-sm font-semibold text-foreground">
+                      {sortMode === "activity" ? "Recent Activity" : "In Progress"}
+                    </h2>
+                    <span className={cn(
+                      "rounded-full px-2 py-px text-xs font-semibold tabular-nums",
+                      sortMode === "activity"
+                        ? "bg-primary/10 border border-primary/20 text-primary"
+                        : "bg-warning/10 border border-warning/20 text-warning"
+                    )}>
                       {activeProjects.length}
                     </span>
                   </div>
@@ -342,7 +368,7 @@ export default function DashboardPage() {
               </ErrorBoundary>
             )}
 
-            {/* Recent History section */}
+            {/* History / Earlier section */}
             {historyProjects.length > 0 && (statusFilter === "all" || statusFilter === "stale") && (
               <ErrorBoundary section="Recent History">
                 <section data-testid="recent-history-section">
@@ -352,7 +378,7 @@ export default function DashboardPage() {
                   >
                     <History className="h-4 w-4 text-foreground-muted/70" />
                     <h2 className="text-sm font-semibold text-foreground-muted group-hover:text-foreground-secondary transition-colors">
-                      Recent History
+                      {sortMode === "activity" ? "Earlier" : "Recent History"}
                     </h2>
                     <span className="rounded-full bg-background-secondary border border-border px-2 py-px text-xs font-semibold text-foreground-muted tabular-nums">
                       {historyProjects.length}

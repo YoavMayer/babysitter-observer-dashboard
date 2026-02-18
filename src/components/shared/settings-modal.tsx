@@ -138,7 +138,7 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
   }, []);
 
   const addSource = useCallback(() => {
-    setSources((prev) => [...prev, { path: "", depth: 2, label: "" }]);
+    setSources((prev) => [...prev, { path: "", depth: 2 }]);
   }, []);
 
   // Cancel - revert to fetched config
@@ -305,20 +305,6 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
                               min={0}
                               max={10}
                               className="w-full rounded-md border border-border bg-background-secondary px-2.5 py-1.5 font-mono text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
-                            />
-                          </div>
-                          <div className="flex-1">
-                            <label className="text-xs uppercase tracking-wider text-foreground-muted mb-1 block">
-                              Label
-                            </label>
-                            <input
-                              type="text"
-                              value={source.label || ""}
-                              onChange={(e) =>
-                                updateSource(i, "label", e.target.value)
-                              }
-                              placeholder="optional"
-                              className="w-full rounded-md border border-border bg-background-secondary px-2.5 py-1.5 text-xs text-foreground placeholder:text-foreground-muted/50 focus:outline-none focus:ring-1 focus:ring-primary/50"
                             />
                           </div>
                         </div>
