@@ -120,7 +120,6 @@ export default function DashboardPage() {
     historyProjects.length > 5
   );
 
-  // How many KPI columns: 4 base + 1 if stale > 0
   const hasStaleRuns = metrics.staleRuns > 0;
   const kpiCols = hasStaleRuns ? "grid-cols-2 sm:grid-cols-5" : "grid-cols-2 sm:grid-cols-4";
 
@@ -238,12 +237,22 @@ export default function DashboardPage() {
                 data-testid="sort-toggle"
                 onClick={() => setSortMode((prev) => prev === "status" ? "activity" : "status")}
                 className={cn(
-                  "rounded-md px-2.5 py-1.5 text-xs font-medium transition-all inline-flex items-center gap-1",
-                  "text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary border border-border"
+                  "rounded-md px-2.5 py-1.5 text-xs font-medium inline-flex items-center gap-1.5",
+                  "transition-all duration-200 ease-in-out",
+                  sortMode === "status"
+                    ? "bg-warning/10 border border-warning/30 text-warning hover:bg-warning/15 hover:border-warning/40 shadow-sm"
+                    : "bg-primary/10 border border-primary/30 text-primary hover:bg-primary/15 hover:border-primary/40 shadow-sm"
                 )}
-                title={sortMode === "status" ? "Sorted by status priority — click to sort by recent activity" : "Sorted by recent activity — click to sort by status priority"}
+                title={sortMode === "status"
+                  ? "Currently sorting by status priority (active first, then failed, then completed). Click to switch to chronological activity view."
+                  : "Currently sorting by most recent activity (newest updates first). Click to switch to status-grouped view."
+                }
               >
-                <ArrowUpDown className="h-3 w-3" />
+                {sortMode === "status" ? (
+                  <ArrowUpDown className="h-3 w-3 transition-transform duration-200" />
+                ) : (
+                  <Clock className="h-3 w-3 transition-transform duration-200" />
+                )}
                 {sortMode === "status" ? "By Status" : "By Activity"}
               </button>
               <span data-testid="project-count" className="text-xs text-foreground-muted tabular-nums">

@@ -305,7 +305,75 @@ export function ProjectHealthCard({ project, statusFilter, sortMode = "status", 
               </div>
             ) : runs.length === 0 ? (
               <p className="text-xs text-foreground-muted text-center py-4">No matching runs</p>
+            ) : sortMode === "activity" ? (
+              /* ── Activity mode: flat chronological list ── */
+              <div className="flex flex-col gap-3">
+                {/* Mini KPI Row — clickable to filter runs within this project */}
+                <div className={cn("grid gap-2 mb-3", project.staleRuns > 0 ? "grid-cols-4" : "grid-cols-3")}>
+                  <MiniKpiPill
+                    icon={<Activity className="h-3.5 w-3.5" />}
+                    count={project.activeRuns}
+                    label="Active"
+                    colorClass="text-warning"
+                    bgClass="bg-warning/10"
+                    pulse={project.activeRuns > 0}
+                    active={localFilter === "waiting"}
+                    onClick={(e) => { e.stopPropagation(); toggleLocalFilter("waiting"); }}
+                  />
+                  {project.staleRuns > 0 && (
+                    <MiniKpiPill
+                      icon={<Pause className="h-3.5 w-3.5" />}
+                      count={project.staleRuns}
+                      label="Stale"
+                      colorClass="text-zinc-500"
+                      bgClass="bg-zinc-500/10"
+                      active={localFilter === "waiting"}
+                      onClick={(e) => { e.stopPropagation(); toggleLocalFilter("waiting"); }}
+                    />
+                  )}
+                  <MiniKpiPill
+                    icon={<CheckCircle2 className="h-3.5 w-3.5" />}
+                    count={project.completedRuns}
+                    label="Completed"
+                    colorClass="text-success"
+                    bgClass="bg-success/10"
+                    active={localFilter === "completed"}
+                    onClick={(e) => { e.stopPropagation(); toggleLocalFilter("completed"); }}
+                  />
+                  <MiniKpiPill
+                    icon={<AlertCircle className="h-3.5 w-3.5" />}
+                    count={project.failedRuns}
+                    label="Failed"
+                    colorClass="text-error"
+                    bgClass="bg-error/10"
+                    active={localFilter === "failed"}
+                    onClick={(e) => { e.stopPropagation(); toggleLocalFilter("failed"); }}
+                  />
+                </div>
+
+                {/* Flat chronological run list — all runs in one timeline */}
+                <div className="flex items-center gap-2 mb-1">
+                  <Clock className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-xs font-semibold text-foreground">Timeline</span>
+                  <span className="rounded-full bg-primary/10 border border-primary/20 px-2 py-px text-xs font-semibold text-primary tabular-nums">
+                    {runs.length}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-2">
+                  {runs.map((run) => (
+                    <div key={run.runId} className="relative">
+                      <RunCard run={run} />
+                      {/* Relative time overlay label */}
+                      <span className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-background/80 backdrop-blur-sm border border-border px-2 py-0.5 text-xs text-foreground-muted tabular-nums pointer-events-none z-10">
+                        <Clock className="h-2.5 w-2.5" />
+                        {formatRelativeTime(run.updatedAt)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             ) : (
+              /* ── Status mode: grouped sections (original behavior) ── */
               <div className="flex flex-col gap-3">
                 {/* Mini KPI Row — clickable to filter runs within this project */}
                 <div className={cn("grid gap-2 mb-3", project.staleRuns > 0 ? "grid-cols-4" : "grid-cols-3")}>

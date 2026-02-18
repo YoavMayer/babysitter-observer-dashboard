@@ -188,7 +188,7 @@ export function getProjectSummaries(): ProjectSummary[] {
     completedTasksAggregate: number;
     latestUpdate: string;
     pendingBreakpoints: number;
-    breakpointRuns: import("@/types").BreakpointRunInfo[];
+    breakpointRuns: ProjectSummary["breakpointRuns"];
   }>();
 
   for (const entry of cache.values()) {
@@ -222,9 +222,10 @@ export function getProjectSummaries(): ProjectSummary[] {
       existing.staleRuns++;
     }
 
-    // Track pending breakpoints
+    // Track pending breakpoints — always show regardless of staleness,
+    // since a breakpoint waiting for approval is the most critical action item
     if (entry.digest.pendingBreakpoints && entry.digest.pendingBreakpoints > 0 &&
-        entry.digest.waitingKind === "breakpoint" && !entry.digest.isStale) {
+        entry.digest.waitingKind === "breakpoint") {
       existing.pendingBreakpoints += entry.digest.pendingBreakpoints;
       existing.breakpointRuns.push({
         runId: entry.digest.runId,
@@ -250,7 +251,7 @@ export function getProjectSummaries(): ProjectSummary[] {
 
 // Debounce discovery to avoid scanning filesystem on every poll
 let lastDiscoveryTime = 0;
-const DISCOVERY_DEBOUNCE_MS = 60000; // 60s — watcher handles real-time changes; discovery is just for catching new runs
+const DISCOVERY_DEBOUNCE_MS = 10000; // 10s — reduced from 60s to ensure new runs appear quickly
 let discoveryNeeded = true; // Flag set by watcher when new runs detected
 
 // Signal that new runs may exist (called by watcher)

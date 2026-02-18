@@ -2,7 +2,7 @@ import { watch, type FSWatcher } from "fs";
 import { promises as fs } from "fs";
 import path from "path";
 import { EventEmitter } from "events";
-import { discoverAllRunDirs, invalidateDiscoveryCache } from "./config";
+import { discoverAllRunDirs, invalidateDiscoveryCache, discoverAllRunsParentDirs } from "./config";
 import { invalidateRun, requestDiscovery } from "./run-cache";
 
 // Persist event emitter across HMR reloads
@@ -47,7 +47,7 @@ function getWatcherState(): WatcherState {
 
 // WSL-optimized constants
 const DEBOUNCE_MS = 500; // 500ms debounce (WSL cross-FS needs more)
-const RESCAN_INTERVAL_MS = 120000; // 2 minutes (was 30s — too aggressive for WSL)
+const RESCAN_INTERVAL_MS = 30000; // 30s — reduced from 120s to detect new project directories faster
 
 function debounceChange(runDir: string, callback: () => void) {
   const state = getWatcherState();
@@ -132,6 +132,17 @@ async function setupWatchers() {
 
     const runsDir = path.dirname(runDir);
     runsParentDirs.add(runsDir);
+  }
+
+  // Also discover ALL .a5c/runs/ directories (including empty ones)
+  // so we detect the very first run in a new project immediately
+  try {
+    const allRunsParentDirs = await discoverAllRunsParentDirs();
+    for (const dir of allRunsParentDirs) {
+      runsParentDirs.add(dir);
+    }
+  } catch {
+    // Non-critical — fall back to watching only populated runs dirs
   }
 
   for (const runsDir of runsParentDirs) {

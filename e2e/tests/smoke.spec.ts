@@ -6,7 +6,7 @@ test.describe("Smoke Test", () => {
     await page.goto("/", { timeout: 60_000, waitUntil: "domcontentloaded" });
 
     // Wait for the heading to appear
-    const heading = page.getByRole("heading", { name: "Babysitter Observer" });
+    const heading = page.getByRole("heading", { name: "Babysitter Observer" }).first();
     await expect(heading).toBeVisible({ timeout: 30_000 });
 
     // Wait for loading skeletons to disappear

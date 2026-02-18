@@ -363,6 +363,31 @@ export async function discoverAllRunDirs(): Promise<DiscoveredRun[]> {
   return result;
 }
 
+// Discover all .a5c/runs/ parent directories (including empty ones).
+// Used by the watcher to set up watches on directories that don't have runs yet,
+// so that the very first run in a new project is detected immediately.
+export async function discoverAllRunsParentDirs(): Promise<string[]> {
+  const config = await getConfig();
+  const allDirs: string[] = [];
+
+  for (const source of config.sources) {
+    if (source.depth === 0) {
+      // Direct runs path — watch the source path itself
+      try {
+        await fs.access(source.path);
+        allDirs.push(source.path);
+      } catch {
+        // Not accessible
+      }
+    } else {
+      const runsDirs = await discoverRunsInSource(source);
+      allDirs.push(...runsDirs);
+    }
+  }
+
+  return allDirs;
+}
+
 // Find a specific run directory by runId across all sources
 export async function findRunDir(runId: string): Promise<DiscoveredRun | null> {
   const allRuns = await discoverAllRunDirs();

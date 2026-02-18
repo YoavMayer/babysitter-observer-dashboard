@@ -364,7 +364,7 @@ BABYSITTER_CLI=/usr/local/bin/babysitter babysitter-observer-dashboard
 
 ## Known Limitations
 
-This is version `0.6.0`. The API and configuration format may change between minor versions.
+This is version `0.6.3`. The API and configuration format may change between minor versions.
 
 - **Local only** -- The observer reads run data from the local filesystem. There is no remote/cloud mode.
 - **No authentication** -- The dashboard and API endpoints are unauthenticated. Do not expose to untrusted networks.
@@ -372,6 +372,7 @@ This is version `0.6.0`. The API and configuration format may change between min
 - **WSL2 file-watching latency** -- On Windows Subsystem for Linux 2, cross-filesystem file-system events may be delayed. The observer compensates with polling but updates may lag behind native Linux or macOS.
 - **Single-instance only** -- Running multiple observer instances watching the same directories is untested and may produce duplicate SSE events.
 - **Large run directories** -- Discovery scans are cached and debounced (filesystem rescans happen at most once per 60 seconds, triggered by the watcher on new-run events). The digest API reads purely from the in-memory cache with zero filesystem I/O. Thousands of run directories are handled efficiently, though initial startup may take a few seconds for the first scan.
+- **Runs visible only after first write to `.a5c/runs/`** -- The dashboard monitors `.a5c/runs/` directories for run data. Regular Claude Code terminal sessions that do not use babysitter orchestration will not appear on the dashboard. A run becomes visible only after the babysitter runtime writes its first journal entry to `.a5c/runs/<runId>/journal/`. This means there is a brief delay between starting a babysitter process and seeing it on the dashboard.
 - **No run deletion or archival** -- The observer is read-only (except for breakpoint resolution). There is no UI to delete, archive, or export runs.
 - **Browser notifications** -- Notification support depends on browser permissions and may not work in all environments.
 
