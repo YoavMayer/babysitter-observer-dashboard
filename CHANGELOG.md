@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.3] - 2026-02-18
+### Added
+- **Activity sort flat list** -- "By Activity" mode now renders runs as a single flat chronological list with a Timeline section header, relative time labels (via `formatRelativeTime`), and inline status badges — no grouped sections ("In Progress", "Failed", "Completed") when sorting by activity
+- **Faster run discovery** -- discovery debounce reduced from 60s to 10s; watcher rescan interval reduced from 120s to 30s for quicker new-run detection
+- **Empty directory watching** -- `discoverAllRunsParentDirs()` ensures `.a5c/runs/` parent directories are watched even when empty, so new runs are detected immediately
+- **Known limitation documented** -- README documents that runs are only visible after first write to `.a5c/runs/` (agreed after first user interview)
+
+### Fixed
+- **HTML 404 error display** -- resilient fetcher now detects HTML responses during Next.js HMR recompilation and shows "Server temporarily unavailable" instead of dumping raw HTML into the error banner
+- **Transient 404 retry** -- 404 responses are now treated as retryable (Next.js dev server returns transient 404s during HMR); fetcher retries automatically with exponential backoff
+- **HTML content-type guard** -- fetcher detects `text/html` content-type on 200 OK responses and retries instead of failing with "Expected JSON response"
+
+### Changed
+- **Sort toggle styling** -- distinct visual styling per mode: warning/amber colors for "By Status", primary/magenta colors for "By Activity", with smooth transitions
+
 ## [0.6.2] - 2026-02-18
 ### Changed
 - **Sort mode visual distinction** -- "By Activity" now shows time-based sections ("Recent Activity" for last 24h, "Earlier" for older) with Clock icon and primary-colored badges; "By Status" keeps status-based sections ("In Progress", "Recent History") with pulsing Activity icon and warning-colored badges
