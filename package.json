@@ -1,6 +1,6 @@
 {
   "name": "@a5c-ai/babysitter-observer-dashboard",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "Real-time observability dashboard for babysitter orchestration runs",
   "private": false,
   "license": "MIT",
@@ -53,7 +53,9 @@
     "prepublishOnly": "npm run build && npm run build:cli",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "npx playwright test",
+    "test:perf": "npx playwright test e2e/tests/performance.spec.ts"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.1.2",
@@ -71,6 +73,7 @@
     "tailwind-merge": "^2.2.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",

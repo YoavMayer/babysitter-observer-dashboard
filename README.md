@@ -358,9 +358,9 @@ Breakpoint approval/rejection depends on the `babysitter` CLI being available on
 BABYSITTER_CLI=/usr/local/bin/babysitter babysitter-observer-dashboard
 ```
 
-## Known Limitations (Alpha)
+## Known Limitations
 
-This is version `0.1.0`. The API and configuration format may change between minor versions.
+This is version `0.5.1`. The API and configuration format may change between minor versions.
 
 - **Local only** -- The observer reads run data from the local filesystem. There is no remote/cloud mode.
 - **No authentication** -- The dashboard and API endpoints are unauthenticated. Do not expose to untrusted networks.
