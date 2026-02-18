@@ -42,7 +42,10 @@ export type FetchResult<T> =
 // ---------------------------------------------------------------------------
 
 function isRetryableStatus(status: number): boolean {
-  return status >= 500;
+  // 5xx server errors are always retryable.
+  // 404 is retryable because Next.js dev server returns transient 404s
+  // during HMR recompilation when API route handlers are momentarily unavailable.
+  return status >= 500 || status === 404;
 }
 
 function isAbortError(err: unknown): boolean {
@@ -219,6 +222,25 @@ export async function resilientFetch<T>(
       }
 
       if (response.ok) {
+        // Guard against HTML responses served with 200 status (e.g. Next.js
+        // serving a page shell during HMR when the API route is recompiling).
+        const contentType = response.headers.get("Content-Type") || "";
+        if (!contentType.includes("application/json") && contentType.includes("text/html")) {
+          cleanup();
+          // Treat as retryable — the API route will be back after recompilation.
+          lastError = {
+            status: response.status,
+            message: "Server temporarily unavailable (recompiling)",
+            isRetryable: true,
+            isAborted: false,
+          };
+          if (attempt < retries) {
+            const delay = retryDelay * Math.pow(2, attempt);
+            await sleep(delay, externalSignal);
+          }
+          continue;
+        }
+
         let data: T;
         try {
           data = (await response.json()) as T;
@@ -251,7 +273,13 @@ export async function resilientFetch<T>(
       let errorMessage: string;
       try {
         const text = await response.text();
-        errorMessage = text || `HTTP ${response.status}`;
+        // Detect HTML responses (e.g. Next.js 404 page during HMR recompilation)
+        // and replace the raw HTML with a clean, user-friendly message.
+        if (text && (text.trimStart().startsWith("<!DOCTYPE") || text.trimStart().startsWith("<html"))) {
+          errorMessage = `Server temporarily unavailable (HTTP ${response.status})`;
+        } else {
+          errorMessage = text || `HTTP ${response.status}`;
+        }
       } catch {
         errorMessage = `HTTP ${response.status}`;
       }
