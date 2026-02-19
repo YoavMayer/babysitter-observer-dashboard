@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback, memo } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { EventItem } from "./event-item";
 import { cn } from "@/lib/cn";
@@ -67,7 +67,7 @@ interface EventStreamProps {
   onEventClick?: (event: JournalEvent) => void;
 }
 
-export function EventStream({ events, onEventClick }: EventStreamProps) {
+export const EventStream = memo(function EventStream({ events, onEventClick }: EventStreamProps) {
   const [filter, setFilter] = useState<EventType | "all">("all");
   const [visibleCount, setVisibleCount] = useState(EVENTS_PER_PAGE);
   const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
@@ -149,7 +149,7 @@ export function EventStream({ events, onEventClick }: EventStreamProps) {
       <div className="shrink-0 border-b border-border p-3 bg-background-secondary/30">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-xs font-medium text-foreground-muted uppercase tracking-wider">Event Stream</h3>
-          <span className="text-[10px] leading-tight text-secondary/60 font-mono tabular-nums">
+          <span className="text-xs leading-tight text-secondary font-mono tabular-nums">
             {filtered.length} events
           </span>
         </div>
@@ -159,7 +159,7 @@ export function EventStream({ events, onEventClick }: EventStreamProps) {
               key={f.value}
               onClick={() => setFilter(f.value)}
               className={cn(
-                "rounded-md px-2.5 py-1 text-[10px] leading-tight font-medium transition-all duration-200",
+                "rounded-md px-2.5 py-1 text-xs leading-tight font-medium transition-all duration-200",
                 filter === f.value
                   ? "bg-primary/15 text-primary border border-primary/25 shadow-event-filter-active"
                   : "text-foreground-muted hover:text-foreground-secondary hover:bg-muted/50 border border-transparent"
@@ -171,7 +171,7 @@ export function EventStream({ events, onEventClick }: EventStreamProps) {
         </div>
         {/* Summary stats bar */}
         {events.length > 0 && (
-          <div className="flex items-center gap-2 mt-2 text-[10px] leading-tight font-mono text-foreground-muted/80 tabular-nums">
+          <div className="flex items-center gap-2 mt-2 text-xs leading-tight font-mono text-foreground-muted tabular-nums">
             <span>Tasks: <span className="text-foreground-secondary">{stats.tasks}</span></span>
             <span className="text-border">|</span>
             <span>Completed: <span className="text-success">{stats.completed}</span></span>
@@ -212,7 +212,7 @@ export function EventStream({ events, onEventClick }: EventStreamProps) {
                     "inline-block h-1.5 w-1.5 rounded-full shrink-0",
                     config.dotColor
                   )} />
-                  <span className="text-[10px] leading-tight text-foreground-muted font-medium tabular-nums">
+                  <span className="text-xs leading-tight text-foreground-muted font-medium tabular-nums">
                     {entry.count}x
                   </span>
                   <span className="text-xs text-foreground-secondary">{config.label}</span>
@@ -234,7 +234,7 @@ export function EventStream({ events, onEventClick }: EventStreamProps) {
           {remainingCount > 0 && (
             <button
               onClick={() => setVisibleCount((v) => v + EVENTS_PER_PAGE)}
-              className="w-full py-2 text-[10px] leading-tight text-foreground-muted hover:text-primary hover:bg-background-secondary hover:shadow-neon-glow-primary-xs transition-all"
+              className="w-full py-2 text-xs leading-tight text-foreground-muted hover:text-primary hover:bg-background-secondary hover:shadow-neon-glow-primary-xs transition-all"
             >
               Show {Math.min(remainingCount, EVENTS_PER_PAGE)} more ({remainingCount} remaining)
             </button>
@@ -246,7 +246,7 @@ export function EventStream({ events, onEventClick }: EventStreamProps) {
       </ScrollArea>
     </div>
   );
-}
+});
 
 function typeLabel(type: string): { label: string; dotColor: string } {
   switch (type) {

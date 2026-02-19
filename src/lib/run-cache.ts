@@ -170,9 +170,19 @@ export function invalidateRun(runDir: string): void {
   getCache().delete(runDir);
 }
 
+export function forceRefreshBreakpointRuns(): void {
+  const cache = getCache();
+  for (const [runDir, entry] of cache) {
+    if (entry.digest.pendingBreakpoints && entry.digest.pendingBreakpoints > 0) {
+      cache.delete(runDir);
+    }
+  }
+}
+
 export function invalidateAll(): void {
   getCache().clear();
-  lastDiscoveryTime = 0; // Force re-discovery on next request
+  lastDiscoveryTime = 0;
+  discoveryNeeded = true; // Force re-discovery on next request
 }
 
 export function getProjectSummaries(): ProjectSummary[] {
@@ -186,6 +196,8 @@ export function getProjectSummaries(): ProjectSummary[] {
     totalTasks: number;
     completedTasksAggregate: number;
     latestUpdate: string;
+    pendingBreakpoints: number;
+    breakpointRuns: ProjectSummary["breakpointRuns"];
   }>();
 
   for (const entry of cache.values()) {
@@ -199,6 +211,8 @@ export function getProjectSummaries(): ProjectSummary[] {
       totalTasks: 0,
       completedTasksAggregate: 0,
       latestUpdate: "",
+      pendingBreakpoints: 0,
+      breakpointRuns: [],
     };
 
     existing.totalRuns++;
@@ -217,6 +231,19 @@ export function getProjectSummaries(): ProjectSummary[] {
       existing.staleRuns++;
     }
 
+    // Track pending breakpoints — only count from cache entries that haven't expired
+    // to ensure stale cache entries don't contribute breakpoint counts
+    if (entry.digest.pendingBreakpoints && entry.digest.pendingBreakpoints > 0 &&
+        entry.digest.waitingKind === "breakpoint" && isCacheValid(entry)) {
+      existing.pendingBreakpoints += entry.digest.pendingBreakpoints;
+      existing.breakpointRuns.push({
+        runId: entry.digest.runId,
+        projectName,
+        processId: entry.digest.processId || "unknown",
+        breakpointQuestion: entry.digest.breakpointQuestion || "Approval required",
+      });
+    }
+
     // Track latest update
     if (!existing.latestUpdate || entry.digest.updatedAt > existing.latestUpdate) {
       existing.latestUpdate = entry.digest.updatedAt;
@@ -233,14 +260,25 @@ export function getProjectSummaries(): ProjectSummary[] {
 
 // Debounce discovery to avoid scanning filesystem on every poll
 let lastDiscoveryTime = 0;
-const DISCOVERY_DEBOUNCE_MS = 10000; // 10 seconds
+const DISCOVERY_DEBOUNCE_MS = 10000; // 10s — reduced from 60s to ensure new runs appear quickly
+let discoveryNeeded = true; // Flag set by watcher when new runs detected
+
+// Signal that new runs may exist (called by watcher)
+export function requestDiscovery(): void {
+  discoveryNeeded = true;
+}
 
 export async function discoverAndCacheAll(): Promise<void> {
+  const cache = getCache();
   const now = Date.now();
-  if (now - lastDiscoveryTime < DISCOVERY_DEBOUNCE_MS) {
-    return; // Skip if we recently discovered
+
+  // If cache is populated and no new runs detected, skip expensive filesystem scan
+  if (cache.size > 0 && !discoveryNeeded && now - lastDiscoveryTime < DISCOVERY_DEBOUNCE_MS) {
+    return;
   }
+
   lastDiscoveryTime = now;
+  discoveryNeeded = false;
 
   const discovered = await discoverAllRunDirs();
 
@@ -261,7 +299,6 @@ export async function discoverAndCacheAll(): Promise<void> {
   // Prune cache entries whose runDir is no longer in the discovered set.
   // This removes ghost entries that were cached before dedup was applied
   // (e.g. a duplicate run discovered at a different path).
-  const cache = getCache();
   for (const [runDir] of cache) {
     if (!validRunDirs.has(runDir)) {
       cache.delete(runDir);
@@ -286,6 +323,17 @@ export async function discoverAndCacheAll(): Promise<void> {
       })
     );
   }
+}
+
+// Return all cached digests without filesystem scanning.
+// Used by the digest API for fast, non-blocking responses.
+export function getAllCachedDigests(): CachedRunDigest[] {
+  const cache = getCache();
+  const digests: CachedRunDigest[] = [];
+  for (const entry of cache.values()) {
+    digests.push(entry.digest);
+  }
+  return digests;
 }
 
 // Export cache for debugging

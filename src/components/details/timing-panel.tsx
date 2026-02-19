@@ -209,7 +209,7 @@ export function TimingPanel({ task, runDuration, allTasks }: TimingPanelProps) {
               {segments.map((seg, i) => (
                 <div
                   key={seg.taskId}
-                  className={`flex items-center gap-2 text-[10px] leading-tight ${
+                  className={`flex items-center gap-2 text-xs leading-tight ${
                     seg.taskId === task.effectId ? "text-foreground" : "text-foreground-muted"
                   }`}
                 >
@@ -219,7 +219,7 @@ export function TimingPanel({ task, runDuration, allTasks }: TimingPanelProps) {
                 </div>
               ))}
               {totalIdleDuration > 0 && (
-                <div className="flex items-center gap-2 text-[10px] leading-tight text-foreground-muted">
+                <div className="flex items-center gap-2 text-xs leading-tight text-foreground-muted">
                   <div className="w-2 h-2 rounded-sm shrink-0 bg-idle-stripes border border-border" />
                   <span className="truncate flex-1">Idle / Wait</span>
                   <span className="font-mono shrink-0">{formatDuration(totalIdleDuration)}</span>

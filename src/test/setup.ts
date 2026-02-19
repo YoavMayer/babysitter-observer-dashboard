@@ -26,10 +26,10 @@ vi.mock('lucide-react', () => {
     'Activity', 'AlertCircle', 'AlertTriangle', 'ArrowLeft', 'Bell', 'Bot',
     'CalendarDays', 'Check', 'CheckCircle2', 'ChevronDown', 'ChevronLeft',
     'ChevronRight', 'ChevronUp', 'Circle', 'Clock', 'Code', 'Cog', 'Copy',
-    'FileJson', 'FileText', 'FolderOpen', 'GitBranch', 'Hand', 'History',
-    'Inbox', 'Info', 'Layers', 'Loader2', 'Palette', 'Pause', 'Percent',
-    'Plus', 'Puzzle', 'RefreshCw', 'Search', 'Settings', 'Tag', 'Terminal',
-    'Timer', 'Trash2', 'X', 'XCircle',
+    'ExternalLink', 'Eye', 'FileJson', 'FileText', 'FolderOpen', 'GitBranch',
+    'Hand', 'History', 'Inbox', 'Info', 'Layers', 'Loader2', 'Moon', 'Palette',
+    'Pause', 'Percent', 'Plus', 'Puzzle', 'RefreshCw', 'Search', 'Settings',
+    'Sun', 'Tag', 'Terminal', 'Timer', 'Trash2', 'X', 'XCircle',
   ];
 
   const mocks: Record<string, any> = {};

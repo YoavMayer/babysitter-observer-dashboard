@@ -227,6 +227,8 @@ export function createMockProjectSummary(
     totalTasks: overrides.totalTasks ?? 50,
     completedTasksAggregate: overrides.completedTasksAggregate ?? 45,
     latestUpdate: overrides.latestUpdate ?? isoNow(),
+    pendingBreakpoints: 0,
+    breakpointRuns: [],
   };
 }
 

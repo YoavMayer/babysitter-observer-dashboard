@@ -30,3 +30,17 @@ nul
 test-output.log
 test-output.txt
 vitest-output.txt
+/vitest-run-output.txt
+/tmp-commit-msg.txt
+/tmp-reword-msg.txt
+/tmp-*.json
+
+# E2E / Playwright output
+test-results/
+playwright-report/
+e2e-*.txt
+
+# Defects list (user screenshots and notes)
+/Defects List/
+
+/STAKEHOLDER-UX-REVIEW.md

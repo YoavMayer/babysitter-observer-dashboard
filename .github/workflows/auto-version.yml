@@ -1,0 +1,42 @@
+name: Auto Version & Tag
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  version:
+    # Skip release commits to prevent infinite loops
+    if: "!startsWith(github.event.head_commit.message, 'chore(release):')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Run version bump
+        run: bash .github/scripts/bump-version.sh
+
+      - name: Commit and tag
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            NEW_VERSION=$(node -p "require('./package.json').version")
+            git add package.json package-lock.json CHANGELOG.md README.md
+            git commit -m "chore(release): v${NEW_VERSION} — auto-versioned"
+            git tag -a "v${NEW_VERSION}" -m "v${NEW_VERSION}"
+            git push origin main
+            git push origin "v${NEW_VERSION}"
+          fi

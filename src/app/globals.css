@@ -166,12 +166,12 @@
   --background-tertiary: #e4e4e7;
   --foreground: #18181b;
   --foreground-secondary: #52525b;
-  --foreground-muted: #a1a1aa;
+  --foreground-muted: #71717a;
 
   --card: #ffffff;
   --card-foreground: #18181b;
-  --card-border: rgba(255, 0, 224, 0.08);
-  --card-hover: rgba(255, 0, 224, 0.03);
+  --card-border: rgba(255, 0, 224, 0.15);
+  --card-hover: rgba(255, 0, 224, 0.06);
 
   --primary: #D600C0;
   --primary-foreground: #ffffff;
@@ -202,9 +202,9 @@
   --pending: #a1a1aa;
   --pending-muted: rgba(161, 161, 170, 0.1);
 
-  --border: rgba(255, 0, 224, 0.08);
-  --border-hover: rgba(255, 0, 224, 0.15);
-  --input: rgba(255, 0, 224, 0.08);
+  --border: rgba(255, 0, 224, 0.15);
+  --border-hover: rgba(255, 0, 224, 0.25);
+  --input: rgba(255, 0, 224, 0.12);
   --ring: #D600C0;
 
   --background-muted: #e8e8ec;

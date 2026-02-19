@@ -22,8 +22,23 @@ export function OutcomeBanner({ run }: OutcomeBannerProps) {
 
   if (run.status === "failed") {
     const failedTask = run.tasks.find((t) => t.status === "error");
-    const stepName = failedTask?.label || run.failedStep || "unknown step";
-    const errorMessage = failedTask?.error?.message || "An error occurred";
+
+    // Determine step name: prefer task-level label, then run-level failedStep, then "process error" for run-level failures
+    const stepName = failedTask?.label || run.failedStep || (run.failureMessage ? "process error" : "unknown step");
+
+    // Determine error message: prefer task-level error, then run-level failure message from RUN_FAILED event
+    const rawErrorMessage = failedTask?.error?.message || run.failureMessage || "An error occurred";
+
+    // Format the error message — if it looks like JSON, try to extract the most relevant part
+    let errorMessage = rawErrorMessage;
+    if (rawErrorMessage.startsWith("{") || rawErrorMessage.startsWith("[")) {
+      try {
+        const parsed = JSON.parse(rawErrorMessage);
+        errorMessage = parsed.message || parsed.error || parsed.reason || rawErrorMessage;
+      } catch {
+        // Not valid JSON, use as-is
+      }
+    }
 
     return (
       <div data-testid="outcome-banner" data-status="failed" className="bg-error-muted border-b-2 border-error/30 px-5 py-4 shadow-glow-error">

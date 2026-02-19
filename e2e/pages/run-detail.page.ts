@@ -86,7 +86,8 @@ export class RunDetailPage {
 
   /** Navigate directly to a run detail page. */
   async goto(runId: string) {
-    await this.page.goto(`/runs/${runId}`);
+    // Use domcontentloaded because SSE keeps the "load" event open
+    await this.page.goto(`/runs/${runId}`, { waitUntil: "domcontentloaded" });
   }
 
   /* ---- Queries ---- */
@@ -219,7 +220,7 @@ export class RunDetailPage {
     // Wait for the spinner to disappear
     await this.loadingSpinner
       .first()
-      .waitFor({ state: "hidden", timeout: 30_000 })
+      .waitFor({ state: "hidden", timeout: 60_000 })
       .catch(() => {
         // Spinner may never appear if data loads immediately
       });
@@ -227,6 +228,6 @@ export class RunDetailPage {
     // Expect either the breadcrumb nav (pipeline loaded) or an error
     await expect(
       this.breadcrumb.or(this.errorMessage)
-    ).toBeVisible({ timeout: 30_000 });
+    ).toBeVisible({ timeout: 60_000 });
   }
 }

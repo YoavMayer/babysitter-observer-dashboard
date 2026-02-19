@@ -42,11 +42,33 @@ export type FetchResult<T> =
 // ---------------------------------------------------------------------------
 
 function isRetryableStatus(status: number): boolean {
-  return status >= 500;
+  // 5xx server errors are always retryable.
+  // 404 is retryable because Next.js dev server returns transient 404s
+  // during HMR recompilation when API route handlers are momentarily unavailable.
+  return status >= 500 || status === 404;
 }
 
 function isAbortError(err: unknown): boolean {
   return err instanceof DOMException && err.name === "AbortError";
+}
+
+/**
+ * Detect if response text is HTML rather than JSON.
+ * Next.js dev server can return various HTML fragments during HMR:
+ * - Full HTML pages (<!DOCTYPE html>, <html>)
+ * - Error fragments (<pre>missing required error components...</pre>)
+ * - Script-only recovery pages (<script>...)
+ */
+function looksLikeHtml(text: string): boolean {
+  const trimmed = text.trimStart();
+  return (
+    trimmed.startsWith("<!DOCTYPE") ||
+    trimmed.startsWith("<html") ||
+    trimmed.startsWith("<pre") ||
+    trimmed.startsWith("<script") ||
+    trimmed.startsWith("<div") ||
+    trimmed.startsWith("<head")
+  );
 }
 
 /**
@@ -119,13 +141,42 @@ function createMergedSignal(
 }
 
 // ---------------------------------------------------------------------------
+// ETag cache — stores last ETag + response body per URL for 304 handling
+// ---------------------------------------------------------------------------
+
+interface ETagCacheEntry<T = unknown> {
+  etag: string;
+  data: T;
+}
+
+const etagCache = new Map<string, ETagCacheEntry>();
+
+// Limit ETag cache size to avoid unbounded growth
+const MAX_ETAG_CACHE_SIZE = 100;
+
+function pruneEtagCache(): void {
+  if (etagCache.size <= MAX_ETAG_CACHE_SIZE) return;
+  // Delete the oldest entries (first inserted)
+  const keysToDelete = Array.from(etagCache.keys()).slice(0, etagCache.size - MAX_ETAG_CACHE_SIZE);
+  for (const key of keysToDelete) {
+    etagCache.delete(key);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Main export
 // ---------------------------------------------------------------------------
 
 /**
- * Perform an HTTP fetch with built-in **retry**, **timeout**, and **abort**
- * support.  Returns a discriminated-union result so callers never need to
- * catch exceptions.
+ * Perform an HTTP fetch with built-in **retry**, **timeout**, **abort**,
+ * and **ETag** support.  Returns a discriminated-union result so callers
+ * never need to catch exceptions.
+ *
+ * ETag behaviour:
+ * - On successful responses with an ETag header, the response data and ETag
+ *   are cached.  On subsequent requests to the same URL, an `If-None-Match`
+ *   header is sent.  If the server returns 304, the cached data is returned
+ *   without re-parsing JSON, saving bandwidth and CPU.
  *
  * Retry behaviour:
  * - Network errors and 5xx responses are retried up to `options.retries`
@@ -158,9 +209,16 @@ export async function resilientFetch<T>(
     retryDelay = 1000,
     timeout = 10_000,
     method = "GET",
-    headers,
+    headers: userHeaders,
     body,
   } = options;
+
+  // Build headers, injecting If-None-Match for ETag-based caching
+  const mergedHeaders: Record<string, string> = { ...userHeaders };
+  const cachedEntry = etagCache.get(url);
+  if (cachedEntry && method === "GET") {
+    mergedHeaders["If-None-Match"] = cachedEntry.etag;
+  }
 
   let lastError: FetchError | undefined;
 
@@ -171,27 +229,69 @@ export async function resilientFetch<T>(
     try {
       const response = await fetch(url, {
         method,
-        headers,
+        headers: mergedHeaders,
         body,
         signal,
       });
 
+      // 304 Not Modified — return cached data without re-parsing
+      if (response.status === 304 && cachedEntry) {
+        cleanup();
+        return { ok: true, data: cachedEntry.data as T, status: 304 };
+      }
+
       if (response.ok) {
+        // Guard against HTML responses served with 200 status (e.g. Next.js
+        // serving a page shell during HMR when the API route is recompiling).
+        const contentType = response.headers.get("Content-Type") || "";
+        if (!contentType.includes("application/json") && contentType.includes("text/html")) {
+          cleanup();
+          // Treat as retryable — the API route will be back after recompilation.
+          lastError = {
+            status: response.status,
+            message: "Server temporarily unavailable (recompiling)",
+            isRetryable: true,
+            isAborted: false,
+          };
+          if (attempt < retries) {
+            const delay = retryDelay * Math.pow(2, attempt);
+            await sleep(delay, externalSignal);
+          }
+          continue;
+        }
+
         let data: T;
         try {
           data = (await response.json()) as T;
         } catch {
+          // JSON parse failed — likely an HTML response that slipped past the
+          // content-type check (e.g. "missing required error components").
+          // Treat as retryable since the API will recover after recompilation.
           cleanup();
-          return {
-            ok: false,
-            error: {
-              status: response.status,
-              message: `Expected JSON response from ${url}`,
-              isRetryable: false,
-              isAborted: false,
-            },
+          lastError = {
+            status: response.status,
+            message: "Server temporarily unavailable (recompiling)",
+            isRetryable: true,
+            isAborted: false,
           };
+          if (attempt < retries) {
+            const delay = retryDelay * Math.pow(2, attempt);
+            try {
+              await sleep(delay, externalSignal);
+            } catch {
+              return { ok: false, error: { status: 0, message: "Request aborted", isRetryable: false, isAborted: true } };
+            }
+          }
+          continue;
         }
+
+        // Cache the ETag and response data for future 304 handling
+        const etag = response.headers.get("ETag");
+        if (etag) {
+          etagCache.set(url, { etag, data });
+          pruneEtagCache();
+        }
+
         cleanup();
         return { ok: true, data, status: response.status };
       }
@@ -201,7 +301,13 @@ export async function resilientFetch<T>(
       let errorMessage: string;
       try {
         const text = await response.text();
-        errorMessage = text || `HTTP ${response.status}`;
+        // Detect HTML responses (e.g. Next.js 404 page or "missing required
+        // error components" during HMR) and replace with a clean message.
+        if (text && looksLikeHtml(text)) {
+          errorMessage = `Server temporarily unavailable (HTTP ${response.status})`;
+        } else {
+          errorMessage = text || `HTTP ${response.status}`;
+        }
       } catch {
         errorMessage = `HTTP ${response.status}`;
       }

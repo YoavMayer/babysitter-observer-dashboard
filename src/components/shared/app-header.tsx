@@ -1,5 +1,5 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { useTheme } from "@/components/shared/theme-provider";
 import { useEventStream } from "@/hooks/use-event-stream";
@@ -34,6 +34,14 @@ export function AppHeader() {
   useKeyboard([
     { key: "n", action: toggleNotificationPanel, description: "Toggle notifications" },
   ]);
+
+  // Allow external components to open the settings modal via custom event
+  useEffect(() => {
+    const handler = () => setShowSettings(true);
+    window.addEventListener("open-settings", handler);
+    return () => window.removeEventListener("open-settings", handler);
+  }, []);
+
 
   return (
     <>

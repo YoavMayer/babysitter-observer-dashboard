@@ -1,5 +1,5 @@
 "use client";
-import { useState, useCallback, useMemo, useRef } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useRunDetail } from "@/hooks/use-run-detail";
 import { useKeyboard } from "@/hooks/use-keyboard";
@@ -17,14 +17,13 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
   const { runId } = params;
   const router = useRouter();
   const { run, loading, error, hasBreakpointWaiting } = useRunDetail(runId);
-  const { notify } = useNotificationContext();
+  const { notifications, dismiss, notify } = useNotificationContext();
   const [selectedEffectId, setSelectedEffectId] = useState<string | null>(null);
   const [showDetail, setShowDetail] = useState(false);
   const [showEventStream, setShowEventStream] = useState(true);
   const [activeTab, setActiveTab] = useState("agent");
-  const breakpointPanelRef = useRef<{ triggerApprove: () => void; triggerReject: () => void } | null>(null);
 
-  const handleSelectEffect = (effectId: string) => {
+  const handleSelectEffect = useCallback((effectId: string) => {
     setSelectedEffectId(effectId);
     setShowDetail(true);
 
@@ -33,32 +32,22 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
     if (task?.kind === "breakpoint") {
       setActiveTab("breakpoint");
     }
-  };
+  }, [run?.tasks]);
 
-  const handleEventClick = (event: JournalEvent) => {
+  const handleEventClick = useCallback((event: JournalEvent) => {
     const payload = event.payload as unknown as EffectRequestedPayload;
     if (payload?.effectId) {
       handleSelectEffect(payload.effectId);
     }
-  };
+  }, [handleSelectEffect]);
 
-  const handleBreakpointResolved = useCallback((approved: boolean) => {
-    if (approved) {
-      notify("Breakpoint Approved", "The breakpoint has been approved successfully", "success");
-    } else {
-      notify("Breakpoint Rejected", "The breakpoint has been rejected", "warning");
-    }
-  }, [notify]);
-
-  const tasks = run?.tasks || [];
+  const tasks = useMemo(() => run?.tasks || [], [run?.tasks]);
 
   // Determine if the currently selected task is a waiting breakpoint
   const selectedTask = useMemo(() => {
     if (!selectedEffectId) return null;
     return tasks.find((t) => t.effectId === selectedEffectId) || null;
   }, [tasks, selectedEffectId]);
-
-  const isBreakpointSelected = selectedTask?.kind === "breakpoint" && selectedTask?.status === "requested";
 
   const moveDown = useCallback(() => {
     if (!tasks.length) return;
@@ -108,18 +97,6 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
     }
   }, [selectedTask]);
 
-  const triggerApprove = useCallback(() => {
-    if (isBreakpointSelected) {
-      breakpointPanelRef.current?.triggerApprove();
-    }
-  }, [isBreakpointSelected]);
-
-  const triggerReject = useCallback(() => {
-    if (isBreakpointSelected) {
-      breakpointPanelRef.current?.triggerReject();
-    }
-  }, [isBreakpointSelected]);
-
   useKeyboard([
     { key: "j", action: moveDown, description: "Next item" },
     { key: "k", action: moveUp, description: "Previous item" },
@@ -130,8 +107,6 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
     { key: "3", action: () => switchTab("3"), description: "Logs tab" },
     { key: "4", action: () => switchTab("4"), description: "Data tab" },
     { key: "5", action: () => switchTab("5"), description: "Breakpoint tab" },
-    { key: "a", action: triggerApprove, description: "Approve breakpoint" },
-    { key: "r", action: triggerReject, description: "Reject breakpoint" },
   ]);
 
   if (loading && !run) {
@@ -215,8 +190,6 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
               effectId={selectedEffectId}
               activeTab={activeTab}
               onTabChange={setActiveTab}
-              breakpointPanelRef={breakpointPanelRef}
-              onBreakpointResolved={handleBreakpointResolved}
               runDuration={run.duration}
               allTasks={run.tasks}
             />

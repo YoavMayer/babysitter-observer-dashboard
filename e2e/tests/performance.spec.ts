@@ -23,7 +23,9 @@ test.describe("Performance Tests", () => {
       .waitFor({ state: "hidden", timeout: 60_000 })
       .catch(() => {});
 
-    const projectGrid = page.getByTestId("project-grid");
+    const projectGrid = page.getByTestId("project-grid-active")
+      .or(page.getByTestId("project-grid-filtered"))
+      .or(page.getByTestId("project-grid-history"));
     await expect(projectGrid).toBeVisible({ timeout: 60_000 });
 
     // Now measure a reload (server is warm)
@@ -67,7 +69,9 @@ test.describe("Performance Tests", () => {
       .waitFor({ state: "hidden", timeout: 60_000 })
       .catch(() => {});
 
-    const projectGrid = page.getByTestId("project-grid");
+    const projectGrid = page.getByTestId("project-grid-active")
+      .or(page.getByTestId("project-grid-filtered"))
+      .or(page.getByTestId("project-grid-history"));
     await expect(projectGrid).toBeVisible({ timeout: 60_000 });
 
     // Count DOM nodes
@@ -95,7 +99,9 @@ test.describe("Performance Tests", () => {
       .waitFor({ state: "hidden", timeout: 60_000 })
       .catch(() => {});
 
-    const projectGrid = page.getByTestId("project-grid");
+    const projectGrid = page.getByTestId("project-grid-active")
+      .or(page.getByTestId("project-grid-filtered"))
+      .or(page.getByTestId("project-grid-history"));
     await expect(projectGrid).toBeVisible({ timeout: 60_000 });
 
     // Try expanding a project card to reveal run links
@@ -147,7 +153,9 @@ test.describe("Performance Tests", () => {
       .waitFor({ state: "hidden", timeout: 60_000 })
       .catch(() => {});
 
-    const projectGrid = page.getByTestId("project-grid");
+    const projectGrid = page.getByTestId("project-grid-active")
+      .or(page.getByTestId("project-grid-filtered"))
+      .or(page.getByTestId("project-grid-history"));
     await expect(projectGrid).toBeVisible({ timeout: 60_000 });
 
     // Wait a bit for any async errors to surface

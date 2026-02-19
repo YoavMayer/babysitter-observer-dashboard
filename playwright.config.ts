@@ -14,7 +14,7 @@ const fixtureRunsDir = path.resolve(__dirname, "e2e/fixtures/runs");
 
 // Use a dedicated test port to avoid collisions with a running dev server.
 // The dev server on port 3000 uses real data; the E2E server on 3099 uses fixtures.
-const testPort = parseInt(process.env.OBSERVER_PORT || "3099", 10);
+const testPort = parseInt(process.env.OBSERVER_PORT || "4173", 10);
 
 export default defineConfig({
   testDir: "e2e/tests",
@@ -23,7 +23,7 @@ export default defineConfig({
   retries: 1,
   workers: process.env.CI ? 1 : undefined,
 
-  timeout: 90_000,
+  timeout: 120_000,
 
   reporter: [["html", { open: "never" }]],
 

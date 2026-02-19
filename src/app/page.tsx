@@ -1,9 +1,10 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useProjects } from "@/hooks/use-projects";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 import { ProjectHealthCard } from "@/components/dashboard/project-health-card";
+import { BreakpointBanner } from "@/components/dashboard/breakpoint-banner";
 import {
-  Eye,
   FolderOpen,
   Activity,
   CheckCircle2,
@@ -13,10 +14,14 @@ import {
   History,
   ChevronDown,
   ChevronUp,
+  ArrowUpDown,
+  Eye,
+  Clock,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { ErrorBoundary } from "@/components/shared/error-boundary";
-import type { RunStatus } from "@/types";
+import { GlobalSearch } from "@/components/dashboard/global-search";
+import type { RunStatus, BreakpointRunInfo } from "@/types";
 
 const filters: { label: string; value: RunStatus | "all" | "stale" }[] = [
   { label: "All", value: "all" },
@@ -27,8 +32,19 @@ const filters: { label: string; value: RunStatus | "all" | "stale" }[] = [
 ];
 
 export default function DashboardPage() {
-  const { projects, recentCompletionWindowMs, loading, error } = useProjects();
+  const { projects, recentCompletionWindowMs, loading, error, refresh } = useProjects();
   const [statusFilter, setStatusFilter] = useState<RunStatus | "all" | "stale">("all");
+  const [sortMode, setSortMode] = usePersistedState<"status" | "activity">("observer:sort-mode", "status");
+
+  // Toggle filter from metric tile: clicking active filter clears it
+  const toggleMetricFilter = useCallback((filter: RunStatus | "all" | "stale") => {
+    setStatusFilter((prev) => (prev === filter ? "all" : filter));
+  }, []);
+
+  const handleHideProject = useCallback((_projectName: string) => {
+    // Refresh projects list to remove the hidden project from the dashboard
+    refresh();
+  }, [refresh]);
 
   // Aggregate metrics across all projects
   const metrics = useMemo(() => {
@@ -40,6 +56,11 @@ export default function DashboardPage() {
     const totalTasks = projects.reduce((s, p) => s + p.totalTasks, 0);
     const completedTasks = projects.reduce((s, p) => s + p.completedTasksAggregate, 0);
     return { totalRuns, activeRuns, completedRuns, failedRuns, staleRuns, totalTasks, completedTasks };
+  }, [projects]);
+
+  // Collect all breakpoint runs across all projects
+  const allBreakpointRuns = useMemo<BreakpointRunInfo[]>(() => {
+    return projects.flatMap((p) => p.breakpointRuns ?? []);
   }, [projects]);
 
   const filterCounts = useMemo(() => {
@@ -68,9 +89,21 @@ export default function DashboardPage() {
   // Determine the status filter to pass to ProjectHealthCard (map "stale" to "all" since it's not a RunStatus)
   const cardStatusFilter: RunStatus | "all" = statusFilter === "stale" ? "all" : statusFilter;
 
-  // Split filtered projects into active (has active/stale runs or recently completed) and history
+  // Split filtered projects into sections based on sort mode
+  // "status" mode: In Progress (active/stale/recent) vs Recent History
+  // "activity" mode: Recent Activity (last 24h) vs Earlier
   const { activeProjects, historyProjects } = useMemo(() => {
     const now = Date.now();
+    if (sortMode === "activity") {
+      const twentyFourHours = 24 * 60 * 60 * 1000;
+      const recent = filteredProjects.filter((p) =>
+        now - new Date(p.latestUpdate).getTime() < twentyFourHours
+      );
+      const earlier = filteredProjects.filter((p) =>
+        now - new Date(p.latestUpdate).getTime() >= twentyFourHours
+      );
+      return { activeProjects: recent, historyProjects: earlier };
+    }
     const active = filteredProjects.filter((p) =>
       p.activeRuns > 0 || p.staleRuns > 0 ||
       (now - new Date(p.latestUpdate).getTime() < recentCompletionWindowMs)
@@ -80,17 +113,24 @@ export default function DashboardPage() {
       (now - new Date(p.latestUpdate).getTime() >= recentCompletionWindowMs)
     );
     return { activeProjects: active, historyProjects: history };
-  }, [filteredProjects, recentCompletionWindowMs]);
+  }, [filteredProjects, recentCompletionWindowMs, sortMode]);
 
-  const [historyCollapsed, setHistoryCollapsed] = useState(() => historyProjects.length > 5);
+  const [historyCollapsed, setHistoryCollapsed] = usePersistedState(
+    "observer:history-collapsed",
+    historyProjects.length > 5
+  );
 
-  // How many KPI columns: 4 base + 1 if stale > 0
   const hasStaleRuns = metrics.staleRuns > 0;
   const kpiCols = hasStaleRuns ? "grid-cols-2 sm:grid-cols-5" : "grid-cols-2 sm:grid-cols-4";
 
   return (
     <div className="bg-gradient-brand flex-1">
+      {/* Header and footer are now in AppHeader/AppFooter via Providers */}
+
       <div className="mx-auto max-w-[1600px] px-6 py-6">
+        {/* Global Search */}
+        <GlobalSearch />
+
         {/* KPI Metrics Row */}
         {!loading && !error && projects.length > 0 && (
           <ErrorBoundary section="KPI Metrics">
@@ -101,14 +141,18 @@ export default function DashboardPage() {
                 icon={<Layers className="h-4 w-4" />}
                 color="primary"
                 testId="metric-tile-total-runs"
+                onClick={() => toggleMetricFilter("all")}
+                active={statusFilter === "all"}
               />
               <MetricTile
-                label="Active"
+                label="In Progress"
                 value={metrics.activeRuns}
                 icon={<Activity className="h-4 w-4" />}
                 color="warning"
                 pulse={metrics.activeRuns > 0}
                 testId="metric-tile-active"
+                onClick={() => toggleMetricFilter("waiting")}
+                active={statusFilter === "waiting"}
               />
               {hasStaleRuns && (
                 <MetricTile
@@ -117,6 +161,8 @@ export default function DashboardPage() {
                   icon={<Pause className="h-4 w-4" />}
                   color="muted"
                   testId="metric-tile-stale"
+                  onClick={() => toggleMetricFilter("stale")}
+                  active={statusFilter === "stale"}
                 />
               )}
               <MetricTile
@@ -125,6 +171,8 @@ export default function DashboardPage() {
                 icon={<CheckCircle2 className="h-4 w-4" />}
                 color="success"
                 testId="metric-tile-completed"
+                onClick={() => toggleMetricFilter("completed")}
+                active={statusFilter === "completed"}
               />
               <MetricTile
                 label="Failed"
@@ -132,8 +180,17 @@ export default function DashboardPage() {
                 icon={<AlertCircle className="h-4 w-4" />}
                 color="error"
                 testId="metric-tile-failed"
+                onClick={() => toggleMetricFilter("failed")}
+                active={statusFilter === "failed"}
               />
             </div>
+          </ErrorBoundary>
+        )}
+
+        {/* Global Breakpoint Banner */}
+        {!loading && !error && allBreakpointRuns.length > 0 && (
+          <ErrorBoundary section="Breakpoint Banner">
+            <BreakpointBanner breakpointRuns={allBreakpointRuns} />
           </ErrorBoundary>
         )}
 
@@ -174,10 +231,34 @@ export default function DashboardPage() {
                 </button>
               );
             })}
-            {/* Project count */}
-            <span data-testid="project-count" className="ml-auto text-xs text-foreground-muted tabular-nums">
-              {filteredProjects.length} project{filteredProjects.length !== 1 ? "s" : ""}
-            </span>
+            {/* Sort toggle + Project count */}
+            <div className="ml-auto flex items-center gap-2">
+              <button
+                data-testid="sort-toggle"
+                onClick={() => setSortMode((prev) => prev === "status" ? "activity" : "status")}
+                className={cn(
+                  "rounded-md px-2.5 py-1.5 text-xs font-medium inline-flex items-center gap-1.5",
+                  "transition-all duration-200 ease-in-out",
+                  sortMode === "status"
+                    ? "bg-warning/10 border border-warning/30 text-warning hover:bg-warning/15 hover:border-warning/40 shadow-sm"
+                    : "bg-primary/10 border border-primary/30 text-primary hover:bg-primary/15 hover:border-primary/40 shadow-sm"
+                )}
+                title={sortMode === "status"
+                  ? "Currently sorting by status priority (active first, then failed, then completed). Click to switch to chronological activity view."
+                  : "Currently sorting by most recent activity (newest updates first). Click to switch to status-grouped view."
+                }
+              >
+                {sortMode === "status" ? (
+                  <ArrowUpDown className="h-3 w-3 transition-transform duration-200" />
+                ) : (
+                  <Clock className="h-3 w-3 transition-transform duration-200" />
+                )}
+                {sortMode === "status" ? "By Status" : "By Activity"}
+              </button>
+              <span data-testid="project-count" className="text-xs text-foreground-muted tabular-nums">
+                {filteredProjects.length} project{filteredProjects.length !== 1 ? "s" : ""}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -208,7 +289,14 @@ export default function DashboardPage() {
             <FolderOpen className="h-10 w-10 text-foreground-muted/30 mx-auto mb-3" />
             <p className="text-sm text-foreground-muted mb-1">No projects found</p>
             <p className="text-xs text-foreground-muted/60">
-              Configure watch sources in Settings or edit <span className="font-mono">~/.a5c/observer.json</span>
+              Configure watch sources in{" "}
+              <button
+                onClick={() => window.dispatchEvent(new CustomEvent("open-settings"))}
+                className="text-primary hover:underline"
+              >
+                Settings
+              </button>{" "}
+              or edit <span className="font-mono">~/.a5c/observer.json</span>
             </p>
           </div>
         ) : (
@@ -224,22 +312,35 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Idle with history: no active runs but has history */}
+            {/* Idle with history: no active/recent runs but has history */}
             {activeProjects.length === 0 && historyProjects.length > 0 && (statusFilter === "all" || statusFilter === "stale") && (
               <div data-testid="idle-with-history-banner" className="flex items-center gap-2 px-3 py-2 rounded-md bg-background-secondary/50 border border-border w-fit">
                 <Activity className="h-3.5 w-3.5 text-foreground-muted/50" />
-                <span className="text-xs text-foreground-muted">No active runs</span>
+                <span className="text-xs text-foreground-muted">
+                  {sortMode === "activity" ? "No activity in the last 24 hours" : "No runs in progress"}
+                </span>
               </div>
             )}
 
-            {/* Active Runs section */}
+            {/* Active / Recent section */}
             {activeProjects.length > 0 && (statusFilter === "all" || statusFilter === "stale" || statusFilter === "waiting") && (
               <ErrorBoundary section="Active Runs">
                 <section data-testid="active-runs-section">
                   <div className="flex items-center gap-2 mb-3">
-                    <Activity className="h-4 w-4 text-warning animate-pulse-dot" />
-                    <h2 className="text-sm font-semibold text-foreground">Active Runs</h2>
-                    <span className="rounded-full bg-warning/10 border border-warning/20 px-2 py-px text-xs font-semibold text-warning tabular-nums">
+                    {sortMode === "activity" ? (
+                      <Clock className="h-4 w-4 text-primary" />
+                    ) : (
+                      <Activity className="h-4 w-4 text-warning animate-pulse-dot" />
+                    )}
+                    <h2 className="text-sm font-semibold text-foreground">
+                      {sortMode === "activity" ? "Recent Activity" : "In Progress"}
+                    </h2>
+                    <span className={cn(
+                      "rounded-full px-2 py-px text-xs font-semibold tabular-nums",
+                      sortMode === "activity"
+                        ? "bg-primary/10 border border-primary/20 text-primary"
+                        : "bg-warning/10 border border-warning/20 text-warning"
+                    )}>
                       {activeProjects.length}
                     </span>
                   </div>
@@ -249,6 +350,8 @@ export default function DashboardPage() {
                         key={project.projectName}
                         project={project}
                         statusFilter={cardStatusFilter}
+                        sortMode={sortMode}
+                        onHide={handleHideProject}
                       />
                     ))}
                   </div>
@@ -265,13 +368,14 @@ export default function DashboardPage() {
                       key={project.projectName}
                       project={project}
                       statusFilter={cardStatusFilter}
+                      sortMode={sortMode}
                     />
                   ))}
                 </div>
               </ErrorBoundary>
             )}
 
-            {/* Recent History section */}
+            {/* History / Earlier section */}
             {historyProjects.length > 0 && (statusFilter === "all" || statusFilter === "stale") && (
               <ErrorBoundary section="Recent History">
                 <section data-testid="recent-history-section">
@@ -281,7 +385,7 @@ export default function DashboardPage() {
                   >
                     <History className="h-4 w-4 text-foreground-muted/70" />
                     <h2 className="text-sm font-semibold text-foreground-muted group-hover:text-foreground-secondary transition-colors">
-                      Recent History
+                      {sortMode === "activity" ? "Earlier" : "Recent History"}
                     </h2>
                     <span className="rounded-full bg-background-secondary border border-border px-2 py-px text-xs font-semibold text-foreground-muted tabular-nums">
                       {historyProjects.length}
@@ -300,6 +404,7 @@ export default function DashboardPage() {
                             key={project.projectName}
                             project={project}
                             statusFilter={cardStatusFilter}
+                            sortMode={sortMode}
                           />
                         ))}
                       </div>
@@ -311,6 +416,8 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+
+      {/* Notifications and settings are now in AppHeader */}
     </div>
   );
 }
@@ -323,24 +430,37 @@ interface MetricTileProps {
   color: "primary" | "success" | "warning" | "error" | "muted";
   pulse?: boolean;
   testId?: string;
+  active?: boolean;
+  onClick?: () => void;
 }
 
-const colorMap: Record<MetricTileProps["color"], { text: string; bg: string; glow: string; borderL: string }> = {
-  primary: { text: "text-primary", bg: "bg-primary/10", glow: "", borderL: "" },
-  success: { text: "text-success", bg: "bg-success/10", glow: "", borderL: "border-l-success/60" },
-  warning: { text: "text-warning", bg: "bg-warning/10", glow: "shadow-[0_0_8px_var(--warning)]", borderL: "border-l-warning/60" },
-  error: { text: "text-error", bg: "bg-error/10", glow: "", borderL: "border-l-error/60" },
-  muted: { text: "text-zinc-500", bg: "bg-zinc-500/10", glow: "", borderL: "border-l-zinc-500/60" },
+const colorMap: Record<MetricTileProps["color"], { text: string; bg: string; glow: string; borderL: string; ring: string }> = {
+  primary: { text: "text-primary", bg: "bg-primary/10", glow: "", borderL: "", ring: "ring-primary/50" },
+  success: { text: "text-success", bg: "bg-success/10", glow: "", borderL: "border-l-success/60", ring: "ring-success/50" },
+  warning: { text: "text-warning", bg: "bg-warning/10", glow: "shadow-[0_0_8px_var(--warning)]", borderL: "border-l-warning/60", ring: "ring-warning/50" },
+  error: { text: "text-error", bg: "bg-error/10", glow: "", borderL: "border-l-error/60", ring: "ring-error/50" },
+  muted: { text: "text-zinc-500", bg: "bg-zinc-500/10", glow: "", borderL: "border-l-zinc-500/60", ring: "ring-zinc-500/50" },
 };
 
-function MetricTile({ label, value, icon, color, pulse, testId }: MetricTileProps) {
+function MetricTile({ label, value, icon, color, pulse, testId, active, onClick }: MetricTileProps) {
   const c = colorMap[color];
+  const isClickable = !!onClick;
   return (
-    <div data-testid={testId} className={cn(
-      "rounded-lg border border-border bg-card/80 backdrop-blur-sm p-3 flex items-center gap-3 transition-all",
-      value > 0 && color !== "primary" && "border-l-2",
-      value > 0 && color !== "primary" && c.borderL,
-    )}>
+    <div
+      data-testid={testId}
+      role={isClickable ? "button" : undefined}
+      tabIndex={isClickable ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={isClickable ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick?.(); } } : undefined}
+      className={cn(
+        "rounded-lg border border-border bg-card/80 backdrop-blur-sm p-3 flex items-center gap-3 transition-all",
+        value > 0 && color !== "primary" && "border-l-2",
+        value > 0 && color !== "primary" && c.borderL,
+        isClickable && "cursor-pointer hover:bg-background-secondary/50",
+        active && "ring-2",
+        active && c.ring,
+      )}
+    >
       <div className={cn("rounded-md p-2", c.bg)}>
         <span className={cn(c.text, pulse && "animate-pulse-dot")}>{icon}</span>
       </div>

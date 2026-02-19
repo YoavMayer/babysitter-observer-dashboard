@@ -49,10 +49,10 @@ const statusConfig: Record<string, { variant: "success" | "error" | "warning" | 
     extraClass: "ring-warning/40 animate-breakpoint-glow",
   },
   waiting_task: {
-    variant: "warning",
-    icon: <Loader2 className={cn(iconSize, "animate-spin drop-shadow-[var(--drop-glow-warning)]")} />,
-    label: "Waiting: Task",
-    extraClass: "ring-warning/30 shadow-neon-glow-warning-sm",
+    variant: "info",
+    icon: <Loader2 className={cn(iconSize, "animate-spin drop-shadow-[var(--drop-glow-cyan)]")} />,
+    label: "Working",
+    extraClass: "ring-info/30 shadow-neon-glow-cyan-sm",
   },
   breakpoint_awaiting: {
     variant: "warning",

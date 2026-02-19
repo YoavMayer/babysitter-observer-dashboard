@@ -2,8 +2,8 @@ import { watch, type FSWatcher } from "fs";
 import { promises as fs } from "fs";
 import path from "path";
 import { EventEmitter } from "events";
-import { discoverAllRunDirs } from "./config";
-import { invalidateRun } from "./run-cache";
+import { discoverAllRunDirs, invalidateDiscoveryCache, discoverAllRunsParentDirs } from "./config";
+import { invalidateRun, requestDiscovery } from "./run-cache";
 
 // Persist event emitter across HMR reloads
 const WATCHER_EVENTS_KEY = '__observer_watcher_events__';
@@ -47,7 +47,7 @@ function getWatcherState(): WatcherState {
 
 // WSL-optimized constants
 const DEBOUNCE_MS = 500; // 500ms debounce (WSL cross-FS needs more)
-const RESCAN_INTERVAL_MS = 120000; // 2 minutes (was 30s — too aggressive for WSL)
+const RESCAN_INTERVAL_MS = 30000; // 30s — reduced from 120s to detect new project directories faster
 
 function debounceChange(runDir: string, callback: () => void) {
   const state = getWatcherState();
@@ -76,8 +76,23 @@ function handleJournalChange(journalDir: string) {
   });
 }
 
+function handleTasksChange(tasksDir: string) {
+  const runDir = path.dirname(tasksDir);
+
+  debounceChange(runDir, () => {
+    invalidateRun(runDir);
+    watcherEvents.emit("change", {
+      type: "run-changed",
+      runDir,
+    } as WatcherEvent);
+  });
+}
+
 function handleRunsParentChange(runsDir: string) {
   debounceChange(runsDir, () => {
+    // Invalidate caches so new runs are picked up on next request
+    invalidateDiscoveryCache();
+    requestDiscovery();
     watcherEvents.emit("change", {
       type: "new-run",
       runDir: runsDir,
@@ -127,8 +142,27 @@ async function setupWatchers() {
       // Journal dir doesn't exist yet — skip for now
     }
 
+    const tasksDir = path.join(runDir, "tasks");
+    try {
+      await fs.access(tasksDir);
+      neededDirs.add(tasksDir);
+    } catch {
+      // Tasks dir doesn't exist yet — skip for now
+    }
+
     const runsDir = path.dirname(runDir);
     runsParentDirs.add(runsDir);
+  }
+
+  // Also discover ALL .a5c/runs/ directories (including empty ones)
+  // so we detect the very first run in a new project immediately
+  try {
+    const allRunsParentDirs = await discoverAllRunsParentDirs();
+    for (const dir of allRunsParentDirs) {
+      runsParentDirs.add(dir);
+    }
+  } catch {
+    // Non-critical — fall back to watching only populated runs dirs
   }
 
   for (const runsDir of runsParentDirs) {
@@ -151,8 +185,14 @@ async function setupWatchers() {
   // Only create new watchers for newly discovered directories
   for (const dirPath of neededDirs) {
     if (!state.activeWatchers.has(dirPath)) {
-      const isJournalDir = path.basename(dirPath) === "journal";
-      const onChange = isJournalDir ? handleJournalChange : handleRunsParentChange;
+      const baseName = path.basename(dirPath);
+      const isJournalDir = baseName === "journal";
+      const isTasksDir = baseName === "tasks";
+      const onChange = isJournalDir
+        ? handleJournalChange
+        : isTasksDir
+          ? handleTasksChange
+          : handleRunsParentChange;
       const watcher = watchDirectory(dirPath, onChange);
       if (watcher) {
         state.activeWatchers.set(dirPath, watcher);

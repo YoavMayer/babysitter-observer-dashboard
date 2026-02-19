@@ -183,11 +183,11 @@ export function FilePreview({ files, runId, effectId }: FilePreviewProps) {
                 <span className="font-mono text-foreground-secondary truncate">
                   {file.path}
                 </span>
-                <Badge variant={formatBadgeVariant(file.format)} className="text-[10px] leading-tight px-1.5 py-0">
+                <Badge variant={formatBadgeVariant(file.format)} className="text-xs leading-tight px-1.5 py-0">
                   {file.format}
                 </Badge>
                 {file.language && (
-                  <Badge variant="pending" className="text-[10px] leading-tight px-1.5 py-0">
+                  <Badge variant="pending" className="text-xs leading-tight px-1.5 py-0">
                     {file.language}
                   </Badge>
                 )}

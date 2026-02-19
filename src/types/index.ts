@@ -121,6 +121,8 @@ export interface Run {
   failedTasks: number;
   duration?: number; // ms
   failedStep?: string;
+  failureError?: string;
+  failureMessage?: string;
   breakpointQuestion?: string;
   sourceLabel?: string;
   projectName?: string;
@@ -155,6 +157,14 @@ export interface ProjectGroup {
   latestUpdate: string;
 }
 
+// Breakpoint info for a single waiting run
+export interface BreakpointRunInfo {
+  runId: string;
+  projectName: string;
+  processId: string;
+  breakpointQuestion: string;
+}
+
 // Project summary (lightweight, no run payloads)
 export interface ProjectSummary {
   projectName: string;
@@ -166,6 +176,8 @@ export interface ProjectSummary {
   totalTasks: number;
   completedTasksAggregate: number;
   latestUpdate: string;
+  pendingBreakpoints: number;
+  breakpointRuns: BreakpointRunInfo[];
 }
 
 // Session info

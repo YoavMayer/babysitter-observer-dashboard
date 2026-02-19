@@ -1,10 +1,12 @@
 "use client";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { cn } from "@/lib/cn";
 import { Card } from "@/components/ui/card";
 import { RunCard } from "./run-card";
 import { PaginationControls } from "./pagination-controls";
 import { useProjectRuns } from "@/hooks/use-project-runs";
+import { usePersistedState } from "@/hooks/use-persisted-state";
+import { resilientFetch } from "@/lib/fetcher";
 import { formatRelativeTime } from "@/lib/utils";
 import type { ProjectSummary, RunStatus } from "@/types";
 import {
@@ -17,11 +19,16 @@ import {
   Clock,
   Pause,
   History,
+  Hand,
+  EyeOff,
+  Loader2,
 } from "lucide-react";
 
 interface ProjectHealthCardProps {
   project: ProjectSummary;
   statusFilter: RunStatus | "all";
+  sortMode?: "status" | "activity";
+  onHide?: (projectName: string) => void;
 }
 
 type HealthStatus = "healthy" | "active" | "stale" | "failing";
@@ -69,11 +76,55 @@ const healthConfig: Record<
 
 const PAGE_SIZE = 5;
 
-export function ProjectHealthCard({ project, statusFilter }: ProjectHealthCardProps) {
-  const [expanded, setExpanded] = useState(false);
+export function ProjectHealthCard({ project, statusFilter, sortMode = "status", onHide }: ProjectHealthCardProps) {
+  const [hiding, setHiding] = useState(false);
+
+  const handleHide = useCallback(async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setHiding(true);
+
+    // First fetch current config to get existing hiddenProjects
+    const configResult = await resilientFetch<{ hiddenProjects?: string[]; sources: { path: string; depth: number; label?: string }[]; pollInterval: number; theme: string; retentionDays: number }>("/api/config");
+    if (!configResult.ok) {
+      setHiding(false);
+      return;
+    }
+
+    const currentHidden = configResult.data.hiddenProjects ?? [];
+    if (currentHidden.includes(project.projectName)) {
+      // Already hidden
+      setHiding(false);
+      onHide?.(project.projectName);
+      return;
+    }
+
+    const newHidden = [...currentHidden, project.projectName];
+    const saveResult = await resilientFetch("/api/config", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sources: configResult.data.sources,
+        pollInterval: configResult.data.pollInterval,
+        theme: configResult.data.theme,
+        retentionDays: configResult.data.retentionDays,
+        hiddenProjects: newHidden,
+      }),
+    });
+
+    setHiding(false);
+    if (saveResult.ok) {
+      onHide?.(project.projectName);
+    }
+  }, [project.projectName, onHide]);
+
+  const [expanded, setExpanded] = usePersistedState(
+    `observer:project-expanded:${project.projectName}`,
+    false
+  );
   const [page, setPage] = useState(0);
   const [showCompleted, setShowCompleted] = useState(false);
   const [showFailed, setShowFailed] = useState(false);
+  const [localFilter, setLocalFilter] = useState<RunStatus | "all">("all");
 
   const health = getHealthStatus(project);
   const config = healthConfig[health];
@@ -83,15 +134,25 @@ export function ProjectHealthCard({ project, statusFilter }: ProjectHealthCardPr
     ? Math.round((project.completedTasksAggregate / project.totalTasks) * 100)
     : 0;
 
+  // Effective filter: local filter takes precedence when set, otherwise use parent filter
+  const effectiveFilter = localFilter !== "all" ? localFilter : statusFilter;
+
   const { runs, totalCount, loading } = useProjectRuns(
     project.projectName,
     {
       limit: PAGE_SIZE,
       offset: page * PAGE_SIZE,
-      status: statusFilter === "all" ? "" : statusFilter,
+      status: effectiveFilter === "all" ? "" : effectiveFilter,
+      sort: sortMode,
       enabled: expanded,
     }
   );
+
+  // Toggle local filter from mini KPI pills: clicking active filter clears it
+  const toggleLocalFilter = (filter: RunStatus | "all") => {
+    setLocalFilter((prev) => (prev === filter ? "all" : filter));
+    setPage(0); // Reset pagination when filter changes
+  };
 
   return (
     <Card
@@ -109,14 +170,48 @@ export function ProjectHealthCard({ project, statusFilter }: ProjectHealthCardPr
       >
         {/* Row 1: Project title — full width, visually dominant */}
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-lg font-semibold text-foreground truncate flex-1">
-            {project.projectName}
-          </h3>
-          {expanded ? (
-            <ChevronUp className="h-4 w-4 text-foreground-muted shrink-0 ml-2" />
-          ) : (
-            <ChevronDown className="h-4 w-4 text-foreground-muted shrink-0 ml-2" />
-          )}
+          <div className="flex items-center gap-2 truncate flex-1">
+            <h3 className="text-lg font-semibold text-foreground truncate">
+              {project.projectName}
+            </h3>
+            {project.pendingBreakpoints > 0 && (
+              <span className={cn(
+                "inline-flex items-center gap-1 rounded-full px-2 py-0.5 shrink-0",
+                "bg-warning/15 border border-warning/30",
+                "text-xs leading-tight font-bold text-warning",
+                "animate-pulse-dot"
+              )}>
+                <Hand className="h-2.5 w-2.5" />
+                {project.pendingBreakpoints} BP
+              </span>
+            )}
+          </div>
+          <div className="flex items-center shrink-0 ml-2 gap-1">
+            <span
+              role="button"
+              tabIndex={0}
+              onClick={handleHide}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleHide(e as unknown as React.MouseEvent); } }}
+              className={cn(
+                "rounded-md p-1 transition-colors",
+                hiding
+                  ? "text-foreground-muted cursor-wait"
+                  : "text-foreground-muted/40 hover:text-foreground-muted hover:bg-background-secondary"
+              )}
+              title="Hide project from dashboard"
+            >
+              {hiding ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <EyeOff className="h-3.5 w-3.5" />
+              )}
+            </span>
+            {expanded ? (
+              <ChevronUp className="h-4 w-4 text-foreground-muted" />
+            ) : (
+              <ChevronDown className="h-4 w-4 text-foreground-muted" />
+            )}
+          </div>
         </div>
 
         {/* Row 2: Health status + run count badges */}
@@ -214,16 +309,117 @@ export function ProjectHealthCard({ project, statusFilter }: ProjectHealthCardPr
               </div>
             ) : runs.length === 0 ? (
               <p className="text-xs text-foreground-muted text-center py-4">No matching runs</p>
-            ) : (
+            ) : sortMode === "activity" ? (
+              /* ── Activity mode: flat chronological list ── */
               <div className="flex flex-col gap-3">
-                {/* Mini KPI Row */}
+                {/* Mini KPI Row — clickable to filter runs within this project */}
                 <div className={cn("grid gap-2 mb-3", project.staleRuns > 0 ? "grid-cols-4" : "grid-cols-3")}>
-                  <MiniKpiPill icon={<Activity className="h-3.5 w-3.5" />} count={project.activeRuns} label="Active" colorClass="text-warning" bgClass="bg-warning/10" pulse={project.activeRuns > 0} />
+                  <MiniKpiPill
+                    icon={<Activity className="h-3.5 w-3.5" />}
+                    count={project.activeRuns}
+                    label="Active"
+                    colorClass="text-warning"
+                    bgClass="bg-warning/10"
+                    pulse={project.activeRuns > 0}
+                    active={localFilter === "waiting"}
+                    onClick={(e) => { e.stopPropagation(); toggleLocalFilter("waiting"); }}
+                  />
                   {project.staleRuns > 0 && (
-                    <MiniKpiPill icon={<Pause className="h-3.5 w-3.5" />} count={project.staleRuns} label="Stale" colorClass="text-zinc-500" bgClass="bg-zinc-500/10" />
+                    <MiniKpiPill
+                      icon={<Pause className="h-3.5 w-3.5" />}
+                      count={project.staleRuns}
+                      label="Stale"
+                      colorClass="text-zinc-500"
+                      bgClass="bg-zinc-500/10"
+                      active={localFilter === "waiting"}
+                      onClick={(e) => { e.stopPropagation(); toggleLocalFilter("waiting"); }}
+                    />
                   )}
-                  <MiniKpiPill icon={<CheckCircle2 className="h-3.5 w-3.5" />} count={project.completedRuns} label="Completed" colorClass="text-success" bgClass="bg-success/10" />
-                  <MiniKpiPill icon={<AlertCircle className="h-3.5 w-3.5" />} count={project.failedRuns} label="Failed" colorClass="text-error" bgClass="bg-error/10" />
+                  <MiniKpiPill
+                    icon={<CheckCircle2 className="h-3.5 w-3.5" />}
+                    count={project.completedRuns}
+                    label="Completed"
+                    colorClass="text-success"
+                    bgClass="bg-success/10"
+                    active={localFilter === "completed"}
+                    onClick={(e) => { e.stopPropagation(); toggleLocalFilter("completed"); }}
+                  />
+                  <MiniKpiPill
+                    icon={<AlertCircle className="h-3.5 w-3.5" />}
+                    count={project.failedRuns}
+                    label="Failed"
+                    colorClass="text-error"
+                    bgClass="bg-error/10"
+                    active={localFilter === "failed"}
+                    onClick={(e) => { e.stopPropagation(); toggleLocalFilter("failed"); }}
+                  />
+                </div>
+
+                {/* Flat chronological run list — all runs in one timeline */}
+                <div className="flex items-center gap-2 mb-1">
+                  <Clock className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-xs font-semibold text-foreground">Timeline</span>
+                  <span className="rounded-full bg-primary/10 border border-primary/20 px-2 py-px text-xs font-semibold text-primary tabular-nums">
+                    {runs.length}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-2">
+                  {runs.map((run) => (
+                    <div key={run.runId} className="relative">
+                      <RunCard run={run} />
+                      {/* Relative time overlay label */}
+                      <span className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-background/80 backdrop-blur-sm border border-border px-2 py-0.5 text-xs text-foreground-muted tabular-nums pointer-events-none z-10">
+                        <Clock className="h-2.5 w-2.5" />
+                        {formatRelativeTime(run.updatedAt)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              /* ── Status mode: grouped sections (original behavior) ── */
+              <div className="flex flex-col gap-3">
+                {/* Mini KPI Row — clickable to filter runs within this project */}
+                <div className={cn("grid gap-2 mb-3", project.staleRuns > 0 ? "grid-cols-4" : "grid-cols-3")}>
+                  <MiniKpiPill
+                    icon={<Activity className="h-3.5 w-3.5" />}
+                    count={project.activeRuns}
+                    label="Active"
+                    colorClass="text-warning"
+                    bgClass="bg-warning/10"
+                    pulse={project.activeRuns > 0}
+                    active={localFilter === "waiting"}
+                    onClick={(e) => { e.stopPropagation(); toggleLocalFilter("waiting"); }}
+                  />
+                  {project.staleRuns > 0 && (
+                    <MiniKpiPill
+                      icon={<Pause className="h-3.5 w-3.5" />}
+                      count={project.staleRuns}
+                      label="Stale"
+                      colorClass="text-zinc-500"
+                      bgClass="bg-zinc-500/10"
+                      active={localFilter === "waiting"}
+                      onClick={(e) => { e.stopPropagation(); toggleLocalFilter("waiting"); }}
+                    />
+                  )}
+                  <MiniKpiPill
+                    icon={<CheckCircle2 className="h-3.5 w-3.5" />}
+                    count={project.completedRuns}
+                    label="Completed"
+                    colorClass="text-success"
+                    bgClass="bg-success/10"
+                    active={localFilter === "completed"}
+                    onClick={(e) => { e.stopPropagation(); toggleLocalFilter("completed"); }}
+                  />
+                  <MiniKpiPill
+                    icon={<AlertCircle className="h-3.5 w-3.5" />}
+                    count={project.failedRuns}
+                    label="Failed"
+                    colorClass="text-error"
+                    bgClass="bg-error/10"
+                    active={localFilter === "failed"}
+                    onClick={(e) => { e.stopPropagation(); toggleLocalFilter("failed"); }}
+                  />
                 </div>
 
                 {/* Active runs — always visible with section header */}
@@ -231,7 +427,7 @@ export function ProjectHealthCard({ project, statusFilter }: ProjectHealthCardPr
                   <div className="mb-2">
                     <div className="flex items-center gap-2 mb-2">
                       <Activity className="h-3.5 w-3.5 text-warning animate-pulse-dot" />
-                      <span className="text-xs font-semibold text-foreground">Active Runs</span>
+                      <span className="text-xs font-semibold text-foreground">In Progress</span>
                       <span className="rounded-full bg-warning/10 border border-warning/20 px-2 py-px text-xs font-semibold text-warning tabular-nums">
                         {activeRuns.length}
                       </span>
@@ -311,11 +507,24 @@ export function ProjectHealthCard({ project, statusFilter }: ProjectHealthCardPr
   );
 }
 
-function MiniKpiPill({ icon, count, label, colorClass, bgClass, pulse }: {
-  icon: React.ReactNode; count: number; label: string; colorClass: string; bgClass: string; pulse?: boolean;
+function MiniKpiPill({ icon, count, label, colorClass, bgClass, pulse, active, onClick }: {
+  icon: React.ReactNode; count: number; label: string; colorClass: string; bgClass: string; pulse?: boolean; active?: boolean; onClick?: (e: React.MouseEvent) => void;
 }) {
+  const isClickable = !!onClick;
   return (
-    <div className={cn("rounded-md px-2.5 py-1.5 flex items-center gap-2", bgClass)}>
+    <div
+      role={isClickable ? "button" : undefined}
+      tabIndex={isClickable ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={isClickable ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick?.(e as unknown as React.MouseEvent); } } : undefined}
+      className={cn(
+        "rounded-md px-2.5 py-1.5 flex items-center gap-2 transition-all",
+        bgClass,
+        isClickable && "cursor-pointer hover:opacity-80",
+        active && "ring-2 ring-offset-1 ring-offset-card",
+        active && colorClass.replace("text-", "ring-").replace(/\/\d+$/, "/50"),
+      )}
+    >
       <span className={cn(colorClass, pulse && "animate-pulse")}>{icon}</span>
       <div>
         <p className={cn("text-sm font-bold tabular-nums leading-none", colorClass)}>{count}</p>

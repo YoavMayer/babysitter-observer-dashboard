@@ -1,4 +1,5 @@
 "use client";
+import { memo } from "react";
 import { cn } from "@/lib/cn";
 import { GitBranch } from "lucide-react";
 import type { ReactNode } from "react";
@@ -14,7 +15,7 @@ interface ParallelGroupProps {
  * Shows a dashed border container with a "parallel" label and renders
  * the grouped StepCards inside.
  */
-export function ParallelGroup({ children, count, className }: ParallelGroupProps) {
+export const ParallelGroup = memo(function ParallelGroup({ children, count, className }: ParallelGroupProps) {
   return (
     <div
       className={cn(
@@ -23,10 +24,10 @@ export function ParallelGroup({ children, count, className }: ParallelGroupProps
       )}
     >
       {/* Label */}
-      <div className="absolute top-1.5 left-2.5 flex items-center gap-1 text-[10px] leading-tight font-medium text-info uppercase tracking-wider select-none">
+      <div className="absolute top-1.5 left-2.5 flex items-center gap-1 text-xs leading-tight font-medium text-info uppercase tracking-wider select-none">
         <GitBranch className="h-3 w-3 text-info" />
         <span>parallel</span>
-        <span className="text-foreground-muted/60">&middot; {count} tasks</span>
+        <span className="text-foreground-muted">&middot; {count} tasks</span>
       </div>
 
       {/* Grouped task cards */}
@@ -35,4 +36,4 @@ export function ParallelGroup({ children, count, className }: ParallelGroupProps
       </div>
     </div>
   );
-}
+});

@@ -21,6 +21,7 @@ test.describe("Navigation: Dashboard -> Run Detail -> Dashboard", () => {
     dashboardPage,
     runDetailPage,
   }) => {
+    test.slow(); // This test loads 3 pages sequentially; triple the timeout
     // 1. Start at the dashboard
     await dashboardPage.goto();
     await dashboardPage.waitForData();

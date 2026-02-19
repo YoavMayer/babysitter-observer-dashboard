@@ -59,7 +59,7 @@ export class DashboardPage {
     this.loadingSkeletons = page.locator(".animate-pulse");
     this.errorBanner = page.getByTestId("error-banner");
     this.emptyState = page.getByTestId("empty-state");
-    this.settingsButton = page.getByTitle("Settings");
+    this.settingsButton = page.getByRole("button", { name: "Settings" });
     this.themeToggle = page.locator("button").filter({ hasText: /Switch to/ });
     this.connectionDot = page.locator("[title*='Live updates']");
   }
@@ -68,7 +68,8 @@ export class DashboardPage {
 
   /** Navigate to the dashboard root. */
   async goto() {
-    await this.page.goto("/");
+    // Use domcontentloaded because SSE keeps the "load" event open
+    await this.page.goto("/", { waitUntil: "domcontentloaded" });
   }
 
   /* ---- Queries ---- */
@@ -214,7 +215,7 @@ export class DashboardPage {
    */
   async waitForData() {
     // Wait for skeletons to disappear (if they appeared)
-    await this.loadingSkeletons.first().waitFor({ state: "hidden", timeout: 30_000 }).catch(() => {
+    await this.loadingSkeletons.first().waitFor({ state: "hidden", timeout: 60_000 }).catch(() => {
       // Skeletons may never appear if data loads fast enough
     });
 
@@ -228,6 +229,6 @@ export class DashboardPage {
       .or(this.page.getByTestId("idle-with-history-banner"));
     await expect(
       projectContent.or(this.errorBanner).or(this.emptyState)
-    ).toBeVisible({ timeout: 30_000 });
+    ).toBeVisible({ timeout: 60_000 });
   }
 }

@@ -3,6 +3,7 @@ import { findRunDir } from "@/lib/config";
 import { ensureInitialized } from "@/lib/server-init";
 import { getRunCached } from "@/lib/run-cache";
 import { normalizeError } from "@/lib/error-handler";
+import { createHash } from "crypto";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,17 @@ function isValidId(id: string): boolean {
 }
 
 const DEFAULT_MAX_EVENTS = 50;
+
+/**
+ * Generate a lightweight ETag from run state.
+ * Uses status, task count, event count, and updatedAt as a fingerprint
+ * to avoid re-serializing unchanged data to the client.
+ */
+function generateETag(run: { status: string; updatedAt: string; tasks: unknown[]; events: unknown[] }): string {
+  const fingerprint = `${run.status}:${run.tasks.length}:${run.events.length}:${run.updatedAt}`;
+  const hash = createHash("md5").update(fingerprint).digest("hex").slice(0, 16);
+  return `"${hash}"`;
+}
 
 export async function GET(
   request: Request,
@@ -41,8 +53,25 @@ export async function GET(
       ? { ...run, events: run.events.slice(-maxEvents), totalEvents }
       : { ...run, totalEvents };
 
+    // ETag support: if client sends If-None-Match and data hasn't changed,
+    // return 304 Not Modified to save bandwidth and serialization cost.
+    const etag = generateETag(limitedRun);
+    const ifNoneMatch = request.headers.get("If-None-Match");
+    if (ifNoneMatch && ifNoneMatch === etag) {
+      return new NextResponse(null, {
+        status: 304,
+        headers: {
+          ETag: etag,
+          "Cache-Control": "no-cache",
+        },
+      });
+    }
+
     return NextResponse.json({ run: limitedRun }, {
-      headers: { "Cache-Control": "no-cache, no-store" },
+      headers: {
+        "Cache-Control": "no-cache",
+        ETag: etag,
+      },
     });
   } catch (error) {
     console.error("Failed to read run:", error);

@@ -5,12 +5,21 @@ export function AppFooter() {
   return (
     <footer className="border-t border-border bg-background/80 backdrop-blur-sm">
       <div className="mx-auto max-w-[1600px] px-6 py-3 flex flex-wrap items-center justify-between gap-3 text-xs text-foreground-muted">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <Eye className="h-3.5 w-3.5 text-primary/40" />
           <span className="font-medium">
             Babysitter Observer{" "}
             <span className="rounded-full bg-primary/10 border border-primary/20 px-1.5 py-px text-[10px] font-medium text-primary tabular-nums">
               v{process.env.NEXT_PUBLIC_APP_VERSION}
+            </span>
+          </span>
+
+          <span className="text-foreground-muted/30 select-none">&middot;</span>
+
+          <span className="text-xs font-normal text-foreground-muted">
+            Babysitter{" "}
+            <span className="rounded-full bg-muted/50 border border-border px-1.5 py-px text-[10px] font-normal text-foreground-muted tabular-nums">
+              v{process.env.NEXT_PUBLIC_BABYSITTER_VERSION}
             </span>
           </span>
         </div>

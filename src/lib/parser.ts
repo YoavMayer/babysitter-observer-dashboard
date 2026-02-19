@@ -175,6 +175,34 @@ export async function parseRunDir(runPath: string): Promise<Run> {
     ? firstFailedTask.title || firstFailedTask.label || firstFailedTask.stepId
     : undefined;
 
+  // Extract failure details from RUN_FAILED event or last failed EFFECT_RESOLVED
+  let failureError: string | undefined;
+  let failureMessage: string | undefined;
+
+  if (runFailed) {
+    const failPayload = runFailed.payload as Record<string, unknown>;
+    const runError = failPayload.error as { name?: string; message?: string; stack?: string } | undefined;
+    if (runError) {
+      failureError = runError.name || "Error";
+      failureMessage = runError.message || runError.stack || undefined;
+    }
+  }
+
+  // If we still don't have a message, look at the last EFFECT_RESOLVED with error status
+  if (!failureMessage) {
+    const lastFailedEffect = [...events]
+      .reverse()
+      .find((e) => e.type === "EFFECT_RESOLVED" && (e.payload as Record<string, unknown>).status === "error");
+    if (lastFailedEffect) {
+      const effectPayload = lastFailedEffect.payload as Record<string, unknown>;
+      const effectError = effectPayload.error as { name?: string; message?: string; stack?: string } | undefined;
+      if (effectError) {
+        failureError = failureError || effectError.name || "Error";
+        failureMessage = effectError.message || effectError.stack || undefined;
+      }
+    }
+  }
+
   let status: RunStatus = "pending";
   if (runCompleted) status = "completed";
   else if (runFailed) status = "failed";
@@ -243,6 +271,8 @@ export async function parseRunDir(runPath: string): Promise<Run> {
     failedTasks,
     duration,
     failedStep,
+    failureError,
+    failureMessage,
     breakpointQuestion,
     isStale,
     waitingKind,

@@ -415,8 +415,12 @@ test.describe("Run Detail Page", () => {
       await runDetailPage.goto(run.runId);
       await runDetailPage.waitForData();
 
+      // Scroll event stream into view
+      await runDetailPage.eventStreamPanel.scrollIntoViewIfNeeded();
+
       // There should be at least one event
       const eventItems = runDetailPage.getEventItems();
+      await expect(eventItems.first()).toBeVisible({ timeout: 10_000 });
       const count = await eventItems.count();
       expect(count).toBeGreaterThan(0);
     });
@@ -426,6 +430,9 @@ test.describe("Run Detail Page", () => {
 
       await runDetailPage.goto(run.runId);
       await runDetailPage.waitForData();
+
+      // Scroll event stream into view
+      await runDetailPage.eventStreamPanel.scrollIntoViewIfNeeded();
 
       // Event stream header should show event count like "16 events"
       await expect(runDetailPage.eventStreamPanel).toContainText("events");
@@ -437,9 +444,12 @@ test.describe("Run Detail Page", () => {
       await runDetailPage.goto(run.runId);
       await runDetailPage.waitForData();
 
-      // Filter buttons: All, Tasks, Results, Errors
+      // Scroll event stream into view first
       const eventStream = runDetailPage.getEventStream();
-      await expect(eventStream.getByText("All", { exact: true })).toBeVisible();
+      await eventStream.scrollIntoViewIfNeeded();
+
+      // Filter buttons: All, Tasks, Results, Errors
+      await expect(eventStream.getByText("All", { exact: true })).toBeVisible({ timeout: 10_000 });
       await expect(eventStream.getByText("Tasks", { exact: true })).toBeVisible();
       await expect(eventStream.getByText("Results", { exact: true })).toBeVisible();
       await expect(eventStream.getByText("Errors", { exact: true })).toBeVisible();
@@ -452,6 +462,10 @@ test.describe("Run Detail Page", () => {
       await runDetailPage.waitForData();
 
       const eventStream = runDetailPage.getEventStream();
+      await eventStream.scrollIntoViewIfNeeded();
+
+      // Wait for event items to be present
+      await expect(runDetailPage.getEventItems().first()).toBeVisible({ timeout: 10_000 });
 
       // Count "All" events (individual items)
       const allCount = await runDetailPage.getEventItems().count();
@@ -476,6 +490,11 @@ test.describe("Run Detail Page", () => {
       await runDetailPage.goto(run.runId);
       await runDetailPage.waitForData();
 
+      // Scroll event stream into view and wait for items
+      const eventStream = runDetailPage.getEventStream();
+      await eventStream.scrollIntoViewIfNeeded();
+      await expect(runDetailPage.getEventItems().first()).toBeVisible({ timeout: 10_000 });
+
       // Check first event item has a data-event-type attribute
       const firstEvent = runDetailPage.getEventItems().first();
       const eventType = await firstEvent.getAttribute("data-event-type");
@@ -495,8 +514,12 @@ test.describe("Run Detail Page", () => {
       await runDetailPage.goto(run.runId);
       await runDetailPage.waitForData();
 
-      // Summary stats bar should show Tasks:, Completed:, Errors: labels
+      // Scroll event stream into view and wait for it to load
       const eventStream = runDetailPage.getEventStream();
+      await eventStream.scrollIntoViewIfNeeded();
+      await expect(runDetailPage.getEventItems().first()).toBeVisible({ timeout: 10_000 });
+
+      // Summary stats bar should show Tasks:, Completed:, Errors: labels
       await expect(eventStream).toContainText("Tasks:");
       await expect(eventStream).toContainText("Completed:");
       await expect(eventStream).toContainText("Errors:");

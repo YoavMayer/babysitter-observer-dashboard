@@ -38,6 +38,7 @@ export async function GET(request: Request) {
     const offset = parseInt(searchParams.get("offset") || "0");
     const search = searchParams.get("search") || "";
     const status = searchParams.get("status") || "";
+    const sort = searchParams.get("sort") || "status"; // "status" (default tier-based) or "activity" (updatedAt DESC)
 
     // Mode: projects - return lightweight project summaries
     // Always re-discover to ensure all projects appear (debounced internally)
@@ -46,9 +47,13 @@ export async function GET(request: Request) {
       const config = await getConfig();
       const projects = getProjectSummaries();
 
+      // Filter out hidden projects
+      const hiddenSet = new Set(config.hiddenProjects);
+      const visibleProjects = projects.filter((p) => !hiddenSet.has(p.projectName));
+
       // Apply retention filter: exclude projects whose latest update is older than retentionDays
       const retentionCutoff = Date.now() - config.retentionDays * 24 * 60 * 60 * 1000;
-      const retainedProjects = projects.filter((p) =>
+      const retainedProjects = visibleProjects.filter((p) =>
         // Always keep projects with active or stale runs regardless of age
         p.activeRuns > 0 || p.staleRuns > 0 ||
         new Date(p.latestUpdate).getTime() >= retentionCutoff
@@ -93,14 +98,19 @@ export async function GET(request: Request) {
         return new Date(r.updatedAt || "").getTime() >= retentionCutoff;
       });
 
-      // Sort by priority: active non-stale first, stale second, failed third, completed last
-      // Within same priority, sort by updatedAt DESC
-      retainedRuns.sort((a, b) => {
-        const pa = runSortPriority(a);
-        const pb = runSortPriority(b);
-        if (pa !== pb) return pa - pb;
-        return (b.updatedAt || "").localeCompare(a.updatedAt || "");
-      });
+      // Sort runs based on sort parameter
+      if (sort === "activity") {
+        // Simple updatedAt DESC — most recent activity first, no tier grouping
+        retainedRuns.sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
+      } else {
+        // Default: sort by priority tier, then by updatedAt DESC within tier
+        retainedRuns.sort((a, b) => {
+          const pa = runSortPriority(a);
+          const pb = runSortPriority(b);
+          if (pa !== pb) return pa - pb;
+          return (b.updatedAt || "").localeCompare(a.updatedAt || "");
+        });
+      }
 
       let filteredRuns = retainedRuns;
 
@@ -165,17 +175,54 @@ export async function GET(request: Request) {
       })
     );
 
-    // Sort by priority: active non-stale first, stale second, failed third, completed last
-    // Within same priority, sort by updatedAt DESC
-    runs.sort((a, b) => {
-      const pa = runSortPriority(a);
-      const pb = runSortPriority(b);
-      if (pa !== pb) return pa - pb;
-      return (b.updatedAt || "").localeCompare(a.updatedAt || "");
-    });
+    // Sort runs based on sort parameter
+    if (sort === "activity") {
+      // Simple updatedAt DESC — most recent activity first, no tier grouping
+      runs.sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
+    } else {
+      // Default: sort by priority tier, then by updatedAt DESC within tier
+      runs.sort((a, b) => {
+        const pa = runSortPriority(a);
+        const pb = runSortPriority(b);
+        if (pa !== pb) return pa - pb;
+        return (b.updatedAt || "").localeCompare(a.updatedAt || "");
+      });
+    }
+
+    // Apply search filter if provided
+    let filteredAllRuns = runs;
+    if (search) {
+      const searchLower = search.toLowerCase();
+      filteredAllRuns = filteredAllRuns.filter(
+        (r) =>
+          r.runId.toLowerCase().includes(searchLower) ||
+          r.processId.toLowerCase().includes(searchLower) ||
+          (r.projectName || "").toLowerCase().includes(searchLower) ||
+          r.status.toLowerCase().includes(searchLower) ||
+          r.tasks.some(
+            (t) =>
+              t.title.toLowerCase().includes(searchLower) ||
+              t.label.toLowerCase().includes(searchLower)
+          )
+      );
+    }
+
+    const totalCount = filteredAllRuns.length;
+
+    // Apply limit/offset if provided
+    if (limit > 0) {
+      filteredAllRuns = filteredAllRuns.slice(offset, offset + limit);
+    }
+
+    // Strip events from response to reduce payload
+    const lightAllRuns = filteredAllRuns.map(({ events, ...rest }) => ({
+      ...rest,
+      events: [],
+      totalEvents: events.length,
+    }));
 
     return NextResponse.json(
-      { runs, totalCount: runs.length },
+      { runs: lightAllRuns, totalCount },
       {
         headers: { "Cache-Control": "no-cache, no-store" },
       }

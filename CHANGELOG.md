@@ -2,6 +2,93 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.0] - 2026-02-19
+### Added
+- feat: rename npm scope from @a5c-ai to @yoavmayer for independent publishing
+
+## [0.7.3] - 2026-02-19
+### Fixed
+- fix: make breakpoint panel read-only and fix stale breakpoint display
+
+## [0.7.2] - 2026-02-19
+### Fixed
+- fix: auto-version workflow now creates annotated tags and pushes them explicitly
+
+## [0.7.1] - 2026-02-19
+### Fixed
+- fix: resolve double shebang and missing next binary in global CLI install
+### Other
+- ci: add workflow_dispatch trigger to publish workflow
+
+## [0.7.1] - 2026-02-19
+### Other
+- ci: add workflow_dispatch trigger to publish workflow
+
+## [0.7.0] - 2026-02-19
+### Added
+- feat: add Babysitter SDK version badge to footer
+- feat: add GitHub Actions auto-versioning on merge to main
+### Other
+- Merge pull request #2 from YoavMayer/hotfix/auto-versioning
+- docs: add dashboard screenshots to README and capture script
+
+## [0.6.5] - 2026-02-18
+### Fixed
+- **E2E test hardening** — increased timeouts from 30s to 60s in dashboard and run-detail page objects to prevent flaky failures on slower CI environments
+- **Playwright global timeout** — raised from 90s to 120s for more reliable E2E test execution
+- **Settings modal selector** — replaced fragile `getByTitle("Settings")` with `getByRole("button", { name: "Settings" })` for resilient element selection
+- **Settings modal test assertion** — replaced heading text filter with `data-testid="settings-modal"` for deterministic modal visibility checks
+- **Navigation test marked slow** — `test.slow()` added to navigation roundtrip test that loads 3 pages sequentially
+
+## [0.6.3] - 2026-02-18
+### Added
+- **Activity sort flat list** -- "By Activity" mode now renders runs as a single flat chronological list with a Timeline section header, relative time labels (via `formatRelativeTime`), and inline status badges — no grouped sections ("In Progress", "Failed", "Completed") when sorting by activity
+- **Faster run discovery** -- discovery debounce reduced from 60s to 10s; watcher rescan interval reduced from 120s to 30s for quicker new-run detection
+- **Empty directory watching** -- `discoverAllRunsParentDirs()` ensures `.a5c/runs/` parent directories are watched even when empty, so new runs are detected immediately
+- **Known limitation documented** -- README documents that runs are only visible after first write to `.a5c/runs/` (agreed after first user interview)
+
+### Fixed
+- **HTML 404 error display** -- resilient fetcher now detects HTML responses during Next.js HMR recompilation and shows "Server temporarily unavailable" instead of dumping raw HTML into the error banner
+- **Transient 404 retry** -- 404 responses are now treated as retryable (Next.js dev server returns transient 404s during HMR); fetcher retries automatically with exponential backoff
+- **HTML content-type guard** -- fetcher detects `text/html` content-type on 200 OK responses and retries instead of failing with "Expected JSON response"
+
+### Changed
+- **Sort toggle styling** -- distinct visual styling per mode: warning/amber colors for "By Status", primary/magenta colors for "By Activity", with smooth transitions
+
+## [0.6.2] - 2026-02-18
+### Changed
+- **Sort mode visual distinction** -- "By Activity" now shows time-based sections ("Recent Activity" for last 24h, "Earlier" for older) with Clock icon and primary-colored badges; "By Status" keeps status-based sections ("In Progress", "Recent History") with pulsing Activity icon and warning-colored badges
+- **Settings: removed Label field** -- Watch Sources settings simplified to Path and Depth only; project labels already appear on each card, making the field redundant
+
+## [0.6.0] - 2026-02-18
+### Fixed — Defect List (#1)
+- **"Waiting: Task" status misleading** -- status badge now shows "Working" (info/cyan) instead of "Waiting: Task" for runs actively executing tasks
+- **Unknown step / error display** -- outcome banner shows human-readable error messages with formatted details instead of raw "An error occurred"
+- **Breakpoint visibility** -- pending breakpoints now display a prominent pulsing banner at the top of the dashboard with question text and approve/reject buttons
+- **Collapse state lost on navigation** -- project expand/collapse state persisted to `localStorage` via `usePersistedState` hook; returning from run detail restores previous state
+- **Sort and filter tabs** -- dashboard runs sortable by most recent activity; filter tabs (All, Active, Completed, Failed) let users view specific run states
+- **Global search** -- search runs by ID, title, or project name across all projects from the dashboard header
+- **Hide projects from dashboard** -- projects can be hidden/shown via settings modal visibility toggles without removing watch sources
+
+### Fixed — Defect List (#2)
+- **Projects fail to load (timeout)** -- critical performance fix: digest API now reads from in-memory cache instead of scanning filesystem on every 2s poll; added discovery result caching (10s TTL) and watcher-driven cache invalidation; response time improved from 60s+ timeout to ~50ms
+- **"Active Runs" label duplication** -- renamed "Active" metric and "Active Runs" section header to "In Progress" to avoid redundancy with the "Active" filter tab
+
+### Changed
+- **WCAG accessibility** -- all `text-[10px]` and `text-[9px]` instances (73+) upgraded to `text-xs` (12px minimum) across 22 component files for WCAG AA compliance
+- **Light theme contrast** -- `--foreground-muted` raised from `#a1a1aa` to `#71717a` (4.6:1 contrast ratio); border and card opacities increased for better visibility
+- **Opacity stacking removed** -- removed `/60`, `/70`, `/80` opacity modifiers on already-muted text colors across all components for reliable contrast
+- **Discovery caching** -- filesystem discovery results cached with 10s TTL; discovery debounce increased from 3s to 60s; watcher invalidates both discovery cache and run cache on new-run events
+- **Run cache optimization** -- `discoverAndCacheAll()` skips filesystem scan when cache is populated and no new runs detected via `discoveryNeeded` flag
+
+### Added
+- **`getAllCachedDigests()`** -- zero-I/O function for pure cache reads from digest API endpoint
+- **`requestDiscovery()`** -- watcher-triggered flag to signal when new runs may exist
+- **`invalidateDiscoveryCache()`** -- cache invalidation for discovery results on filesystem changes
+- **`usePersistedState` hook** -- generic localStorage-backed state persistence for UI preferences
+- **Breakpoint banner component** -- `breakpoint-banner.tsx` with pulsing indicator, question preview, and inline approve/reject
+- **Global search component** -- `global-search.tsx` with keyboard shortcut (Ctrl+K), debounced search, and result highlighting
+
 ## [0.5.3] - 2026-02-18
 ### Added
 - **Playwright performance test suite** -- 5 tests covering dashboard reload time, SSE connection indicator, DOM node count, navigation performance, and console error detection (`e2e/tests/performance.spec.ts`)

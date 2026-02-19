@@ -77,7 +77,7 @@ test.describe("KPI Metric Tiles", () => {
   test("Active tile shows the active run count", async ({ dashboardPage }) => {
     const tile = dashboardPage.getMetricTile("active");
     await expect(tile).toBeVisible();
-    await expect(tile).toContainText("Active");
+    await expect(tile).toContainText("In Progress");
     // Active = waiting + pending
     const activeCount =
       (manifest.statusCounts.waiting || 0) + (manifest.statusCounts.pending || 0);
@@ -401,6 +401,7 @@ test.describe("Run Cards", () => {
       const hasStatus =
         cardText.includes("Completed") ||
         cardText.includes("Waiting") ||
+        cardText.includes("Working") ||
         cardText.includes("Failed") ||
         cardText.includes("Running") ||
         cardText.includes("Pending");
@@ -714,8 +715,7 @@ test.describe("Settings Modal", () => {
     await dashboardPage.settingsButton.click();
 
     // Settings modal should become visible
-    // Look for common settings modal text
-    await expect(page.getByText("Settings")).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByTestId("settings-modal")).toBeVisible({ timeout: 10_000 });
   });
 });
 

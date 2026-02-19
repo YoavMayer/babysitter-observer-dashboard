@@ -3,10 +3,10 @@ import { test, expect } from "@playwright/test";
 test.describe("Smoke Test", () => {
   test("dashboard loads and displays content", async ({ page }) => {
     // Navigate to the dashboard - increase timeout for first compile
-    await page.goto("/", { timeout: 60_000 });
+    await page.goto("/", { timeout: 60_000, waitUntil: "domcontentloaded" });
 
     // Wait for the heading to appear
-    const heading = page.getByRole("heading", { name: "Babysitter Observer" });
+    const heading = page.getByRole("heading", { name: "Babysitter Observer" }).first();
     await expect(heading).toBeVisible({ timeout: 30_000 });
 
     // Wait for loading skeletons to disappear

@@ -1,12 +1,24 @@
-# @a5c-ai/babysitter-observer-dashboard
+# @yoavmayer/babysitter-observer-dashboard
 
-[![npm version](https://img.shields.io/npm/v/@a5c-ai/babysitter-observer-dashboard.svg)](https://www.npmjs.com/package/@a5c-ai/babysitter-observer-dashboard)
+[![npm version](https://img.shields.io/npm/v/@yoavmayer/babysitter-observer-dashboard.svg)](https://www.npmjs.com/package/@yoavmayer/babysitter-observer-dashboard)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
 
 Real-time observability dashboard for [babysitter](https://github.com/a5c-ai/babysitter) orchestration runs.
 
-<!-- TODO: Add dashboard screenshot -->
+![Babysitter Observer Dashboard — Dashboard View](docs/dashboard-landing-page.jpg)
+
+![Babysitter Observer Dashboard — Run Detail View](docs/dashboard-run-detail-dark.png)
+
+## What is Babysitter Observer Dashboard?
+
+Babysitter Observer Dashboard is a real-time browser-based monitoring UI for [babysitter](https://github.com/a5c-ai/babysitter) orchestration runs. If you use babysitter to orchestrate multi-step AI agent workflows, this dashboard gives you live visibility into what's happening across all your projects -- no more flying blind in the terminal. Point it at a directory, and it auto-discovers runs, streams updates to your browser, and lets you approve breakpoints without switching contexts.
+
+## Prerequisites
+
+- **Node.js >= 18** (LTS recommended)
+- A project using [babysitter](https://github.com/a5c-ai/babysitter) with `.a5c/runs/` directories
+- That's it -- zero config needed beyond that
 
 ## Features
 
@@ -26,26 +38,30 @@ Real-time observability dashboard for [babysitter](https://github.com/a5c-ai/bab
 - **Resilient networking** -- automatic retry with exponential backoff for transient API failures and AbortSignal integration
 - **CLI launcher** -- single command to start the dashboard pointing at any directory
 - **Lightweight digest endpoint** -- efficient polling endpoint that returns only run metadata, avoiding full payload transfers
+- **Global search** -- search runs by ID, title, or project name across all projects (Ctrl+K)
+- **Sort and filter tabs** -- filter by All, Active, Completed, or Failed runs; sort by most recent activity
+- **Project visibility** -- hide/show projects from the settings panel without removing watch sources
+- **WCAG AA accessibility** -- minimum 12px text sizes, 4.5:1+ contrast ratios in both light and dark themes
 
 ## Quick Start
 
 ### Option 1: Run directly with npx
 
 ```bash
-npx @a5c-ai/babysitter-observer-dashboard
+npx @yoavmayer/babysitter-observer-dashboard
 ```
 
 ### Option 2: Install globally
 
 ```bash
-npm install -g @a5c-ai/babysitter-observer-dashboard
+npm install -g @yoavmayer/babysitter-observer-dashboard
 babysitter-observer-dashboard
 ```
 
 ### Option 3: Add as a dev dependency
 
 ```bash
-npm install --save-dev @a5c-ai/babysitter-observer-dashboard
+npm install --save-dev @yoavmayer/babysitter-observer-dashboard
 ```
 
 Then add a script to your `package.json`:
@@ -360,14 +376,15 @@ BABYSITTER_CLI=/usr/local/bin/babysitter babysitter-observer-dashboard
 
 ## Known Limitations
 
-This is version `0.5.3`. The API and configuration format may change between minor versions.
+This is version `0.8.0`. The API and configuration format may change between minor versions.
 
 - **Local only** -- The observer reads run data from the local filesystem. There is no remote/cloud mode.
 - **No authentication** -- The dashboard and API endpoints are unauthenticated. Do not expose to untrusted networks.
 - **No persistent storage** -- All run state is held in an in-memory cache rebuilt from journal files on startup. Restarting the server reloads from disk.
 - **WSL2 file-watching latency** -- On Windows Subsystem for Linux 2, cross-filesystem file-system events may be delayed. The observer compensates with polling but updates may lag behind native Linux or macOS.
 - **Single-instance only** -- Running multiple observer instances watching the same directories is untested and may produce duplicate SSE events.
-- **Large run directories** -- Discovery scans directories up to the configured depth on every poll cycle. The configurable retention window (default 30 days) helps keep the dashboard responsive, but thousands of active run directories may still cause latency.
+- **Large run directories** -- Discovery scans are cached and debounced (filesystem rescans happen at most once per 60 seconds, triggered by the watcher on new-run events). The digest API reads purely from the in-memory cache with zero filesystem I/O. Thousands of run directories are handled efficiently, though initial startup may take a few seconds for the first scan.
+- **Runs visible only after first write to `.a5c/runs/`** -- The dashboard monitors `.a5c/runs/` directories for run data. Regular Claude Code terminal sessions that do not use babysitter orchestration will not appear on the dashboard. A run becomes visible only after the babysitter runtime writes its first journal entry to `.a5c/runs/<runId>/journal/`. This means there is a brief delay between starting a babysitter process and seeing it on the dashboard.
 - **No run deletion or archival** -- The observer is read-only (except for breakpoint resolution). There is no UI to delete, archive, or export runs.
 - **Browser notifications** -- Notification support depends on browser permissions and may not work in all environments.
 

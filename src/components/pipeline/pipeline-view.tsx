@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useMemo, useState, memo, useCallback } from "react";
 import { StepCard } from "./step-card";
 import { ParallelGroup } from "./parallel-group";
 import { ProgressBar } from "@/components/shared/progress-bar";
@@ -87,7 +87,7 @@ interface PipelineViewProps {
 
 const INITIAL_TASK_LIMIT = 20;
 
-export function PipelineView({ run, selectedEffectId, onSelectEffect, runStatus }: PipelineViewProps) {
+export const PipelineView = memo(function PipelineView({ run, selectedEffectId, onSelectEffect, runStatus }: PipelineViewProps) {
   const effectiveStatus = runStatus ?? run.status;
   const isReviewMode = effectiveStatus === "completed" || effectiveStatus === "failed";
   const isRunning = effectiveStatus === "requested" || effectiveStatus === "waiting";
@@ -130,7 +130,7 @@ export function PipelineView({ run, selectedEffectId, onSelectEffect, runStatus 
           <div className="flex-1">
             <ProgressBar value={progress} glow={isRunning} />
           </div>
-          <span className="text-[10px] leading-tight text-foreground-muted tabular-nums shrink-0">{progress}%</span>
+          <span className="text-xs leading-tight text-foreground-muted tabular-nums shrink-0">{progress}%</span>
         </div>
       </div>
 
@@ -194,4 +194,4 @@ export function PipelineView({ run, selectedEffectId, onSelectEffect, runStatus 
       </ScrollArea>
     </div>
   );
-}
+});

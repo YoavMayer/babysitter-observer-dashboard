@@ -36,6 +36,7 @@ export const useNotificationContext = () => useContext(NotificationContext);
 interface RunWatermark {
   status: string;
   completedTasks: number;
+  pendingBreakpoints: number;
   notifiedCompleted: boolean;
   notifiedFailed: boolean;
   notifiedWaiting: boolean;
@@ -64,6 +65,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         watermarks.set(run.runId, {
           status: run.status,
           completedTasks: run.completedTasks,
+          pendingBreakpoints: run.pendingBreakpoints || 0,
           notifiedCompleted: run.status === "completed",
           notifiedFailed: run.status === "failed",
           notifiedWaiting: run.status === "waiting",
@@ -80,6 +82,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         watermarks.set(run.runId, {
           status: run.status,
           completedTasks: run.completedTasks,
+          pendingBreakpoints: run.pendingBreakpoints || 0,
           notifiedCompleted: run.status === "completed",
           notifiedFailed: run.status === "failed",
           notifiedWaiting: run.status === "waiting",
@@ -143,6 +146,17 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       if (run.status !== "waiting" && wm.notifiedWaiting) {
         wm.notifiedWaiting = false;
       }
+
+      // Breakpoint resolved — pending count dropped to zero
+      if (wm.pendingBreakpoints > 0 && (run.pendingBreakpoints === 0 || run.pendingBreakpoints === undefined)) {
+        notify(
+          "Breakpoint Resolved",
+          `Breakpoint in ${formatShortId(run.runId, 4)} was approved`,
+          "success",
+          `/runs/${run.runId}`,
+        );
+      }
+      wm.pendingBreakpoints = run.pendingBreakpoints || 0;
 
       wm.status = run.status;
     }
