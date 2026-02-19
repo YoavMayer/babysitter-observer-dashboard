@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.1] - 2026-02-19
+### Fixed
+- fix: default watch-dir to user's cwd, add -y to npx examples
+- fix: default to production mode (next start) for published package
+- fix: use .bin/next wrapper instead of dist/bin/next for cross-platform compat
+- fix: resolve next binary correctly across npx, global, and devDep installs
+
 ## [0.8.0] - 2026-02-19
 ### Added
 - feat: rename npm scope from @a5c-ai to @yoavmayer for independent publishing
