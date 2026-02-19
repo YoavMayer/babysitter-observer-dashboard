@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.1] - 2026-02-19
+### Fixed
+- fix: restore conventional commit detection for minor/major version bumps
+
 ## [1.0.0] - 2026-02-19
 ### Changed
 - chore: simplify auto-version to always patch, use [minor]/[major] for explicit bumps
