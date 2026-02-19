@@ -12,7 +12,7 @@
  */
 
 import { execSync } from "child_process";
-import { readFileSync } from "fs";
+import { readFileSync, existsSync } from "fs";
 import { resolve } from "path";
 
 interface CliOptions {
@@ -137,6 +137,60 @@ function parseArgs(argv: string[]): CliOptions {
   return opts;
 }
 
+/**
+ * Locate the `next` binary across all installation scenarios.
+ *
+ * npm may hoist dependencies to a parent node_modules (e.g. when this
+ * package is installed via npx or as a dependency of another project).
+ * We try several strategies before giving up:
+ *
+ *   1. require.resolve — honours Node's module resolution & hoisting
+ *   2. Local node_modules/.bin — classic non-hoisted layout
+ *   3. Walk up the directory tree — covers deep-nested workspaces
+ *   4. Bare "next" — last resort, assumes it is on $PATH
+ */
+function findNextBin(): string {
+  const projectRoot = resolve(__dirname, "..");
+
+  // Method 1: Use require.resolve to find next's package.json (handles hoisting)
+  try {
+    const nextPkgPath = require.resolve("next/package.json", {
+      paths: [projectRoot],
+    });
+    // nextPkgPath => .../node_modules/next/package.json
+    const nextDir = resolve(nextPkgPath, "..");
+    const nextBinPath = resolve(nextDir, "dist", "bin", "next");
+    if (existsSync(nextBinPath)) {
+      return nextBinPath;
+    }
+  } catch {
+    // next is not resolvable from projectRoot — continue to fallbacks
+  }
+
+  // Method 2: Check the local node_modules/.bin (non-hoisted layout)
+  const localBin = resolve(projectRoot, "node_modules", ".bin", "next");
+  if (existsSync(localBin)) {
+    return localBin;
+  }
+
+  // Method 3: Walk up the directory tree looking for node_modules/.bin/next
+  let current = projectRoot;
+  while (true) {
+    const candidate = resolve(current, "node_modules", ".bin", "next");
+    if (existsSync(candidate)) {
+      return candidate;
+    }
+    const parent = resolve(current, "..");
+    if (parent === current) {
+      break; // reached filesystem root
+    }
+    current = parent;
+  }
+
+  // Method 4: Fall back to bare "next" and hope it is on PATH
+  return "next";
+}
+
 function main(): void {
   const opts = parseArgs(process.argv);
 
@@ -170,7 +224,7 @@ function main(): void {
   // Determine the Next.js command — use local binary for global installs
   const port = opts.port || process.env.OBSERVER_PORT || "3000";
   const projectRoot = resolve(__dirname, "..");
-  const nextBin = resolve(projectRoot, "node_modules", ".bin", "next");
+  const nextBin = findNextBin();
   const nextCmd = opts.production
     ? `"${nextBin}" start --port ${port}`
     : `"${nextBin}" dev --port ${port}`;

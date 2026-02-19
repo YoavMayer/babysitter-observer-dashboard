@@ -74,6 +74,12 @@ Then add a script to your `package.json`:
 }
 ```
 
+Or run it directly with npx without adding a script:
+
+```bash
+npx babysitter-observer-dashboard --watch-dir .
+```
+
 The dashboard opens at [http://localhost:3000](http://localhost:3000) by default.
 
 ## CLI Reference
@@ -328,6 +334,36 @@ If you see `Error: listen EADDRINUSE :::3000`, another process is using the defa
 
 ```bash
 babysitter-observer-dashboard --port 3001
+```
+
+### Permission errors on global install
+
+On macOS/Linux, global npm installs may require elevated permissions. If you see `EACCES` or permission-denied errors, try one of these approaches:
+
+**Recommended: use npx instead (no global install needed):**
+
+```bash
+npx @yoavmayer/babysitter-observer-dashboard
+```
+
+**Alternative: configure npm to use a user-writable directory:**
+
+```bash
+mkdir -p ~/.npm-global
+npm config set prefix "~/.npm-global"
+export PATH=~/.npm-global/bin:$PATH
+```
+
+Then retry the global install:
+
+```bash
+npm install -g @yoavmayer/babysitter-observer-dashboard
+```
+
+**Alternative: use sudo (not recommended):**
+
+```bash
+sudo npm install -g @yoavmayer/babysitter-observer-dashboard
 ```
 
 ### No runs appearing in the dashboard
