@@ -48,7 +48,7 @@ Babysitter Observer Dashboard is a real-time browser-based monitoring UI for [ba
 ### Option 1: Run directly with npx
 
 ```bash
-npx @yoavmayer/babysitter-observer-dashboard
+npx -y @yoavmayer/babysitter-observer-dashboard
 ```
 
 ### Option 2: Install globally
@@ -343,7 +343,7 @@ On macOS/Linux, global npm installs may require elevated permissions. If you see
 **Recommended: use npx instead (no global install needed):**
 
 ```bash
-npx @yoavmayer/babysitter-observer-dashboard
+npx -y @yoavmayer/babysitter-observer-dashboard
 ```
 
 **Alternative: configure npm to use a user-writable directory:**

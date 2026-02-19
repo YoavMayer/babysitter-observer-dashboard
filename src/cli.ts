@@ -216,9 +216,11 @@ function main(): void {
     process.env.OBSERVER_PORT = opts.port;
   }
 
-  if (opts.watchDir) {
-    process.env.OBSERVER_WATCH_DIR = opts.watchDir;
-  }
+  // Default watch directory to the user's cwd (not the package root, which is
+  // where Next.js will run). Without this, the config falls back to
+  // process.cwd() inside the Next.js process, which points at the package
+  // root — useless for npx / global installs.
+  process.env.OBSERVER_WATCH_DIR = opts.watchDir || process.cwd();
 
   if (opts.pollInterval) {
     process.env.OBSERVER_POLL_INTERVAL = opts.pollInterval;
