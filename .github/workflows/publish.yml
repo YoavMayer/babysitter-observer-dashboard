@@ -18,8 +18,6 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      # TODO: Remove '|| true' once test mock infrastructure is fixed (41 tests currently fail due to mock issues, not product bugs)
-      - run: npm test || true
-      - run: npm publish --tag alpha --access public
+      - run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

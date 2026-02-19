@@ -24,13 +24,13 @@ if [ -z "$COMMITS" ]; then
   exit 0
 fi
 
-# Determine bump type from conventional commits
+# Determine bump type: always patch unless commit message contains [minor] or [major]
 BUMP="patch"
 while IFS= read -r msg; do
-  if echo "$msg" | grep -qiE 'BREAKING CHANGE:|^\w+!\(|^\w+!:'; then
+  if echo "$msg" | grep -qF '[major]'; then
     BUMP="major"
     break
-  elif echo "$msg" | grep -qiE '^feat(\(.+\))?[!]?:'; then
+  elif echo "$msg" | grep -qF '[minor]'; then
     BUMP="minor"
   fi
 done <<< "$COMMITS"
