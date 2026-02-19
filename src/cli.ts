@@ -152,16 +152,19 @@ function parseArgs(argv: string[]): CliOptions {
 function findNextBin(): string {
   const projectRoot = resolve(__dirname, "..");
 
-  // Method 1: Use require.resolve to find next's package.json (handles hoisting)
+  // Method 1: Use require.resolve to find next's package.json (handles hoisting).
+  // We derive the .bin/next wrapper path (not dist/bin/next) because the wrapper
+  // is cross-platform: on Unix it has a shebang, on Windows there is a .cmd peer.
   try {
     const nextPkgPath = require.resolve("next/package.json", {
       paths: [projectRoot],
     });
     // nextPkgPath => .../node_modules/next/package.json
-    const nextDir = resolve(nextPkgPath, "..");
-    const nextBinPath = resolve(nextDir, "dist", "bin", "next");
-    if (existsSync(nextBinPath)) {
-      return nextBinPath;
+    // Go up to the containing node_modules directory, then into .bin
+    const nodeModulesDir = resolve(nextPkgPath, "..", "..");
+    const binPath = resolve(nodeModulesDir, ".bin", "next");
+    if (existsSync(binPath) || existsSync(binPath + ".cmd")) {
+      return binPath;
     }
   } catch {
     // next is not resolvable from projectRoot — continue to fallbacks
