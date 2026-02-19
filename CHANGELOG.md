@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.1] - 2026-02-19
+### Other
+- ci: add workflow_dispatch trigger to publish workflow
+
 ## [0.7.0] - 2026-02-19
 ### Added
 - feat: add Babysitter SDK version badge to footer
