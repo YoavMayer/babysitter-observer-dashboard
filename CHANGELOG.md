@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.0] - 2026-02-19
+### Added
+- feat: rename npm scope from @a5c-ai to @yoavmayer for independent publishing
+
 ## [0.7.3] - 2026-02-19
 ### Fixed
 - fix: make breakpoint panel read-only and fix stale breakpoint display
