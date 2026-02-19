@@ -6,7 +6,9 @@
 
 Real-time observability dashboard for [babysitter](https://github.com/a5c-ai/babysitter) orchestration runs.
 
-<!-- TODO: Add dashboard screenshot -->
+![Babysitter Observer Dashboard — Dashboard View](docs/dashboard-landing-page.jpg)
+
+![Babysitter Observer Dashboard — Run Detail View](docs/dashboard-run-detail-dark.png)
 
 ## Features
 
