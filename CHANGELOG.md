@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.0] - 2026-02-19
+### Changed
+- chore: simplify auto-version to always patch, use [minor]/[major] for explicit bumps
+
 ## [0.8.3] - 2026-02-19
 ### Other
 - docs: add Dashboard Settings Panel section explaining Watch Sources, Depth, and other UI settings
