@@ -20,7 +20,7 @@ interface CliOptions {
   watchDir?: string;
   pollInterval?: string;
   theme?: string;
-  production?: boolean;
+  dev?: boolean;
   help?: boolean;
   version?: boolean;
 }
@@ -47,7 +47,7 @@ Options:
   --watch-dir <path>        Directory to watch for .a5c/runs (default: cwd)
   --poll-interval <ms>      Polling interval in milliseconds (default: 2000)
   --theme <dark|light>      Default UI theme (default: dark)
-  --production              Run in production mode (next start) instead of dev
+  --dev                     Run in dev mode (next dev) instead of production
   --version, -v             Show version number
   --help                    Show this help message
 
@@ -58,11 +58,11 @@ Environment variable mapping:
   --theme          -> OBSERVER_DEFAULT_THEME
 
 Examples:
-  # Start dev server on port 3002 watching a specific directory
+  # Start dashboard on port 3002 watching a specific directory
   observer --port 3002 --watch-dir /home/user/projects
 
-  # Start production server with light theme
-  observer --production --theme light
+  # Start with light theme
+  observer --theme light
 `.trim();
 
   console.log(usage);
@@ -113,8 +113,12 @@ function parseArgs(argv: string[]): CliOptions {
         }
         break;
 
+      case "--dev":
+        opts.dev = true;
+        break;
+
       case "--production":
-        opts.production = true;
+        // Legacy flag — production is now the default, so this is a no-op
         break;
 
       case "--version":
@@ -228,9 +232,9 @@ function main(): void {
   const port = opts.port || process.env.OBSERVER_PORT || "3000";
   const projectRoot = resolve(__dirname, "..");
   const nextBin = findNextBin();
-  const nextCmd = opts.production
-    ? `"${nextBin}" start --port ${port}`
-    : `"${nextBin}" dev --port ${port}`;
+  const nextCmd = opts.dev
+    ? `"${nextBin}" dev --port ${port}`
+    : `"${nextBin}" start --port ${port}`;
 
   console.log(`Starting observer: ${nextCmd}`);
 

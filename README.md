@@ -94,7 +94,7 @@ babysitter-observer-dashboard [options]
 | `--watch-dir <path>` | string | current working directory | Directory to watch for `.a5c/runs/` subdirectories |
 | `--poll-interval <ms>` | number | `2000` | Polling interval in milliseconds |
 | `--theme <dark\|light>` | string | `dark` | Default UI color theme |
-| `--production` | boolean | `false` | Run in production mode (`next start`) instead of dev mode (`next dev`) |
+| `--dev` | boolean | `false` | Run in dev mode (`next dev`) instead of production mode (`next start`) |
 | `--version`, `-v` | -- | -- | Show version number and exit |
 | `--help`, `-h` | -- | -- | Show help message and exit |
 
@@ -104,8 +104,8 @@ babysitter-observer-dashboard [options]
 # Watch a specific project directory on a custom port
 babysitter-observer-dashboard --port 3002 --watch-dir /home/user/projects
 
-# Production mode with light theme
-babysitter-observer-dashboard --production --theme light
+# Light theme
+babysitter-observer-dashboard --theme light
 
 # Fast polling for latency-sensitive workflows
 babysitter-observer-dashboard --poll-interval 500
