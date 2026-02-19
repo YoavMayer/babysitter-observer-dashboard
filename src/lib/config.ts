@@ -114,9 +114,9 @@ async function loadRegistry(): Promise<RegistryData> {
 function getDefaultSources(): WatchSource[] {
   const sources: WatchSource[] = [];
 
-  // CLI flag via OBSERVER_WATCH_DIR (set by src/cli.ts)
+  // CLI flag via OBSERVER_WATCH_DIR (set by src/cli.ts — defaults to user's cwd)
   if (process.env.OBSERVER_WATCH_DIR) {
-    sources.push({ path: process.env.OBSERVER_WATCH_DIR, depth: 2, label: "cli" });
+    sources.push({ path: process.env.OBSERVER_WATCH_DIR, depth: 3, label: "cli" });
   }
 
   // WATCH_DIR env (backwards-compatible single dir)
