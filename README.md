@@ -10,6 +10,16 @@ Real-time observability dashboard for [babysitter](https://github.com/a5c-ai/bab
 
 ![Babysitter Observer Dashboard — Run Detail View](docs/dashboard-run-detail-dark.png)
 
+## What is Babysitter Observer Dashboard?
+
+Babysitter Observer Dashboard is a real-time browser-based monitoring UI for [babysitter](https://github.com/a5c-ai/babysitter) orchestration runs. If you use babysitter to orchestrate multi-step AI agent workflows, this dashboard gives you live visibility into what's happening across all your projects -- no more flying blind in the terminal. Point it at a directory, and it auto-discovers runs, streams updates to your browser, and lets you approve breakpoints without switching contexts.
+
+## Prerequisites
+
+- **Node.js >= 18** (LTS recommended)
+- A project using [babysitter](https://github.com/a5c-ai/babysitter) with `.a5c/runs/` directories
+- That's it -- zero config needed beyond that
+
 ## Features
 
 - **Multi-project dashboard** -- auto-discovers `.a5c/runs/` directories across multiple projects and groups runs by project
