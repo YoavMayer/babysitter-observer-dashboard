@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.2] - 2026-02-19
+### Fixed
+- fix: auto-version workflow now creates annotated tags and pushes them explicitly
+
 ## [0.7.1] - 2026-02-19
 ### Fixed
 - fix: resolve double shebang and missing next binary in global CLI install
