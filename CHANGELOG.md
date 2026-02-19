@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.0] - 2026-02-19
+### Added
+- feat: add Babysitter SDK version badge to footer
+- feat: add GitHub Actions auto-versioning on merge to main
+### Other
+- Merge pull request #2 from YoavMayer/hotfix/auto-versioning
+- docs: add dashboard screenshots to README and capture script
+
 ## [0.6.5] - 2026-02-18
 ### Fixed
 - **E2E test hardening** — increased timeouts from 30s to 60s in dashboard and run-detail page objects to prevent flaky failures on slower CI environments
