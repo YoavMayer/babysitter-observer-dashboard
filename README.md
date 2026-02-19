@@ -1,6 +1,6 @@
-# @a5c-ai/babysitter-observer-dashboard
+# @yoavmayer/babysitter-observer-dashboard
 
-[![npm version](https://img.shields.io/npm/v/@a5c-ai/babysitter-observer-dashboard.svg)](https://www.npmjs.com/package/@a5c-ai/babysitter-observer-dashboard)
+[![npm version](https://img.shields.io/npm/v/@yoavmayer/babysitter-observer-dashboard.svg)](https://www.npmjs.com/package/@yoavmayer/babysitter-observer-dashboard)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
 
@@ -48,20 +48,20 @@ Babysitter Observer Dashboard is a real-time browser-based monitoring UI for [ba
 ### Option 1: Run directly with npx
 
 ```bash
-npx @a5c-ai/babysitter-observer-dashboard
+npx @yoavmayer/babysitter-observer-dashboard
 ```
 
 ### Option 2: Install globally
 
 ```bash
-npm install -g @a5c-ai/babysitter-observer-dashboard
+npm install -g @yoavmayer/babysitter-observer-dashboard
 babysitter-observer-dashboard
 ```
 
 ### Option 3: Add as a dev dependency
 
 ```bash
-npm install --save-dev @a5c-ai/babysitter-observer-dashboard
+npm install --save-dev @yoavmayer/babysitter-observer-dashboard
 ```
 
 Then add a script to your `package.json`:
