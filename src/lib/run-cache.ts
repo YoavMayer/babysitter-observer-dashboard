@@ -170,6 +170,15 @@ export function invalidateRun(runDir: string): void {
   getCache().delete(runDir);
 }
 
+export function forceRefreshBreakpointRuns(): void {
+  const cache = getCache();
+  for (const [runDir, entry] of cache) {
+    if (entry.digest.pendingBreakpoints && entry.digest.pendingBreakpoints > 0) {
+      cache.delete(runDir);
+    }
+  }
+}
+
 export function invalidateAll(): void {
   getCache().clear();
   lastDiscoveryTime = 0;
@@ -222,10 +231,10 @@ export function getProjectSummaries(): ProjectSummary[] {
       existing.staleRuns++;
     }
 
-    // Track pending breakpoints — always show regardless of staleness,
-    // since a breakpoint waiting for approval is the most critical action item
+    // Track pending breakpoints — only count from cache entries that haven't expired
+    // to ensure stale cache entries don't contribute breakpoint counts
     if (entry.digest.pendingBreakpoints && entry.digest.pendingBreakpoints > 0 &&
-        entry.digest.waitingKind === "breakpoint") {
+        entry.digest.waitingKind === "breakpoint" && isCacheValid(entry)) {
       existing.pendingBreakpoints += entry.digest.pendingBreakpoints;
       existing.breakpointRuns.push({
         runId: entry.digest.runId,

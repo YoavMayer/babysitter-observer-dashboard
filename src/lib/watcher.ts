@@ -76,6 +76,18 @@ function handleJournalChange(journalDir: string) {
   });
 }
 
+function handleTasksChange(tasksDir: string) {
+  const runDir = path.dirname(tasksDir);
+
+  debounceChange(runDir, () => {
+    invalidateRun(runDir);
+    watcherEvents.emit("change", {
+      type: "run-changed",
+      runDir,
+    } as WatcherEvent);
+  });
+}
+
 function handleRunsParentChange(runsDir: string) {
   debounceChange(runsDir, () => {
     // Invalidate caches so new runs are picked up on next request
@@ -130,6 +142,14 @@ async function setupWatchers() {
       // Journal dir doesn't exist yet — skip for now
     }
 
+    const tasksDir = path.join(runDir, "tasks");
+    try {
+      await fs.access(tasksDir);
+      neededDirs.add(tasksDir);
+    } catch {
+      // Tasks dir doesn't exist yet — skip for now
+    }
+
     const runsDir = path.dirname(runDir);
     runsParentDirs.add(runsDir);
   }
@@ -165,8 +185,14 @@ async function setupWatchers() {
   // Only create new watchers for newly discovered directories
   for (const dirPath of neededDirs) {
     if (!state.activeWatchers.has(dirPath)) {
-      const isJournalDir = path.basename(dirPath) === "journal";
-      const onChange = isJournalDir ? handleJournalChange : handleRunsParentChange;
+      const baseName = path.basename(dirPath);
+      const isJournalDir = baseName === "journal";
+      const isTasksDir = baseName === "tasks";
+      const onChange = isJournalDir
+        ? handleJournalChange
+        : isTasksDir
+          ? handleTasksChange
+          : handleRunsParentChange;
       const watcher = watchDirectory(dirPath, onChange);
       if (watcher) {
         state.activeWatchers.set(dirPath, watcher);

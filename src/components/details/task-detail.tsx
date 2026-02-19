@@ -1,5 +1,4 @@
 "use client";
-import type { MutableRefObject } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { AgentPanel } from "./agent-panel";
 import { TimingPanel } from "./timing-panel";
@@ -9,23 +8,16 @@ import { BreakpointPanel } from "@/components/breakpoint/breakpoint-panel";
 import { useTaskDetail } from "@/hooks/use-run-detail";
 import { Loader2, Hand } from "lucide-react";
 
-export interface BreakpointPanelHandle {
-  triggerApprove: () => void;
-  triggerReject: () => void;
-}
-
 interface TaskDetailPanelProps {
   runId: string;
   effectId: string | null;
   activeTab?: string;
   onTabChange?: (tab: string) => void;
-  breakpointPanelRef?: MutableRefObject<BreakpointPanelHandle | null>;
-  onBreakpointResolved?: (approved: boolean) => void;
   runDuration?: number;
   allTasks?: import("@/types").TaskEffect[];
 }
 
-export function TaskDetailPanel({ runId, effectId, activeTab, onTabChange, breakpointPanelRef, onBreakpointResolved, runDuration, allTasks }: TaskDetailPanelProps) {
+export function TaskDetailPanel({ runId, effectId, activeTab, onTabChange, runDuration, allTasks }: TaskDetailPanelProps) {
   const { task, loading } = useTaskDetail(runId, effectId);
 
   if (!effectId) {
@@ -67,8 +59,6 @@ export function TaskDetailPanel({ runId, effectId, activeTab, onTabChange, break
             <BreakpointPanel
               task={task}
               runId={runId}
-              onResolved={onBreakpointResolved}
-              imperativeRef={breakpointPanelRef}
             />
           </TabsContent>
         )}
