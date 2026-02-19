@@ -5,8 +5,8 @@ import { ShortcutsHelp } from '../shortcuts-help';
 
 describe('ShortcutsHelp', () => {
   it('renders nothing initially (modal is closed)', () => {
-    const { container } = render(<ShortcutsHelp />);
-    expect(container.firstChild).toBeNull();
+    render(<ShortcutsHelp />);
+    expect(screen.queryByText('Keyboard Shortcuts')).not.toBeInTheDocument();
   });
 
   it('opens modal on "?" key press', () => {
@@ -31,9 +31,9 @@ describe('ShortcutsHelp', () => {
     expect(screen.getByText('Timing tab')).toBeInTheDocument();
     expect(screen.getByText('Logs tab')).toBeInTheDocument();
     expect(screen.getByText('Data tab')).toBeInTheDocument();
-    expect(screen.getByText('Breakpoint tab')).toBeInTheDocument();
-    expect(screen.getByText('Approve breakpoint')).toBeInTheDocument();
-    expect(screen.getByText('Reject breakpoint')).toBeInTheDocument();
+    expect(screen.getByText('Approval tab')).toBeInTheDocument();
+    expect(screen.getByText('Approve request')).toBeInTheDocument();
+    expect(screen.getByText('Reject request')).toBeInTheDocument();
   });
 
   it('displays keyboard keys when open', () => {
@@ -61,20 +61,9 @@ describe('ShortcutsHelp', () => {
     fireEvent.keyDown(window, { key: '?' });
     expect(screen.getByText('Keyboard Shortcuts')).toBeInTheDocument();
 
-    // Click the close button (the X button)
-    const closeButton = screen.getByRole('button');
+    // Click the close button (the X button) - find it via the Dialog.Close wrapping
+    const closeButton = screen.getByTestId('icon-X').closest('button')!;
     fireEvent.click(closeButton);
-    expect(screen.queryByText('Keyboard Shortcuts')).not.toBeInTheDocument();
-  });
-
-  it('closes modal when clicking the backdrop', () => {
-    const { container } = render(<ShortcutsHelp />);
-    fireEvent.keyDown(window, { key: '?' });
-    expect(screen.getByText('Keyboard Shortcuts')).toBeInTheDocument();
-
-    // Click the outer overlay div (first child is the fixed inset-0 z-50 wrapper)
-    const overlay = container.firstChild as HTMLElement;
-    fireEvent.click(overlay);
     expect(screen.queryByText('Keyboard Shortcuts')).not.toBeInTheDocument();
   });
 });

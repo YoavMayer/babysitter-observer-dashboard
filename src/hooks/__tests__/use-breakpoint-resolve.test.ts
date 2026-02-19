@@ -2,15 +2,18 @@ import { renderHook, act } from '@testing-library/react';
 import { useBreakpointResolve } from '../use-breakpoint-resolve';
 
 function mockFetchSuccess(data: unknown) {
-  return vi.fn().mockResolvedValue({
-    ok: true,
-    json: () => Promise.resolve(data),
-    text: () => Promise.resolve(JSON.stringify(data)),
-  });
+  return vi.fn().mockImplementation(() =>
+    Promise.resolve(
+      new Response(JSON.stringify(data), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    )
+  );
 }
 
 // Helper: flush microtasks by awaiting a resolved promise
-function flushMicrotasks() {
+function _flushMicrotasks() {
   return new Promise<void>((resolve) => resolve());
 }
 
@@ -92,11 +95,12 @@ describe('useBreakpointResolve', () => {
     expect(result.current.loading).toBe(true);
 
     await act(async () => {
-      resolveFetch({
-        ok: true,
-        json: () => Promise.resolve({ success: true }),
-        text: () => Promise.resolve(JSON.stringify({ success: true })),
-      });
+      resolveFetch(
+        new Response(JSON.stringify({ success: true }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      );
       await resolvePromise!;
     });
 
@@ -108,12 +112,9 @@ describe('useBreakpointResolve', () => {
     // resilientFetch reads response.text() for errors; empty text falls back to "HTTP 400"
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({
-        ok: false,
-        status: 400,
-        json: () => Promise.resolve({}),
-        text: () => Promise.resolve(''),
-      })
+      vi.fn().mockImplementation(() =>
+        Promise.resolve(new Response('', { status: 400 }))
+      )
     );
 
     const { result } = renderHook(() => useBreakpointResolve());
@@ -135,15 +136,13 @@ describe('useBreakpointResolve', () => {
     expect(fetch).toHaveBeenCalledTimes(1);
   });
 
-  it('handles HTTP 404 error without retry when no custom error message', async () => {
+  it('handles HTTP 404 error with retry (404 is retryable for HMR)', async () => {
+    // 404 is retryable in resilientFetch due to Next.js HMR transient 404s
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({
-        ok: false,
-        status: 404,
-        json: () => Promise.resolve({}),
-        text: () => Promise.resolve(''),
-      })
+      vi.fn().mockImplementation(() =>
+        Promise.resolve(new Response('', { status: 404 }))
+      )
     );
 
     const { result } = renderHook(() => useBreakpointResolve());
@@ -160,18 +159,16 @@ describe('useBreakpointResolve', () => {
     expect(caughtError).not.toBeNull();
     expect(caughtError!.message).toBe('HTTP 404');
     expect(result.current.error).toBe('HTTP 404');
-    expect(fetch).toHaveBeenCalledTimes(1);
-  });
+    // 404 is retryable: 1 initial + 2 retries = 3
+    expect(fetch).toHaveBeenCalledTimes(3);
+  }, 15000);
 
   it('retries on 500 server error up to MAX_RETRIES', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({
-        ok: false,
-        status: 500,
-        json: () => Promise.resolve({ error: 'Server error' }),
-        text: () => Promise.resolve('Server error'),
-      })
+      vi.fn().mockImplementation(() =>
+        Promise.resolve(new Response('Server error', { status: 500 }))
+      )
     );
 
     const { result } = renderHook(() => useBreakpointResolve());
@@ -197,17 +194,13 @@ describe('useBreakpointResolve', () => {
 
   it('succeeds on retry after initial server error', async () => {
     const fetchMock = vi.fn()
-      .mockResolvedValueOnce({
-        ok: false,
-        status: 500,
-        json: () => Promise.resolve({ error: 'Server error' }),
-        text: () => Promise.resolve('Server error'),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ success: true }),
-        text: () => Promise.resolve(JSON.stringify({ success: true })),
-      });
+      .mockResolvedValueOnce(new Response('Server error', { status: 500 }))
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ success: true }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      );
     vi.stubGlobal('fetch', fetchMock);
 
     const { result } = renderHook(() => useBreakpointResolve());
@@ -224,11 +217,14 @@ describe('useBreakpointResolve', () => {
   it('handles response with success=false', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ success: false, error: 'Resolution failed' }),
-        text: () => Promise.resolve(JSON.stringify({ success: false, error: 'Resolution failed' })),
-      })
+      vi.fn().mockImplementation(() =>
+        Promise.resolve(
+          new Response(JSON.stringify({ success: false, error: 'Resolution failed' }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          })
+        )
+      )
     );
 
     const { result } = renderHook(() => useBreakpointResolve());
@@ -250,12 +246,9 @@ describe('useBreakpointResolve', () => {
   it('clearError resets error state', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({
-        ok: false,
-        status: 400,
-        json: () => Promise.resolve({ error: 'Bad request' }),
-        text: () => Promise.resolve('Bad request'),
-      })
+      vi.fn().mockImplementation(() =>
+        Promise.resolve(new Response('Bad request', { status: 400 }))
+      )
     );
 
     const { result } = renderHook(() => useBreakpointResolve());

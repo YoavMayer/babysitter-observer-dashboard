@@ -16,8 +16,8 @@ import type { JournalEvent, EffectRequestedPayload } from "@/types";
 export default function RunDetailPage({ params }: { params: { runId: string } }) {
   const { runId } = params;
   const router = useRouter();
-  const { run, loading, error, hasBreakpointWaiting } = useRunDetail(runId);
-  const { notifications, dismiss, notify } = useNotificationContext();
+  const { run, loading, error, hasBreakpointWaiting: _hasBreakpointWaiting } = useRunDetail(runId);
+  const { notifications: _notifications, dismiss: _dismiss, notify: _notify } = useNotificationContext();
   const [selectedEffectId, setSelectedEffectId] = useState<string | null>(null);
   const [showDetail, setShowDetail] = useState(false);
   const [showEventStream, setShowEventStream] = useState(true);
@@ -56,7 +56,7 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
       : -1;
     const nextIdx = Math.min(currentIdx + 1, tasks.length - 1);
     handleSelectEffect(tasks[nextIdx].effectId);
-  }, [tasks, selectedEffectId]);
+  }, [tasks, selectedEffectId, handleSelectEffect]);
 
   const moveUp = useCallback(() => {
     if (!tasks.length) return;
@@ -65,7 +65,7 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
       : tasks.length;
     const prevIdx = Math.max(currentIdx - 1, 0);
     handleSelectEffect(tasks[prevIdx].effectId);
-  }, [tasks, selectedEffectId]);
+  }, [tasks, selectedEffectId, handleSelectEffect]);
 
   const goBack = useCallback(() => {
     if (showDetail) {
@@ -80,15 +80,14 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
     setShowEventStream((v) => !v);
   }, []);
 
-  const tabKeys: Record<string, string> = {
-    "1": "agent",
-    "2": "timing",
-    "3": "logs",
-    "4": "data",
-    "5": "breakpoint",
-  };
-
   const switchTab = useCallback((key: string) => {
+    const tabKeys: Record<string, string> = {
+      "1": "agent",
+      "2": "timing",
+      "3": "logs",
+      "4": "data",
+      "5": "breakpoint",
+    };
     const tab = tabKeys[key];
     if (tab) {
       // Only allow breakpoint tab if the selected task is a breakpoint
@@ -106,7 +105,7 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
     { key: "2", action: () => switchTab("2"), description: "Timing tab" },
     { key: "3", action: () => switchTab("3"), description: "Logs tab" },
     { key: "4", action: () => switchTab("4"), description: "Data tab" },
-    { key: "5", action: () => switchTab("5"), description: "Breakpoint tab" },
+    { key: "5", action: () => switchTab("5"), description: "Approval tab" },
   ]);
 
   if (loading && !run) {
@@ -133,7 +132,7 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
       <div className="flex items-center gap-3 px-4 py-2 border-b border-border bg-background-secondary/40">
         <button
           onClick={() => router.push("/")}
-          className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-xs font-medium text-foreground-muted hover:text-foreground hover:border-primary/50 hover:shadow-neon-glow-primary-ring transition-all duration-200"
+          className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 min-h-[44px] text-xs font-medium text-foreground-muted hover:text-foreground hover:border-primary/50 hover:shadow-neon-glow-primary-ring transition-all duration-200"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           Dashboard
@@ -179,7 +178,7 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
               <button
                 data-testid="close-detail-btn"
                 onClick={() => { setShowDetail(false); setSelectedEffectId(null); }}
-                className="inline-flex items-center gap-1.5 rounded-md border border-primary/20 px-2.5 py-1 text-xs font-medium text-foreground-muted hover:text-primary hover:border-primary/50 hover:shadow-neon-glow-primary-ring transition-all duration-200"
+                className="inline-flex items-center gap-1.5 rounded-md border border-primary/20 px-2.5 py-1 min-h-[44px] text-xs font-medium text-foreground-muted hover:text-primary hover:border-primary/50 hover:shadow-neon-glow-primary-ring transition-all duration-200"
               >
                 <X className="h-3.5 w-3.5" />
                 Close

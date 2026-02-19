@@ -23,6 +23,7 @@ function makeNotification(overrides: Partial<AppNotification> = {}): AppNotifica
     type: overrides.type ?? 'info',
     timestamp: overrides.timestamp ?? Date.now(),
     href: overrides.href,
+    persistent: overrides.persistent,
   };
 }
 
@@ -183,6 +184,30 @@ describe('ToastStack', () => {
     render(<ToastStack notifications={notifications} onDismiss={vi.fn()} />);
 
     expect(screen.getByTestId('icon-Info')).toBeInTheDocument();
+  });
+
+  // -----------------------------------------------------------------------
+  // Persistent notification shows Pin icon
+  // -----------------------------------------------------------------------
+  it('shows a Pin icon for persistent notifications', () => {
+    const notifications = [
+      makeNotification({ id: 't1', title: 'Breakpoint', persistent: true }),
+    ];
+
+    render(<ToastStack notifications={notifications} onDismiss={vi.fn()} />);
+
+    expect(screen.getByTestId('icon-Pin')).toBeInTheDocument();
+    expect(screen.getByLabelText('Persistent notification')).toBeInTheDocument();
+  });
+
+  it('does not show a Pin icon for non-persistent notifications', () => {
+    const notifications = [
+      makeNotification({ id: 't1', title: 'Normal' }),
+    ];
+
+    render(<ToastStack notifications={notifications} onDismiss={vi.fn()} />);
+
+    expect(screen.queryByTestId('icon-Pin')).not.toBeInTheDocument();
   });
 
   // -----------------------------------------------------------------------

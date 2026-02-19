@@ -40,7 +40,7 @@ export function SearchFilter({ search, onSearchChange, statusFilter, onStatusFil
             key={f.value}
             onClick={() => onStatusFilterChange(f.value)}
             className={cn(
-              "rounded-md px-3 py-1.5 text-xs font-medium transition-all",
+              "rounded-md px-3 py-1.5 min-h-[44px] text-xs font-medium transition-all",
               statusFilter === f.value
                 ? "bg-primary/15 text-primary shadow-neon-glow-primary-ring"
                 : "text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary"
@@ -54,7 +54,7 @@ export function SearchFilter({ search, onSearchChange, statusFilter, onStatusFil
         <button
           onClick={() => onGroupByProjectChange(!groupByProject)}
           className={cn(
-            "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all",
+            "flex items-center gap-1.5 rounded-md px-3 py-1.5 min-h-[44px] text-xs font-medium transition-all",
             groupByProject
               ? "bg-primary/15 text-primary shadow-neon-glow-primary-ring"
               : "text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary"

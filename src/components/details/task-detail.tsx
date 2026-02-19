@@ -45,7 +45,7 @@ export function TaskDetailPanel({ runId, effectId, activeTab, onTabChange, runDu
         {isBreakpoint && (
           <TabsTrigger value="breakpoint" className="gap-1">
             <Hand className="h-3 w-3" />
-            Breakpoint
+            Approval
           </TabsTrigger>
         )}
         <TabsTrigger value="agent">Agent</TabsTrigger>

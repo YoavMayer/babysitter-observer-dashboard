@@ -182,7 +182,7 @@ export function ProjectHealthCard({ project, statusFilter, sortMode = "status", 
                 "animate-pulse-dot"
               )}>
                 <Hand className="h-2.5 w-2.5" />
-                {project.pendingBreakpoints} BP
+                {project.pendingBreakpoints} Pending
               </span>
             )}
           </div>
@@ -193,7 +193,7 @@ export function ProjectHealthCard({ project, statusFilter, sortMode = "status", 
               onClick={handleHide}
               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleHide(e as unknown as React.MouseEvent); } }}
               className={cn(
-                "rounded-md p-1 transition-colors",
+                "rounded-md p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center transition-colors",
                 hiding
                   ? "text-foreground-muted cursor-wait"
                   : "text-foreground-muted/40 hover:text-foreground-muted hover:bg-background-secondary"

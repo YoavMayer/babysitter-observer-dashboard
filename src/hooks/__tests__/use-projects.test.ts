@@ -43,13 +43,16 @@ describe('useProjects', () => {
     vi.stubGlobal('EventSource', MockEventSource);
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: () =>
-          Promise.resolve({
+      vi.fn().mockImplementation(() =>
+        Promise.resolve(
+          new Response(JSON.stringify({
             projects: mockProjects,
-          }),
-      })
+          }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          })
+        )
+      )
     );
   });
 
@@ -101,10 +104,14 @@ describe('useProjects', () => {
   it('returns empty projects array when data is null', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(null),
-      })
+      vi.fn().mockImplementation(() =>
+        Promise.resolve(
+          new Response(JSON.stringify(null), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          })
+        )
+      )
     );
 
     const { result } = renderHook(() => useProjects());
@@ -117,14 +124,12 @@ describe('useProjects', () => {
   });
 
   it('handles fetch error', async () => {
-    // Use 4xx error to avoid retries from resilientFetch
+    // Use 4xx error (not 404, which is retryable) to avoid retries from resilientFetch
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({
-        ok: false,
-        status: 400,
-        text: () => Promise.resolve('HTTP 400'),
-      })
+      vi.fn().mockImplementation(() =>
+        Promise.resolve(new Response('HTTP 400', { status: 400 }))
+      )
     );
 
     const { result } = renderHook(() => useProjects());

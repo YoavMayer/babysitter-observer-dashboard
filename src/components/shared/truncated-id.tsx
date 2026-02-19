@@ -27,7 +27,7 @@ export function TruncatedId({ id, chars = 4, className }: TruncatedIdProps) {
         <TooltipTrigger asChild>
           <span
             className={cn(
-              'inline-flex items-center rounded px-1 py-0.5 font-mono text-xs',
+              'inline-flex items-center justify-center rounded px-2 py-1 min-h-[44px] min-w-[44px] font-mono text-xs',
               'bg-background-secondary text-info/80',
               'hover:bg-background-tertiary hover:text-info',
               'cursor-pointer transition-colors select-none',
@@ -35,6 +35,9 @@ export function TruncatedId({ id, chars = 4, className }: TruncatedIdProps) {
               className
             )}
             onClick={handleCopy}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleCopy(e as unknown as React.MouseEvent); } }}
           >
             {formatShortId(id, chars)}
           </span>

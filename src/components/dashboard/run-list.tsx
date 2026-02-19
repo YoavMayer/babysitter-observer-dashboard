@@ -50,7 +50,7 @@ export function RunList({ runs, selectedIndex, groupByProject = false }: RunList
   }
 
   // Flat list with pagination
-  const totalPages = Math.ceil(runs.length / pageSize);
+  const _totalPages = Math.ceil(runs.length / pageSize);
   const displayedRuns = runs.slice(0, (currentPage + 1) * pageSize);
   const hasMore = displayedRuns.length < runs.length;
 

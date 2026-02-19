@@ -531,7 +531,9 @@ body {
   .animate-spin-smooth,
   .animate-slide-in-right,
   .animate-breakpoint-glow,
-  .animate-pulse {
+  .animate-pulse,
+  .animate-spin,
+  .animate-ping {
     animation: none !important;
   }
 

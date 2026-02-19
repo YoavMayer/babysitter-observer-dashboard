@@ -1,19 +1,21 @@
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { usePolling } from '../use-polling';
 
 function mockFetchSuccess(data: unknown) {
-  return vi.fn().mockResolvedValue({
-    ok: true,
-    json: () => Promise.resolve(data),
-  });
+  return vi.fn().mockImplementation(() =>
+    Promise.resolve(
+      new Response(JSON.stringify(data), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    )
+  );
 }
 
 function mockFetchFailure(status: number) {
-  return vi.fn().mockResolvedValue({
-    ok: false,
-    status,
-    text: () => Promise.resolve(`HTTP ${status}`),
-  });
+  return vi.fn().mockImplementation(() =>
+    Promise.resolve(new Response(`HTTP ${status}`, { status }))
+  );
 }
 
 describe('usePolling', () => {
@@ -107,8 +109,8 @@ describe('usePolling', () => {
   });
 
   it('handles fetch error', async () => {
-    // Use a 4xx error to avoid retries (resilientFetch only retries 5xx)
-    vi.stubGlobal('fetch', mockFetchFailure(404));
+    // Use a 4xx error (not 404, which is retryable) to avoid retries
+    vi.stubGlobal('fetch', mockFetchFailure(400));
 
     const { result } = renderHook(() => usePolling('/api/data'));
 
@@ -116,7 +118,7 @@ describe('usePolling', () => {
       await vi.advanceTimersByTimeAsync(0);
     });
 
-    expect(result.current.error).toBe('HTTP 404');
+    expect(result.current.error).toBe('HTTP 400');
     expect(result.current.loading).toBe(false);
     expect(result.current.data).toBeNull();
   });
@@ -141,15 +143,15 @@ describe('usePolling', () => {
     // Use a 4xx error (non-retryable) so the first call fails immediately,
     // then subsequent calls succeed
     const fetchMock = vi.fn()
-      .mockResolvedValueOnce({
-        ok: false,
-        status: 400,
-        text: () => Promise.resolve('Bad request'),
-      })
-      .mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ ok: true }),
-      });
+      .mockResolvedValueOnce(new Response('Bad request', { status: 400 }))
+      .mockImplementation(() =>
+        Promise.resolve(
+          new Response(JSON.stringify({ ok: true }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          })
+        )
+      );
     vi.stubGlobal('fetch', fetchMock);
 
     const { result } = renderHook(() =>
@@ -224,7 +226,7 @@ describe('usePolling', () => {
   });
 
   it('restarts polling when enabled toggles', async () => {
-    const { rerender, result } = renderHook(
+    const { rerender, result: _result } = renderHook(
       ({ enabled }) => usePolling('/api/data', { enabled, interval: 1000 }),
       { initialProps: { enabled: false } }
     );

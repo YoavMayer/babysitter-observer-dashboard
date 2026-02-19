@@ -15,6 +15,7 @@ interface NotificationContextValue {
     body: string,
     type?: AppNotification["type"],
     href?: string,
+    persistent?: boolean,
   ) => void;
   requestPermission: () => void;
   permission: NotificationPermission;
@@ -131,6 +132,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       }
 
       // Run transitioned to waiting (breakpoint) — only notify once per waiting episode
+      // These notifications are persistent (no auto-dismiss) so users cannot miss them
       if (run.status === "waiting" && !wm.notifiedWaiting) {
         wm.notifiedWaiting = true;
         const breakpointTitle = run.breakpointQuestion || "Review required";
@@ -139,6 +141,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           breakpointTitle,
           "warning",
           `/runs/${run.runId}`,
+          true,
         );
       }
 

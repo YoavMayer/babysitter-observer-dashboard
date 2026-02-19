@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState, memo, useCallback } from "react";
+import { useMemo, useState, memo } from "react";
 import { StepCard } from "./step-card";
 import { ParallelGroup } from "./parallel-group";
 import { ProgressBar } from "@/components/shared/progress-bar";

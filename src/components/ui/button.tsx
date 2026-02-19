@@ -28,6 +28,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>, Var
   asChild?: boolean;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SlotComp = Slot as any;
 
 export function Button({ className, variant, size, asChild = false, ...props }: ButtonProps) {

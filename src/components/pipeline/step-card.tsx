@@ -18,7 +18,7 @@ interface StepCardProps {
   stepNumber?: number;
 }
 
-export const StepCard = memo(function StepCard({ task, runId, onSelect, isSelected, defaultExpanded = false, stepNumber }: StepCardProps) {
+export const StepCard = memo(function StepCard({ task, runId: _runId, onSelect, isSelected, defaultExpanded = false, stepNumber }: StepCardProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const isRunning = task.status === "requested";
   const isBreakpointWaiting = task.kind === "breakpoint" && task.status === "requested";
@@ -92,7 +92,7 @@ export const StepCard = memo(function StepCard({ task, runId, onSelect, isSelect
         {isBreakpointWaiting ? (
           <div className="flex items-center gap-1 mt-1.5 text-xs text-warning">
             <Hand className="h-3 w-3 shrink-0 drop-shadow-[var(--drop-glow-warning-sm)]" />
-            <span className="font-medium">Waiting for approval</span>
+            <span className="font-medium">Your approval is needed</span>
             <span className="font-mono text-warning animate-pulse">{formatDuration(elapsedMs)}</span>
           </div>
         ) : (task.duration || isRunning) ? (
@@ -136,7 +136,7 @@ export const StepCard = memo(function StepCard({ task, runId, onSelect, isSelect
             {task.duration != null && (
               <div className="flex items-center gap-2">
                 <span className="text-foreground-secondary font-medium">
-                  {task.kind === "breakpoint" ? "Wait time:" : "Duration:"}
+                  {task.kind === "breakpoint" ? "Approval time:" : "Duration:"}
                 </span>
                 <span>{formatDuration(task.duration)}</span>
               </div>

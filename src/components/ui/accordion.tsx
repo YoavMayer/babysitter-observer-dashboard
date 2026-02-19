@@ -15,11 +15,13 @@ interface AccordionProps {
 
 export function Accordion({ children, className, ...props }: AccordionProps) {
   // Cast to any to avoid React 18 ForwardRefExoticComponent type mismatch
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Root = AccordionPrimitive.Root as any;
   return <Root className={className} {...props}>{children}</Root>;
 }
 
 export function AccordionItem({ className, children, value }: { className?: string; children: React.ReactNode; value: string }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Item = AccordionPrimitive.Item as any;
   return (
     <Item value={value} className={className}>
@@ -29,7 +31,9 @@ export function AccordionItem({ className, children, value }: { className?: stri
 }
 
 export function AccordionTrigger({ className, children }: { className?: string; children: React.ReactNode }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Header = AccordionPrimitive.Header as any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Trigger = AccordionPrimitive.Trigger as any;
   return (
     <Header className="flex">
@@ -47,6 +51,7 @@ export function AccordionTrigger({ className, children }: { className?: string; 
 }
 
 export function AccordionContent({ className, children }: { className?: string; children: React.ReactNode }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Content = AccordionPrimitive.Content as any;
   return (
     <Content className="overflow-hidden text-sm data-[state=open]:animate-[fadeIn_200ms_ease-out] data-[state=closed]:animate-[fadeIn_200ms_ease-out_reverse]">

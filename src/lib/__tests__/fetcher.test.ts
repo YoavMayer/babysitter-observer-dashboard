@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { resilientFetch, type FetchResult, type FetchError } from '../fetcher';
+import { resilientFetch, type FetchError } from '../fetcher';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -185,18 +185,31 @@ describe('resilientFetch', () => {
       }
     });
 
-    it('does not retry 404 Not Found', async () => {
-      vi.mocked(fetch).mockResolvedValueOnce(
-        textResponse('Not Found', 404),
+    it('retries 404 Not Found (retryable for HMR)', async () => {
+      // 404 is retryable because Next.js dev server returns transient 404s
+      // during HMR recompilation when API route handlers are momentarily unavailable.
+      vi.mocked(fetch).mockImplementation(
+        () => Promise.resolve(textResponse('Not Found', 404)),
       );
 
-      const result = await resilientFetch('/api/missing');
+      const promise = resilientFetch('/api/missing', {
+        retries: 2,
+        retryDelay: 100,
+      });
 
-      expect(fetch).toHaveBeenCalledTimes(1);
+      // attempt 0 fails -> sleep(100)
+      await vi.advanceTimersByTimeAsync(100);
+      // attempt 1 fails -> sleep(200)
+      await vi.advanceTimersByTimeAsync(200);
+      // attempt 2 fails -> no more retries
+
+      const result = await promise;
+
+      expect(fetch).toHaveBeenCalledTimes(3); // initial + 2 retries
       expect(result.ok).toBe(false);
       if (!result.ok) {
         expect(result.error.status).toBe(404);
-        expect(result.error.isRetryable).toBe(false);
+        expect(result.error.isRetryable).toBe(true);
       }
     });
 
@@ -470,7 +483,8 @@ describe('resilientFetch', () => {
     });
 
     it('returns error when response.json() throws on 200 OK (non-JSON body)', async () => {
-      // Server returns 200 with a non-JSON body (e.g. plain text / HTML)
+      // Server returns 200 with a non-JSON body (e.g. plain text)
+      // resilientFetch treats JSON parse failure as retryable (server recompiling)
       vi.mocked(fetch).mockResolvedValueOnce(
         new Response('not json', {
           status: 200,
@@ -483,9 +497,9 @@ describe('resilientFetch', () => {
       expect(result.ok).toBe(false);
       if (!result.ok) {
         expect(result.error.status).toBe(200);
-        expect(result.error.isRetryable).toBe(false);
+        expect(result.error.isRetryable).toBe(true);
         expect(result.error.isAborted).toBe(false);
-        expect(result.error.message).toContain('Expected JSON');
+        expect(result.error.message).toContain('Server temporarily unavailable');
       }
     });
 

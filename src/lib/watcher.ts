@@ -8,9 +8,12 @@ import { invalidateRun, requestDiscovery } from "./run-cache";
 // Persist event emitter across HMR reloads
 const WATCHER_EVENTS_KEY = '__observer_watcher_events__';
 function getWatcherEvents(): EventEmitter {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (!(globalThis as any)[WATCHER_EVENTS_KEY]) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (globalThis as any)[WATCHER_EVENTS_KEY] = new EventEmitter();
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (globalThis as any)[WATCHER_EVENTS_KEY];
 }
 
@@ -35,13 +38,16 @@ interface WatcherState {
 }
 
 function getWatcherState(): WatcherState {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (!(globalThis as any)[WATCHER_KEY]) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (globalThis as any)[WATCHER_KEY] = {
       activeWatchers: new Map<string, FSWatcher>(),
       debounceTimers: new Map<string, NodeJS.Timeout>(),
       rescanTimer: null,
     };
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (globalThis as any)[WATCHER_KEY];
 }
 

@@ -1,6 +1,5 @@
 import { renderHook, act } from '@testing-library/react';
 import { useSmartPolling } from '../use-smart-polling';
-import { subscribe } from '../use-event-stream';
 
 // Track unsubscribers for cleanup
 let activeUnsubscribers: Array<() => void> = [];
@@ -35,10 +34,14 @@ class MockEventSource {
 }
 
 function mockFetchSuccess(data: unknown) {
-  return vi.fn().mockResolvedValue({
-    ok: true,
-    json: () => Promise.resolve(data),
-  });
+  return vi.fn().mockImplementation(() =>
+    Promise.resolve(
+      new Response(JSON.stringify(data), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    )
+  );
 }
 
 describe('useSmartPolling', () => {
@@ -104,14 +107,12 @@ describe('useSmartPolling', () => {
   });
 
   it('handles fetch errors', async () => {
-    // Use a 4xx error to avoid retries
+    // Use a 4xx error (not 404, which is retryable) to avoid retries
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({
-        ok: false,
-        status: 404,
-        text: () => Promise.resolve('HTTP 404'),
-      })
+      vi.fn().mockImplementation(() =>
+        Promise.resolve(new Response('HTTP 400', { status: 400 }))
+      )
     );
 
     const { result } = renderHook(() =>
@@ -122,7 +123,7 @@ describe('useSmartPolling', () => {
       await vi.advanceTimersByTimeAsync(0);
     });
 
-    expect(result.current.error).toBe('HTTP 404');
+    expect(result.current.error).toBe('HTTP 400');
     expect(result.current.loading).toBe(false);
   });
 

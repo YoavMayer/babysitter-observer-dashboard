@@ -683,7 +683,7 @@ describe('parser', () => {
     });
 
     it('parses a complete task detail with all fields', async () => {
-      mockAccess.mockImplementation(async (p: any) => {
+      mockAccess.mockImplementation(async (_p: any) => {
         // task dir exists, journal dir exists
         return undefined;
       });

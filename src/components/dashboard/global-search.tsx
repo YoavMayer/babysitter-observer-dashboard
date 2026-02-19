@@ -199,7 +199,7 @@ export function GlobalSearch() {
                 setIsOpen(false);
                 inputRef.current?.focus();
               }}
-              className="rounded p-0.5 text-foreground-muted hover:text-foreground-secondary transition-colors"
+              className="rounded-md p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-foreground-muted hover:text-foreground-secondary transition-colors"
               aria-label="Clear search"
             >
               <X className="h-3.5 w-3.5" />

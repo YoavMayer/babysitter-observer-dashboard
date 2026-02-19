@@ -17,7 +17,7 @@ import { invalidateRun } from '../run-cache';
 import { initWatcher, watcherEvents, getWatcherStats } from '../watcher';
 
 const mockDiscoverAllRunDirs = vi.mocked(discoverAllRunDirs);
-const mockInvalidateRun = vi.mocked(invalidateRun);
+const _mockInvalidateRun = vi.mocked(invalidateRun);
 const mockAccess = vi.spyOn(fsPromises, 'access');
 
 describe('watcher', () => {

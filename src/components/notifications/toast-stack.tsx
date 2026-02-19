@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
-import { X, CheckCircle2, XCircle, AlertTriangle, Info } from "lucide-react";
+import { X, CheckCircle2, XCircle, AlertTriangle, Info, Pin } from "lucide-react";
 import type { AppNotification } from "@/hooks/use-notifications";
 
 const iconMap: Record<AppNotification["type"], React.ReactNode> = {
@@ -49,12 +49,17 @@ export function ToastStack({ notifications, onDismiss }: ToastStackProps) {
           <div className="flex items-start gap-2">
             <div className="shrink-0 mt-0.5">{iconMap[notif.type]}</div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground">{notif.title}</p>
+              <div className="flex items-center gap-1">
+                <p className="text-sm font-medium text-foreground">{notif.title}</p>
+                {notif.persistent && (
+                  <Pin className="h-3 w-3 text-warning shrink-0" aria-label="Persistent notification" />
+                )}
+              </div>
               <p className="text-xs text-foreground-muted mt-0.5 truncate">{notif.body}</p>
             </div>
             <button
               onClick={(e) => { e.stopPropagation(); onDismiss(notif.id); }}
-              className="shrink-0 p-1.5 -m-1 text-foreground-muted hover:text-primary transition-colors"
+              className="shrink-0 rounded-md p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-foreground-muted hover:text-primary transition-colors"
               aria-label={`Dismiss ${notif.title}`}
             >
               <X className="h-3.5 w-3.5" />

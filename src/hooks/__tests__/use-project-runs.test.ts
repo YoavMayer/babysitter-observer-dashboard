@@ -43,15 +43,18 @@ describe('useProjectRuns', () => {
     vi.stubGlobal('EventSource', MockEventSource);
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: () =>
-          Promise.resolve({
+      vi.fn().mockImplementation(() =>
+        Promise.resolve(
+          new Response(JSON.stringify({
             runs: mockRuns,
             totalCount: 2,
             project: 'my-project',
-          }),
-      })
+          }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          })
+        )
+      )
     );
   });
 
@@ -123,14 +126,12 @@ describe('useProjectRuns', () => {
   });
 
   it('handles fetch error', async () => {
-    // Use a 4xx error to avoid retries from resilientFetch
+    // Use a 4xx error (not 404, which is retryable) to avoid retries from resilientFetch
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({
-        ok: false,
-        status: 404,
-        text: () => Promise.resolve('HTTP 404'),
-      })
+      vi.fn().mockImplementation(() =>
+        Promise.resolve(new Response('HTTP 400', { status: 400 }))
+      )
     );
 
     const { result } = renderHook(() => useProjectRuns('my-project'));
@@ -139,7 +140,7 @@ describe('useProjectRuns', () => {
       await vi.advanceTimersByTimeAsync(0);
     });
 
-    expect(result.current.error).toBe('HTTP 404');
+    expect(result.current.error).toBe('HTTP 400');
     expect(result.current.runs).toEqual([]);
   });
 

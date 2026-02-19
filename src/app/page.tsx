@@ -4,6 +4,7 @@ import { useProjects } from "@/hooks/use-projects";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { ProjectHealthCard } from "@/components/dashboard/project-health-card";
 import { BreakpointBanner } from "@/components/dashboard/breakpoint-banner";
+import { ExecutiveSummaryBanner } from "@/components/dashboard/executive-summary-banner";
 import {
   FolderOpen,
   Activity,
@@ -62,6 +63,16 @@ export default function DashboardPage() {
   const allBreakpointRuns = useMemo<BreakpointRunInfo[]>(() => {
     return projects.flatMap((p) => p.breakpointRuns ?? []);
   }, [projects]);
+
+  // Executive summary metrics for the banner
+  const summaryMetrics = useMemo(() => ({
+    totalProjects: projects.length,
+    activeRuns: metrics.activeRuns,
+    failedRuns: metrics.failedRuns,
+    completedRuns: metrics.completedRuns,
+    staleRuns: metrics.staleRuns,
+    pendingBreakpoints: projects.reduce((s, p) => s + p.pendingBreakpoints, 0),
+  }), [projects, metrics]);
 
   const filterCounts = useMemo(() => {
     return {
@@ -130,6 +141,13 @@ export default function DashboardPage() {
       <div className="mx-auto max-w-[1600px] px-6 py-6">
         {/* Global Search */}
         <GlobalSearch />
+
+        {/* Executive Summary Banner */}
+        {!loading && !error && projects.length > 0 && (
+          <ErrorBoundary section="Executive Summary">
+            <ExecutiveSummaryBanner metrics={summaryMetrics} />
+          </ErrorBoundary>
+        )}
 
         {/* KPI Metrics Row */}
         {!loading && !error && projects.length > 0 && (
@@ -205,9 +223,10 @@ export default function DashboardPage() {
                 <button
                   key={f.value}
                   data-testid={`filter-pill-${f.value}`}
+                  aria-pressed={statusFilter === f.value}
                   onClick={() => setStatusFilter(f.value)}
                   className={cn(
-                    "rounded-md px-3 py-1.5 text-xs font-medium transition-all inline-flex items-center gap-1.5",
+                    "rounded-md px-3 py-1.5 min-h-[44px] text-xs font-medium transition-all inline-flex items-center gap-1.5",
                     statusFilter === f.value
                       ? f.value === "stale"
                         ? "bg-zinc-500/10 text-zinc-500"
@@ -237,7 +256,7 @@ export default function DashboardPage() {
                 data-testid="sort-toggle"
                 onClick={() => setSortMode((prev) => prev === "status" ? "activity" : "status")}
                 className={cn(
-                  "rounded-md px-2.5 py-1.5 text-xs font-medium inline-flex items-center gap-1.5",
+                  "rounded-md px-2.5 py-1.5 min-h-[44px] text-xs font-medium inline-flex items-center gap-1.5",
                   "transition-all duration-200 ease-in-out",
                   sortMode === "status"
                     ? "bg-warning/10 border border-warning/30 text-warning hover:bg-warning/15 hover:border-warning/40 shadow-sm"
@@ -449,6 +468,7 @@ function MetricTile({ label, value, icon, color, pulse, testId, active, onClick 
     <div
       data-testid={testId}
       role={isClickable ? "button" : undefined}
+      aria-pressed={isClickable ? !!active : undefined}
       tabIndex={isClickable ? 0 : undefined}
       onClick={onClick}
       onKeyDown={isClickable ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick?.(); } } : undefined}

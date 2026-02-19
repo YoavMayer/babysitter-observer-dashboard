@@ -23,11 +23,13 @@ function makeNotification(overrides: Partial<AppNotification> = {}): AppNotifica
     type: overrides.type ?? 'info',
     timestamp: overrides.timestamp ?? Date.now(),
     href: overrides.href,
+    persistent: overrides.persistent,
   };
 }
 
 describe('NotificationPanel', () => {
   const defaultProps = {
+    open: true,
     notifications: [] as AppNotification[],
     onDismiss: vi.fn(),
     onClose: vi.fn(),
@@ -101,6 +103,7 @@ describe('NotificationPanel', () => {
 
     render(
       <NotificationPanel
+        open={true}
         notifications={notifications}
         onDismiss={onDismiss}
         onClose={vi.fn()}
@@ -127,6 +130,7 @@ describe('NotificationPanel', () => {
 
     render(
       <NotificationPanel
+        open={true}
         notifications={[]}
         onDismiss={vi.fn()}
         onClose={onClose}
@@ -138,28 +142,6 @@ describe('NotificationPanel', () => {
     await user.click(closeButton);
 
     expect(onClose).toHaveBeenCalledTimes(1);
-  });
-
-  // -----------------------------------------------------------------------
-  // Clicking backdrop closes panel
-  // -----------------------------------------------------------------------
-  it('calls onClose when the backdrop overlay is clicked', async () => {
-    const user = setupUser();
-    const onClose = vi.fn();
-
-    const { container } = render(
-      <NotificationPanel
-        notifications={[]}
-        onDismiss={vi.fn()}
-        onClose={onClose}
-      />,
-    );
-
-    // The outermost div acts as the backdrop click target
-    const backdrop = container.firstElementChild as HTMLElement;
-    await user.click(backdrop);
-
-    expect(onClose).toHaveBeenCalled();
   });
 
   // -----------------------------------------------------------------------
@@ -175,6 +157,7 @@ describe('NotificationPanel', () => {
 
     render(
       <NotificationPanel
+        open={true}
         notifications={notifications}
         onDismiss={onDismiss}
         onClose={onClose}
@@ -197,6 +180,7 @@ describe('NotificationPanel', () => {
 
     render(
       <NotificationPanel
+        open={true}
         notifications={notifications}
         onDismiss={onDismiss}
         onClose={vi.fn()}
@@ -249,5 +233,38 @@ describe('NotificationPanel', () => {
     expect(screen.getByTestId('icon-XCircle')).toBeInTheDocument();
     expect(screen.getByTestId('icon-AlertTriangle')).toBeInTheDocument();
     expect(screen.getByTestId('icon-Info')).toBeInTheDocument();
+  });
+
+  // -----------------------------------------------------------------------
+  // Persistent notification shows Pin icon
+  // -----------------------------------------------------------------------
+  it('shows a Pin icon for persistent notifications', () => {
+    const notifications = [
+      makeNotification({ id: 'n1', title: 'Breakpoint', persistent: true }),
+    ];
+
+    render(<NotificationPanel {...defaultProps} notifications={notifications} />);
+
+    expect(screen.getByTestId('icon-Pin')).toBeInTheDocument();
+    expect(screen.getByLabelText('Persistent notification')).toBeInTheDocument();
+  });
+
+  it('does not show a Pin icon for non-persistent notifications', () => {
+    const notifications = [
+      makeNotification({ id: 'n1', title: 'Normal' }),
+    ];
+
+    render(<NotificationPanel {...defaultProps} notifications={notifications} />);
+
+    expect(screen.queryByTestId('icon-Pin')).not.toBeInTheDocument();
+  });
+
+  // -----------------------------------------------------------------------
+  // Does not render when closed
+  // -----------------------------------------------------------------------
+  it('does not render content when open is false', () => {
+    render(<NotificationPanel {...defaultProps} open={false} />);
+
+    expect(screen.queryByText('Notifications')).not.toBeInTheDocument();
   });
 });

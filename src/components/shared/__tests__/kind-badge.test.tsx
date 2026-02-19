@@ -29,9 +29,9 @@ describe('KindBadge', () => {
     expect(screen.getByText('skill')).toBeInTheDocument();
   });
 
-  it('renders "breakpoint" kind with correct text', () => {
+  it('renders "breakpoint" kind with "approval" display text', () => {
     render(<KindBadge kind="breakpoint" />);
-    expect(screen.getByText('breakpoint')).toBeInTheDocument();
+    expect(screen.getByText('approval')).toBeInTheDocument();
   });
 
   it('renders "sleep" kind with correct text', () => {

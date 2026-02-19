@@ -45,7 +45,7 @@ export function KindBadge({ kind, className }: { kind: TaskKind; className?: str
       className
     )}>
       {config.icon}
-      {kind}
+      {kind === "breakpoint" ? "approval" : kind}
     </span>
   );
 }

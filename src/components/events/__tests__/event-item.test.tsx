@@ -1,7 +1,6 @@
 import { render, screen, setupUser } from '@/test/test-utils';
 import { EventItem } from '../event-item';
 import { createMockJournalEvent } from '@/test/fixtures';
-import type { JournalEvent } from '@/types';
 
 describe('EventItem', () => {
   // -----------------------------------------------------------------------

@@ -22,9 +22,12 @@ interface CacheEntry {
 const CACHE_KEY = '__observer_run_cache__';
 
 function getCache(): Map<string, CacheEntry> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (!(globalThis as any)[CACHE_KEY]) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (globalThis as any)[CACHE_KEY] = new Map<string, CacheEntry>();
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (globalThis as any)[CACHE_KEY];
 }
 
