@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.3] - 2026-02-19
+### Fixed
+- fix: make breakpoint panel read-only and fix stale breakpoint display
+
 ## [0.7.2] - 2026-02-19
 ### Fixed
 - fix: auto-version workflow now creates annotated tags and pushes them explicitly
