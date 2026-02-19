@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.2] - 2026-02-19
+### Fixed
+- fix: increase default CLI watch depth from 2 to 3
+
 ## [0.8.1] - 2026-02-19
 ### Fixed
 - fix: default watch-dir to user's cwd, add -y to npx examples
