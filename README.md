@@ -127,6 +127,43 @@ CLI flags map to environment variables with the following precedence (highest to
 | `--poll-interval` | `OBSERVER_POLL_INTERVAL` |
 | `--theme` | `OBSERVER_DEFAULT_THEME` |
 
+## Dashboard Settings Panel
+
+The dashboard includes a built-in settings panel (click the gear icon in the top-right corner) where you can configure the observer without restarting it. All changes are persisted to `~/.a5c/observer.json` and take effect immediately.
+
+### Watch Sources
+
+Watch sources tell the observer **where** to look for `.a5c/runs/` directories on your filesystem. Each source has two properties:
+
+| Field | Description |
+|-------|-------------|
+| **Path** | The root directory to scan. The observer will search inside this directory (and its subdirectories, up to the configured depth) for folders matching the pattern `<project>/.a5c/runs/`. For example, setting the path to `/home/user/source` will discover runs in `/home/user/source/my-project/.a5c/runs/`, `/home/user/source/another-project/.a5c/runs/`, etc. |
+| **Depth** | How many directory levels deep to search for `.a5c/runs/` folders within the source path. A depth of **1** only checks immediate children of the path. A depth of **3** (the CLI default) checks up to 3 levels deep — e.g., `path/org/team/project/.a5c/runs/`. Increase the depth if your projects are nested in subdirectories; decrease it to speed up discovery if you have a flat project layout. |
+
+**Add Source** — Click "Add Source" to add a new watch source. This is useful when your projects live in multiple locations on disk (e.g., `~/work` and `~/personal`). Each source is scanned independently.
+
+**Remove Source** — Click the remove button next to a source to stop watching that directory. Existing runs from that source will disappear from the dashboard.
+
+**Example configurations:**
+
+| Scenario | Path | Depth |
+|----------|------|-------|
+| All projects under one folder | `/home/user/source` | 2 |
+| Deeply nested monorepo | `/home/user/company/monorepo` | 4 |
+| Single project only | `/home/user/source/my-project` | 1 |
+| Home directory (broad scan) | `/home/user` | 3 |
+
+### Other Settings
+
+| Setting | Description |
+|---------|-------------|
+| **Poll Interval** | How often (in milliseconds) the dashboard checks for updates. Lower values = faster updates but more CPU. Default: `2000` (2 seconds). |
+| **Theme** | Switch between `dark` and `light` mode. |
+| **Stale Threshold** | Time (in milliseconds) after which an inactive run is marked as stale. Default: `3600000` (1 hour). |
+| **Recent Completion Window** | How long recently completed projects stay in the Active section. Default: `14400000` (4 hours). |
+| **Retention Days** | Number of days to keep completed/failed runs visible in the dashboard. Older runs are hidden (not deleted from disk). Default: `30`. |
+| **Hidden Projects** | Projects you've hidden from the dashboard view. Unhide them here to bring them back. |
+
 ## Configuration
 
 All configuration can be set via environment variables, the CLI, or the in-dashboard settings panel.
@@ -412,7 +449,7 @@ BABYSITTER_CLI=/usr/local/bin/babysitter babysitter-observer-dashboard
 
 ## Known Limitations
 
-This is version `0.8.2`. The API and configuration format may change between minor versions.
+The API and configuration format may change between minor versions.
 
 - **Local only** -- The observer reads run data from the local filesystem. There is no remote/cloud mode.
 - **No authentication** -- The dashboard and API endpoints are unauthenticated. Do not expose to untrusted networks.

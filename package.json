@@ -1,6 +1,6 @@
 {
   "name": "@yoavmayer/babysitter-observer-dashboard",
-  "version": "0.8.2",
+  "version": "0.9.3",
   "description": "Real-time observability dashboard for babysitter orchestration runs",
   "private": false,
   "publishConfig": {
