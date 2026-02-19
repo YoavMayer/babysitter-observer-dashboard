@@ -167,11 +167,13 @@ function main(): void {
     process.env.OBSERVER_DEFAULT_THEME = opts.theme;
   }
 
-  // Determine the Next.js command
+  // Determine the Next.js command — use local binary for global installs
   const port = opts.port || process.env.OBSERVER_PORT || "3000";
+  const projectRoot = resolve(__dirname, "..");
+  const nextBin = resolve(projectRoot, "node_modules", ".bin", "next");
   const nextCmd = opts.production
-    ? `next start --port ${port}`
-    : `next dev --port ${port}`;
+    ? `"${nextBin}" start --port ${port}`
+    : `"${nextBin}" dev --port ${port}`;
 
   console.log(`Starting observer: ${nextCmd}`);
 

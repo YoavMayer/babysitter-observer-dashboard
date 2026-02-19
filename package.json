@@ -47,7 +47,7 @@
     "dev": "next dev --port 3000",
     "dev:cli": "npx ts-node --skip-project src/cli.ts",
     "build": "next build",
-    "build:cli": "node -e \"require('esbuild').buildSync({entryPoints:['src/cli.ts'],bundle:true,platform:'node',target:'node18',outfile:'dist/cli.js',external:['next'],banner:{js:'#!/usr/bin/env node'}})\"",
+    "build:cli": "node -e \"require('esbuild').buildSync({entryPoints:['src/cli.ts'],bundle:true,platform:'node',target:'node18',outfile:'dist/cli.js',external:['next']})\"",
     "start": "next start --port 3000",
     "lint": "next lint",
     "prepublishOnly": "npm run build && npm run build:cli",
