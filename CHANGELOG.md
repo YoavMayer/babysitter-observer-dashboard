@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.3] - 2026-02-19
+### Other
+- docs: add Dashboard Settings Panel section explaining Watch Sources, Depth, and other UI settings
+
 ## [0.8.2] - 2026-02-19
 ### Fixed
 - fix: increase default CLI watch depth from 2 to 3
