@@ -12,7 +12,7 @@
  */
 
 import { execSync } from "child_process";
-import { readFileSync } from "fs";
+import { readFileSync, existsSync } from "fs";
 import { resolve } from "path";
 
 interface CliOptions {
@@ -20,7 +20,7 @@ interface CliOptions {
   watchDir?: string;
   pollInterval?: string;
   theme?: string;
-  production?: boolean;
+  dev?: boolean;
   help?: boolean;
   version?: boolean;
 }
@@ -47,7 +47,7 @@ Options:
   --watch-dir <path>        Directory to watch for .a5c/runs (default: cwd)
   --poll-interval <ms>      Polling interval in milliseconds (default: 2000)
   --theme <dark|light>      Default UI theme (default: dark)
-  --production              Run in production mode (next start) instead of dev
+  --dev                     Run in dev mode (next dev) instead of production
   --version, -v             Show version number
   --help                    Show this help message
 
@@ -58,11 +58,11 @@ Environment variable mapping:
   --theme          -> OBSERVER_DEFAULT_THEME
 
 Examples:
-  # Start dev server on port 3002 watching a specific directory
+  # Start dashboard on port 3002 watching a specific directory
   observer --port 3002 --watch-dir /home/user/projects
 
-  # Start production server with light theme
-  observer --production --theme light
+  # Start with light theme
+  observer --theme light
 `.trim();
 
   console.log(usage);
@@ -113,8 +113,12 @@ function parseArgs(argv: string[]): CliOptions {
         }
         break;
 
+      case "--dev":
+        opts.dev = true;
+        break;
+
       case "--production":
-        opts.production = true;
+        // Legacy flag — production is now the default, so this is a no-op
         break;
 
       case "--version":
@@ -137,6 +141,63 @@ function parseArgs(argv: string[]): CliOptions {
   return opts;
 }
 
+/**
+ * Locate the `next` binary across all installation scenarios.
+ *
+ * npm may hoist dependencies to a parent node_modules (e.g. when this
+ * package is installed via npx or as a dependency of another project).
+ * We try several strategies before giving up:
+ *
+ *   1. require.resolve — honours Node's module resolution & hoisting
+ *   2. Local node_modules/.bin — classic non-hoisted layout
+ *   3. Walk up the directory tree — covers deep-nested workspaces
+ *   4. Bare "next" — last resort, assumes it is on $PATH
+ */
+function findNextBin(): string {
+  const projectRoot = resolve(__dirname, "..");
+
+  // Method 1: Use require.resolve to find next's package.json (handles hoisting).
+  // We derive the .bin/next wrapper path (not dist/bin/next) because the wrapper
+  // is cross-platform: on Unix it has a shebang, on Windows there is a .cmd peer.
+  try {
+    const nextPkgPath = require.resolve("next/package.json", {
+      paths: [projectRoot],
+    });
+    // nextPkgPath => .../node_modules/next/package.json
+    // Go up to the containing node_modules directory, then into .bin
+    const nodeModulesDir = resolve(nextPkgPath, "..", "..");
+    const binPath = resolve(nodeModulesDir, ".bin", "next");
+    if (existsSync(binPath) || existsSync(binPath + ".cmd")) {
+      return binPath;
+    }
+  } catch {
+    // next is not resolvable from projectRoot — continue to fallbacks
+  }
+
+  // Method 2: Check the local node_modules/.bin (non-hoisted layout)
+  const localBin = resolve(projectRoot, "node_modules", ".bin", "next");
+  if (existsSync(localBin)) {
+    return localBin;
+  }
+
+  // Method 3: Walk up the directory tree looking for node_modules/.bin/next
+  let current = projectRoot;
+  while (true) {
+    const candidate = resolve(current, "node_modules", ".bin", "next");
+    if (existsSync(candidate)) {
+      return candidate;
+    }
+    const parent = resolve(current, "..");
+    if (parent === current) {
+      break; // reached filesystem root
+    }
+    current = parent;
+  }
+
+  // Method 4: Fall back to bare "next" and hope it is on PATH
+  return "next";
+}
+
 function main(): void {
   const opts = parseArgs(process.argv);
 
@@ -155,9 +216,11 @@ function main(): void {
     process.env.OBSERVER_PORT = opts.port;
   }
 
-  if (opts.watchDir) {
-    process.env.OBSERVER_WATCH_DIR = opts.watchDir;
-  }
+  // Default watch directory to the user's cwd (not the package root, which is
+  // where Next.js will run). Without this, the config falls back to
+  // process.cwd() inside the Next.js process, which points at the package
+  // root — useless for npx / global installs.
+  process.env.OBSERVER_WATCH_DIR = opts.watchDir || process.cwd();
 
   if (opts.pollInterval) {
     process.env.OBSERVER_POLL_INTERVAL = opts.pollInterval;
@@ -170,10 +233,10 @@ function main(): void {
   // Determine the Next.js command — use local binary for global installs
   const port = opts.port || process.env.OBSERVER_PORT || "3000";
   const projectRoot = resolve(__dirname, "..");
-  const nextBin = resolve(projectRoot, "node_modules", ".bin", "next");
-  const nextCmd = opts.production
-    ? `"${nextBin}" start --port ${port}`
-    : `"${nextBin}" dev --port ${port}`;
+  const nextBin = findNextBin();
+  const nextCmd = opts.dev
+    ? `"${nextBin}" dev --port ${port}`
+    : `"${nextBin}" start --port ${port}`;
 
   console.log(`Starting observer: ${nextCmd}`);
 

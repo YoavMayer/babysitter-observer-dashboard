@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.1] - 2026-02-19
+### Fixed
+- fix: restore conventional commit detection for minor/major version bumps
+
+## [1.0.0] - 2026-02-19
+### Changed
+- chore: simplify auto-version to always patch, use [minor]/[major] for explicit bumps
+
+## [0.8.3] - 2026-02-19
+### Other
+- docs: add Dashboard Settings Panel section explaining Watch Sources, Depth, and other UI settings
+
+## [0.8.2] - 2026-02-19
+### Fixed
+- fix: increase default CLI watch depth from 2 to 3
+
+## [0.8.1] - 2026-02-19
+### Fixed
+- fix: default watch-dir to user's cwd, add -y to npx examples
+- fix: default to production mode (next start) for published package
+- fix: use .bin/next wrapper instead of dist/bin/next for cross-platform compat
+- fix: resolve next binary correctly across npx, global, and devDep installs
+
 ## [0.8.0] - 2026-02-19
 ### Added
 - feat: rename npm scope from @a5c-ai to @yoavmayer for independent publishing
