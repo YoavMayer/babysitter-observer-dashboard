@@ -59,18 +59,10 @@ describe('RunCard', () => {
     expect(screen.getByText('my-project')).toBeInTheDocument();
   });
 
-  it('shows source label when different from project name', () => {
+  it('does not show source label', () => {
     const run = createMockRun({ projectName: 'my-project', sourceLabel: 'cli' });
     render(<RunCard run={run} />);
-    expect(screen.getByText('cli')).toBeInTheDocument();
-  });
-
-  it('does not show source label when it matches project name', () => {
-    const run = createMockRun({ projectName: 'same-name', sourceLabel: 'same-name' });
-    render(<RunCard run={run} />);
-    // Only the project name tag, not a duplicate sourceLabel
-    const elements = screen.getAllByText('same-name');
-    expect(elements).toHaveLength(1);
+    expect(screen.queryByText('cli')).not.toBeInTheDocument();
   });
 
   it('shows a progress bar when there are tasks', () => {

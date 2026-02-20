@@ -118,11 +118,6 @@ export function RunCard({ run, selected }: RunCardProps) {
                   {run.projectName}
                 </span>
               )}
-              {run.sourceLabel && run.sourceLabel !== run.projectName && (
-                <span className="rounded-full bg-background-secondary px-2 py-0.5 text-xs leading-tight text-foreground-muted shrink-0">
-                  {run.sourceLabel}
-                </span>
-              )}
             </div>
             {/* Inline failure point for failed runs */}
             {failedStep && (

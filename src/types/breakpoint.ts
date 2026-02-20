@@ -14,12 +14,3 @@ export interface BreakpointPayload {
   };
 }
 
-export interface BreakpointResolveRequest {
-  approved: boolean;
-  value?: string;
-}
-
-export interface BreakpointResolveResponse {
-  success: boolean;
-  error?: string;
-}
