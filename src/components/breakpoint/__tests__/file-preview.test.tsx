@@ -148,12 +148,10 @@ describe('FilePreview', () => {
     const user = setupUser();
     const mockContent = 'const x = 42;';
     vi.stubGlobal('fetch', vi.fn().mockImplementation(() =>
-      Promise.resolve(
-        new Response(JSON.stringify({ content: mockContent }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        })
-      )
+      Promise.resolve(new Response(JSON.stringify({ content: mockContent }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })),
     ));
 
     const files: BreakpointFile[] = [
@@ -178,7 +176,10 @@ describe('FilePreview', () => {
   it('shows fallback text when content fetch fails', async () => {
     const user = setupUser();
     vi.stubGlobal('fetch', vi.fn().mockImplementation(() =>
-      Promise.resolve(new Response('Not Found', { status: 400 }))
+      Promise.resolve(new Response('Unprocessable Entity', {
+        status: 422,
+        headers: { 'Content-Type': 'text/plain' },
+      })),
     ));
 
     const files: BreakpointFile[] = [
@@ -195,12 +196,10 @@ describe('FilePreview', () => {
   it('shows "No content available" when API returns empty content', async () => {
     const user = setupUser();
     vi.stubGlobal('fetch', vi.fn().mockImplementation(() =>
-      Promise.resolve(
-        new Response(JSON.stringify({}), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        })
-      )
+      Promise.resolve(new Response(JSON.stringify({}), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })),
     ));
 
     const files: BreakpointFile[] = [
@@ -221,12 +220,10 @@ describe('FilePreview', () => {
     const user = setupUser();
     const jsonContent = '{"key":"value","num":42}';
     vi.stubGlobal('fetch', vi.fn().mockImplementation(() =>
-      Promise.resolve(
-        new Response(JSON.stringify({ content: jsonContent }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        })
-      )
+      Promise.resolve(new Response(JSON.stringify({ content: jsonContent }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })),
     ));
 
     const files: BreakpointFile[] = [
@@ -248,12 +245,10 @@ describe('FilePreview', () => {
     const user = setupUser();
     const mdContent = '# Hello World\nSome paragraph text';
     vi.stubGlobal('fetch', vi.fn().mockImplementation(() =>
-      Promise.resolve(
-        new Response(JSON.stringify({ content: mdContent }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        })
-      )
+      Promise.resolve(new Response(JSON.stringify({ content: mdContent }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })),
     ));
 
     const files: BreakpointFile[] = [
@@ -274,12 +269,10 @@ describe('FilePreview', () => {
     const user = setupUser();
     const codeContent = 'line one\nline two\nline three';
     vi.stubGlobal('fetch', vi.fn().mockImplementation(() =>
-      Promise.resolve(
-        new Response(JSON.stringify({ content: codeContent }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        })
-      )
+      Promise.resolve(new Response(JSON.stringify({ content: codeContent }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })),
     ));
 
     const files: BreakpointFile[] = [

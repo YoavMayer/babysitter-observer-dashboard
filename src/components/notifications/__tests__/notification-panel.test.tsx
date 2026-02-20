@@ -217,6 +217,23 @@ describe('NotificationPanel', () => {
   });
 
   // -----------------------------------------------------------------------
+  // Persistent (pinned) notification
+  // -----------------------------------------------------------------------
+  it('shows pin icon for persistent notifications', () => {
+    const persistentNotif = makeNotification({ id: 'n-pin', persistent: true });
+    render(<NotificationPanel {...defaultProps} notifications={[persistentNotif]} />);
+    expect(screen.getByTitle('Pinned — won\'t auto-dismiss')).toBeInTheDocument();
+    expect(screen.getByText('· Pinned')).toBeInTheDocument();
+  });
+
+  it('does not show pin icon for non-persistent notifications', () => {
+    const notif = makeNotification({ id: 'n-nopin' });
+    render(<NotificationPanel {...defaultProps} notifications={[notif]} />);
+    expect(screen.queryByTitle('Pinned — won\'t auto-dismiss')).not.toBeInTheDocument();
+    expect(screen.queryByText('· Pinned')).not.toBeInTheDocument();
+  });
+
+  // -----------------------------------------------------------------------
   // All notification types render icons
   // -----------------------------------------------------------------------
   it('renders icons for all notification types', () => {

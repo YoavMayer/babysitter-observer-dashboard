@@ -34,13 +34,11 @@ class MockEventSource {
 }
 
 function mockFetchSuccess(data: unknown) {
-  return vi.fn().mockImplementation(() =>
-    Promise.resolve(
-      new Response(JSON.stringify(data), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      })
-    )
+  return vi.fn().mockResolvedValue(
+    new Response(JSON.stringify(data), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    })
   );
 }
 
@@ -107,11 +105,11 @@ describe('useSmartPolling', () => {
   });
 
   it('handles fetch errors', async () => {
-    // Use a 4xx error (not 404, which is retryable) to avoid retries
+    // Use 422 (not 404, because 404 is retryable in resilientFetch)
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockImplementation(() =>
-        Promise.resolve(new Response('HTTP 400', { status: 400 }))
+      vi.fn().mockResolvedValue(
+        new Response('HTTP 422', { status: 422 })
       )
     );
 
@@ -123,7 +121,7 @@ describe('useSmartPolling', () => {
       await vi.advanceTimersByTimeAsync(0);
     });
 
-    expect(result.current.error).toBe('HTTP 400');
+    expect(result.current.error).toBe('HTTP 422');
     expect(result.current.loading).toBe(false);
   });
 

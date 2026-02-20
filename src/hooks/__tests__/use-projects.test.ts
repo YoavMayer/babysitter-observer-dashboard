@@ -43,15 +43,11 @@ describe('useProjects', () => {
     vi.stubGlobal('EventSource', MockEventSource);
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockImplementation(() =>
-        Promise.resolve(
-          new Response(JSON.stringify({
-            projects: mockProjects,
-          }), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-          })
-        )
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ projects: mockProjects }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
       )
     );
   });
@@ -104,13 +100,11 @@ describe('useProjects', () => {
   it('returns empty projects array when data is null', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockImplementation(() =>
-        Promise.resolve(
-          new Response(JSON.stringify(null), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-          })
-        )
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify(null), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
       )
     );
 
@@ -124,11 +118,11 @@ describe('useProjects', () => {
   });
 
   it('handles fetch error', async () => {
-    // Use 4xx error (not 404, which is retryable) to avoid retries from resilientFetch
+    // Use 422 (non-retryable 4xx) to avoid retries from resilientFetch
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockImplementation(() =>
-        Promise.resolve(new Response('HTTP 400', { status: 400 }))
+      vi.fn().mockResolvedValue(
+        new Response('HTTP 422', { status: 422 })
       )
     );
 
@@ -138,7 +132,7 @@ describe('useProjects', () => {
       await vi.advanceTimersByTimeAsync(0);
     });
 
-    expect(result.current.error).toBe('HTTP 400');
+    expect(result.current.error).toBe('HTTP 422');
     expect(result.current.projects).toEqual([]);
   });
 

@@ -68,7 +68,7 @@ describe('useNotifications', () => {
     const { result } = renderHook(() => useNotifications());
 
     act(() => {
-      result.current.notify('Title', 'Body', 'info', '/some/link');
+      result.current.notify('Title', 'Body', 'info', { href: '/some/link' });
     });
 
     expect(result.current.notifications[0].href).toBe('/some/link');

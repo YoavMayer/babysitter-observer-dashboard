@@ -10,6 +10,8 @@ const mockConfig = {
   port: 4040,
   pollInterval: 2000,
   theme: 'dark' as const,
+  retentionDays: 30,
+  hiddenProjects: [],
 };
 
 const mockProjects = { projects: [{ projectName: 'test-project' }] };

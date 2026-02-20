@@ -187,27 +187,18 @@ describe('ToastStack', () => {
   });
 
   // -----------------------------------------------------------------------
-  // Persistent notification shows Pin icon
+  // Persistent (pinned) notification
   // -----------------------------------------------------------------------
-  it('shows a Pin icon for persistent notifications', () => {
-    const notifications = [
-      makeNotification({ id: 't1', title: 'Breakpoint', persistent: true }),
-    ];
-
-    render(<ToastStack notifications={notifications} onDismiss={vi.fn()} />);
-
-    expect(screen.getByTestId('icon-Pin')).toBeInTheDocument();
-    expect(screen.getByLabelText('Persistent notification')).toBeInTheDocument();
+  it('shows pin icon for persistent notifications', () => {
+    const persistentNotif = makeNotification({ id: 't-pin', persistent: true });
+    render(<ToastStack notifications={[persistentNotif]} onDismiss={vi.fn()} />);
+    expect(screen.getByTitle('Pinned — won\'t auto-dismiss')).toBeInTheDocument();
   });
 
-  it('does not show a Pin icon for non-persistent notifications', () => {
-    const notifications = [
-      makeNotification({ id: 't1', title: 'Normal' }),
-    ];
-
-    render(<ToastStack notifications={notifications} onDismiss={vi.fn()} />);
-
-    expect(screen.queryByTestId('icon-Pin')).not.toBeInTheDocument();
+  it('does not show pin icon for non-persistent notifications', () => {
+    const notif = makeNotification({ id: 't-nopin' });
+    render(<ToastStack notifications={[notif]} onDismiss={vi.fn()} />);
+    expect(screen.queryByTitle('Pinned — won\'t auto-dismiss')).not.toBeInTheDocument();
   });
 
   // -----------------------------------------------------------------------

@@ -35,8 +35,7 @@ export function useNotifications() {
       title: string,
       body: string,
       type: AppNotification["type"] = "info",
-      href?: string,
-      persistent?: boolean,
+      options?: { href?: string; persistent?: boolean },
     ) => {
       const id = `notif-${++counterRef.current}-${Date.now()}`;
 
@@ -47,13 +46,13 @@ export function useNotifications() {
         body,
         type,
         timestamp: Date.now(),
-        href,
-        persistent,
+        href: options?.href,
+        persistent: options?.persistent,
       };
       setNotifications((prev) => [...prev, notification]);
 
       // Auto-dismiss after 5 seconds (skip for persistent notifications like breakpoints)
-      if (!persistent) {
+      if (!options?.persistent) {
         setTimeout(() => {
           setNotifications((prev) => prev.filter((n) => n.id !== id));
         }, 5000);

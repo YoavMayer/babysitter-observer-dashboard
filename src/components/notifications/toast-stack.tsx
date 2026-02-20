@@ -42,12 +42,14 @@ export function ToastStack({ notifications, onDismiss }: ToastStackProps) {
             "rounded-lg border border-[var(--glass-border-subtle)] bg-[var(--glass-bg-heavy)] backdrop-blur-sm p-3 shadow-lg border-l-2",
             "animate-slide-in-right",
             notif.href && "cursor-pointer hover:bg-card-hover",
+            notif.persistent && "ring-1 ring-primary/20",
             borderMap[notif.type]
           )}
           onClick={() => handleClick(notif)}
         >
           <div className="flex items-start gap-2">
             <div className="shrink-0 mt-0.5">{iconMap[notif.type]}</div>
+            {notif.persistent && <span title="Pinned — won't auto-dismiss" className="shrink-0"><Pin className="h-3 w-3 text-primary/50" /></span>}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1">
                 <p className="text-sm font-medium text-foreground">{notif.title}</p>

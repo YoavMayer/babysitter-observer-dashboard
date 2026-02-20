@@ -447,6 +447,31 @@ Breakpoint approval/rejection depends on the `babysitter` CLI being available on
 BABYSITTER_CLI=/usr/local/bin/babysitter babysitter-observer-dashboard
 ```
 
+### Safe Chain blocks newly published versions
+
+If you have [Aikido Safe Chain](https://www.aikido.dev/) installed, you may see the following error when running `npx -y @yoavmayer/babysitter-observer-dashboard`:
+
+```
+npm error code ENOVERSIONS
+npm error No versions available for @yoavmayer/babysitter-observer-dashboard
+```
+
+Along with a message like:
+
+```
+Safe-chain: Some package versions were suppressed due to minimum age requirement.
+```
+
+This happens because Safe Chain suppresses npm package versions that were published less than 24 hours ago as a supply-chain security measure. If a new version of the dashboard was released recently, Safe Chain will block it until it passes the minimum age threshold.
+
+**Workaround:** Add the `--safe-chain-skip-minimum-package-age` flag to bypass the age check:
+
+```bash
+npx -y @yoavmayer/babysitter-observer-dashboard --safe-chain-skip-minimum-package-age
+```
+
+This only affects recently published versions. After 24 hours from publication, the package version will pass Safe Chain's age requirement and the standard command will work without the extra flag.
+
 ## Known Limitations
 
 The API and configuration format may change between minor versions.

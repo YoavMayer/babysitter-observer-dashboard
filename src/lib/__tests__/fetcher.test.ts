@@ -483,8 +483,10 @@ describe('resilientFetch', () => {
     });
 
     it('returns error when response.json() throws on 200 OK (non-JSON body)', async () => {
-      // Server returns 200 with a non-JSON body (e.g. plain text)
-      // resilientFetch treats JSON parse failure as retryable (server recompiling)
+      // Server returns 200 with a non-JSON body (e.g. plain text / HTML)
+      // The implementation treats JSON parse failures as "server temporarily
+      // unavailable (recompiling)" and marks them retryable, since this
+      // commonly happens during Next.js HMR recompilation.
       vi.mocked(fetch).mockResolvedValueOnce(
         new Response('not json', {
           status: 200,
