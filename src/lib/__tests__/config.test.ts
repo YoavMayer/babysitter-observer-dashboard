@@ -4,6 +4,7 @@ import { promises as fs } from 'fs';
 import {
   getConfig,
   invalidateConfigCache,
+  invalidateDiscoveryCache,
   writeConfig,
   discoverAllRunDirs,
   findRunDir,
@@ -33,8 +34,9 @@ describe('config', () => {
     delete process.env.POLL_INTERVAL;
     delete process.env.OBSERVER_DEFAULT_THEME;
     delete process.env.THEME;
-    // Invalidate any cached config from previous test
+    // Invalidate any cached config/discovery from previous test
     invalidateConfigCache();
+    invalidateDiscoveryCache();
   });
 
   afterEach(() => {

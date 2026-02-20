@@ -46,10 +46,12 @@ describe('useRunDetail', () => {
     vi.stubGlobal('EventSource', MockEventSource);
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ run: mockRun }),
-      })
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ run: mockRun }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      )
     );
   });
 
@@ -100,10 +102,12 @@ describe('useRunDetail', () => {
 
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ run: runWithBreakpoint }),
-      })
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ run: runWithBreakpoint }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      )
     );
 
     const { result } = renderHook(() => useRunDetail('run-bp'));
@@ -133,14 +137,12 @@ describe('useRunDetail', () => {
   });
 
   it('handles fetch error', async () => {
-    // Use a 4xx error to avoid retries from resilientFetch
+    // Use 422 (non-retryable) to avoid retries from resilientFetch (404 is retryable)
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({
-        ok: false,
-        status: 404,
-        text: () => Promise.resolve('HTTP 404'),
-      })
+      vi.fn().mockResolvedValue(
+        new Response('HTTP 422', { status: 422 })
+      )
     );
 
     const { result } = renderHook(() => useRunDetail('run-123'));
@@ -149,7 +151,7 @@ describe('useRunDetail', () => {
       await vi.advanceTimersByTimeAsync(0);
     });
 
-    expect(result.current.error).toBe('HTTP 404');
+    expect(result.current.error).toBe('HTTP 422');
     expect(result.current.run).toBeNull();
   });
 
@@ -196,10 +198,12 @@ describe('useTaskDetail', () => {
     vi.stubGlobal('EventSource', MockEventSource);
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ task: mockTask }),
-      })
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ task: mockTask }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      )
     );
   });
 
@@ -248,14 +252,12 @@ describe('useTaskDetail', () => {
   });
 
   it('handles fetch error', async () => {
-    // Use a 4xx error to avoid retries from resilientFetch
+    // Use 422 (non-retryable) to avoid retries from resilientFetch (404 is retryable)
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({
-        ok: false,
-        status: 404,
-        text: () => Promise.resolve('HTTP 404'),
-      })
+      vi.fn().mockResolvedValue(
+        new Response('HTTP 422', { status: 422 })
+      )
     );
 
     const { result } = renderHook(() => useTaskDetail('run-123', 'eff-42'));
@@ -264,7 +266,7 @@ describe('useTaskDetail', () => {
       await vi.advanceTimersByTimeAsync(0);
     });
 
-    expect(result.current.error).toBe('HTTP 404');
+    expect(result.current.error).toBe('HTTP 422');
     expect(result.current.task).toBeNull();
   });
 });

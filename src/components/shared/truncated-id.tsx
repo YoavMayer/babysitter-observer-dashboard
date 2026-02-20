@@ -27,7 +27,7 @@ export function TruncatedId({ id, chars = 4, className }: TruncatedIdProps) {
         <TooltipTrigger asChild>
           <span
             className={cn(
-              'inline-flex items-center rounded px-1 py-0.5 font-mono text-xs',
+              'inline-flex items-center rounded px-1 py-0.5 font-mono text-xs min-h-[44px] min-w-[44px] justify-center',
               'bg-background-secondary text-info/80',
               'hover:bg-background-tertiary hover:text-info',
               'cursor-pointer transition-colors select-none',

@@ -95,7 +95,7 @@ export function AppHeader() {
             {/* Notification bell */}
             <button
               onClick={toggleNotificationPanel}
-              className="relative rounded-md p-2 text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary transition-colors"
+              className="relative rounded-md p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary transition-colors"
               title="Notifications"
               aria-label={`Notifications${notifications.length > 0 ? ` (${notifications.length} unread)` : ""}`}
             >
@@ -109,7 +109,7 @@ export function AppHeader() {
             {/* Keyboard shortcuts help */}
             <button
               onClick={() => window.dispatchEvent(new CustomEvent("open-shortcuts-help"))}
-              className="rounded-md p-2 text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary transition-colors"
+              className="rounded-md p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary transition-colors"
               title="Keyboard shortcuts"
               aria-label="Keyboard shortcuts"
             >
@@ -117,7 +117,7 @@ export function AppHeader() {
             </button>
             <button
               onClick={() => setShowSettings(true)}
-              className="rounded-md p-2 text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary transition-colors"
+              className="rounded-md p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary transition-colors"
               title="Settings"
               aria-label="Settings"
             >
@@ -125,7 +125,7 @@ export function AppHeader() {
             </button>
             <button
               onClick={toggleTheme}
-              className="rounded-md p-2 text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary transition-colors"
+              className="rounded-md p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary transition-colors"
               title={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
               aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
             >

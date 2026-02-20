@@ -10,7 +10,37 @@ const mockConfig = {
   port: 4040,
   pollInterval: 2000,
   theme: 'dark' as const,
+  retentionDays: 30,
+  hiddenProjects: [],
 };
+
+const mockProjects = {
+  projects: [{ projectName: 'test-project' }],
+};
+
+/** Helper: mock globalThis.fetch so every call returns fresh Response objects. */
+function mockFetchSuccess(configData = mockConfig, projectsData = mockProjects) {
+  let callIndex = 0;
+  vi.spyOn(globalThis, 'fetch').mockImplementation(() => {
+    const idx = callIndex++;
+    if (idx === 0) {
+      // First call: /api/config
+      return Promise.resolve(
+        new Response(JSON.stringify(configData), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      );
+    }
+    // Second call: /api/runs?mode=projects
+    return Promise.resolve(
+      new Response(JSON.stringify(projectsData), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+  });
+}
 
 function renderWithTheme(open: boolean, onClose = vi.fn()) {
   return render(
@@ -31,10 +61,7 @@ describe('SettingsModal', () => {
   });
 
   it('renders modal when open is true and config loads', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockConfig,
-    } as Response);
+    mockFetchSuccess();
 
     renderWithTheme(true);
 
@@ -53,11 +80,26 @@ describe('SettingsModal', () => {
   });
 
   it('shows fetch error when config load fails', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
-      ok: false,
-      status: 400,
-      text: async () => 'Bad request',
-    } as Response);
+    let callIndex = 0;
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() => {
+      const idx = callIndex++;
+      if (idx === 0) {
+        // First call: /api/config — non-retryable 422 error
+        return Promise.resolve(
+          new Response('Bad request', {
+            status: 422,
+            headers: { 'Content-Type': 'text/plain' },
+          }),
+        );
+      }
+      // Second call: /api/runs?mode=projects — also fail
+      return Promise.resolve(
+        new Response('Bad request', {
+          status: 422,
+          headers: { 'Content-Type': 'text/plain' },
+        }),
+      );
+    });
 
     renderWithTheme(true);
 
@@ -67,10 +109,7 @@ describe('SettingsModal', () => {
   });
 
   it('displays watch sources section after config loads', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockConfig,
-    } as Response);
+    mockFetchSuccess();
 
     renderWithTheme(true);
 
@@ -80,10 +119,7 @@ describe('SettingsModal', () => {
   });
 
   it('displays poll interval section after config loads', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockConfig,
-    } as Response);
+    mockFetchSuccess();
 
     renderWithTheme(true);
 
@@ -93,10 +129,7 @@ describe('SettingsModal', () => {
   });
 
   it('displays theme section after config loads', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockConfig,
-    } as Response);
+    mockFetchSuccess();
 
     renderWithTheme(true);
 
@@ -108,10 +141,7 @@ describe('SettingsModal', () => {
   it('calls onClose when clicking the close button', async () => {
     const user = userEvent.setup();
     const onClose = vi.fn();
-    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockConfig,
-    } as Response);
+    mockFetchSuccess();
 
     render(
       <ThemeProvider>
@@ -133,10 +163,7 @@ describe('SettingsModal', () => {
 
   it('calls onClose when pressing Escape', async () => {
     const onClose = vi.fn();
-    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockConfig,
-    } as Response);
+    mockFetchSuccess();
 
     render(
       <ThemeProvider>
@@ -157,10 +184,7 @@ describe('SettingsModal', () => {
 
   it('shows Add Source button and can add a new source', async () => {
     const user = userEvent.setup();
-    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockConfig,
-    } as Response);
+    mockFetchSuccess();
 
     renderWithTheme(true);
 
@@ -176,10 +200,7 @@ describe('SettingsModal', () => {
   });
 
   it('shows config file path in footer', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockConfig,
-    } as Response);
+    mockFetchSuccess();
 
     renderWithTheme(true);
 

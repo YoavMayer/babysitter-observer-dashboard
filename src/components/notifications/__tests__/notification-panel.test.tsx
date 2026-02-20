@@ -23,6 +23,7 @@ function makeNotification(overrides: Partial<AppNotification> = {}): AppNotifica
     type: overrides.type ?? 'info',
     timestamp: overrides.timestamp ?? Date.now(),
     href: overrides.href,
+    persistent: overrides.persistent,
   };
 }
 
@@ -230,6 +231,23 @@ describe('NotificationPanel', () => {
     render(<NotificationPanel {...defaultProps} notifications={notifications} />);
 
     expect(screen.getByText('5m ago')).toBeInTheDocument();
+  });
+
+  // -----------------------------------------------------------------------
+  // Persistent (pinned) notification
+  // -----------------------------------------------------------------------
+  it('shows pin icon for persistent notifications', () => {
+    const persistentNotif = makeNotification({ id: 'n-pin', persistent: true });
+    render(<NotificationPanel {...defaultProps} notifications={[persistentNotif]} />);
+    expect(screen.getByTitle('Pinned — won\'t auto-dismiss')).toBeInTheDocument();
+    expect(screen.getByText('· Pinned')).toBeInTheDocument();
+  });
+
+  it('does not show pin icon for non-persistent notifications', () => {
+    const notif = makeNotification({ id: 'n-nopin' });
+    render(<NotificationPanel {...defaultProps} notifications={[notif]} />);
+    expect(screen.queryByTitle('Pinned — won\'t auto-dismiss')).not.toBeInTheDocument();
+    expect(screen.queryByText('· Pinned')).not.toBeInTheDocument();
   });
 
   // -----------------------------------------------------------------------

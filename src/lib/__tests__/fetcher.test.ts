@@ -185,9 +185,9 @@ describe('resilientFetch', () => {
       }
     });
 
-    it('does not retry 404 Not Found', async () => {
+    it('does not retry 422 Unprocessable Content', async () => {
       vi.mocked(fetch).mockResolvedValueOnce(
-        textResponse('Not Found', 404),
+        textResponse('Unprocessable Content', 422),
       );
 
       const result = await resilientFetch('/api/missing');
@@ -195,7 +195,7 @@ describe('resilientFetch', () => {
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(result.ok).toBe(false);
       if (!result.ok) {
-        expect(result.error.status).toBe(404);
+        expect(result.error.status).toBe(422);
         expect(result.error.isRetryable).toBe(false);
       }
     });
@@ -471,6 +471,9 @@ describe('resilientFetch', () => {
 
     it('returns error when response.json() throws on 200 OK (non-JSON body)', async () => {
       // Server returns 200 with a non-JSON body (e.g. plain text / HTML)
+      // The implementation treats JSON parse failures as "server temporarily
+      // unavailable (recompiling)" and marks them retryable, since this
+      // commonly happens during Next.js HMR recompilation.
       vi.mocked(fetch).mockResolvedValueOnce(
         new Response('not json', {
           status: 200,
@@ -483,9 +486,9 @@ describe('resilientFetch', () => {
       expect(result.ok).toBe(false);
       if (!result.ok) {
         expect(result.error.status).toBe(200);
-        expect(result.error.isRetryable).toBe(false);
+        expect(result.error.isRetryable).toBe(true);
         expect(result.error.isAborted).toBe(false);
-        expect(result.error.message).toContain('Expected JSON');
+        expect(result.error.message).toContain('Server temporarily unavailable');
       }
     });
 
