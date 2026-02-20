@@ -144,7 +144,7 @@ describe('useNotifications', () => {
     const { result } = renderHook(() => useNotifications());
 
     act(() => {
-      result.current.notify('Breakpoint', 'Needs approval', 'warning', '/runs/abc', true);
+      result.current.notify('Breakpoint', 'Needs approval', 'warning', { href: '/runs/abc', persistent: true });
     });
 
     expect(result.current.notifications).toHaveLength(1);
@@ -164,7 +164,7 @@ describe('useNotifications', () => {
     const { result } = renderHook(() => useNotifications());
 
     act(() => {
-      result.current.notify('Breakpoint', 'Needs approval', 'warning', '/runs/abc', true);
+      result.current.notify('Breakpoint', 'Needs approval', 'warning', { href: '/runs/abc', persistent: true });
     });
 
     expect(result.current.notifications).toHaveLength(1);

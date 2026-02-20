@@ -94,16 +94,13 @@ export function NotificationPanel({ open, notifications, onDismiss, onClose }: N
                   >
                     <div className="flex items-start gap-2">
                       <div className="shrink-0 mt-0.5">{iconMap[notif.type]}</div>
+                      {notif.persistent && <span title="Pinned — won't auto-dismiss" className="shrink-0"><Pin className="h-3 w-3 text-primary/50" /></span>}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1">
-                          <p className="text-sm font-medium text-foreground">{notif.title}</p>
-                          {notif.persistent && (
-                            <Pin className="h-3 w-3 text-warning shrink-0" aria-label="Persistent notification" />
-                          )}
-                        </div>
+                        <p className="text-sm font-medium text-foreground">{notif.title}</p>
                         <p className="text-xs text-foreground-muted mt-0.5">{notif.body}</p>
                         <p className="text-xs text-foreground-muted mt-1 opacity-70">
                           {formatTime(notif.timestamp)}
+                          {notif.persistent && <span className="text-primary/50 ml-1">· Pinned</span>}
                         </p>
                       </div>
                       <button

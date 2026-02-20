@@ -263,7 +263,7 @@ describe('NotificationPanel', () => {
     render(<NotificationPanel {...defaultProps} notifications={notifications} />);
 
     expect(screen.getByTestId('icon-Pin')).toBeInTheDocument();
-    expect(screen.getByLabelText('Persistent notification')).toBeInTheDocument();
+    expect(screen.getByTitle('Pinned — won\'t auto-dismiss')).toBeInTheDocument();
   });
 
   it('does not show a Pin icon for non-persistent notifications', () => {
