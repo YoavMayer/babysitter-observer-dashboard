@@ -1,7 +1,8 @@
 "use client";
 import { useMemo } from "react";
-import { CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
+import { CheckCircle2, AlertTriangle, XCircle, X } from "lucide-react";
 import { cn } from "@/lib/cn";
+import type { RunStatus } from "@/types";
 
 export interface ExecutiveSummaryMetrics {
   totalProjects: number;
@@ -14,36 +15,44 @@ export interface ExecutiveSummaryMetrics {
 
 type SeverityLevel = "healthy" | "amber" | "red";
 
+interface SummaryIssue {
+  text: string;
+  filter: RunStatus | "stale" | null;
+}
+
 interface SummaryResult {
   severity: SeverityLevel;
-  text: string;
+  issues: SummaryIssue[];
   icon: React.ReactNode;
 }
 
 function deriveSummary(m: ExecutiveSummaryMetrics): SummaryResult {
-  const issues: string[] = [];
+  const issues: SummaryIssue[] = [];
   let severity: SeverityLevel = "healthy";
 
   // Red-level issues
   if (m.failedRuns > 0) {
-    issues.push(
-      `${m.failedRuns} run${m.failedRuns !== 1 ? "s" : ""} failing`
-    );
+    issues.push({
+      text: `${m.failedRuns} run${m.failedRuns !== 1 ? "s" : ""} failing`,
+      filter: "failed",
+    });
     severity = "red";
   }
 
   // Amber-level issues
   if (m.pendingBreakpoints > 0) {
-    issues.push(
-      `${m.pendingBreakpoints} approval${m.pendingBreakpoints !== 1 ? "s" : ""} need${m.pendingBreakpoints === 1 ? "s" : ""} your attention`
-    );
+    issues.push({
+      text: `${m.pendingBreakpoints} approval${m.pendingBreakpoints !== 1 ? "s" : ""} need${m.pendingBreakpoints === 1 ? "s" : ""} your attention`,
+      filter: "waiting",
+    });
     if (severity !== "red") severity = "amber";
   }
 
   if (m.staleRuns > 0) {
-    issues.push(
-      `${m.staleRuns} stale run${m.staleRuns !== 1 ? "s" : ""}`
-    );
+    issues.push({
+      text: `${m.staleRuns} stale run${m.staleRuns !== 1 ? "s" : ""}`,
+      filter: "stale",
+    });
     if (severity !== "red") severity = "amber";
   }
 
@@ -56,12 +65,11 @@ function deriveSummary(m: ExecutiveSummaryMetrics): SummaryResult {
         : `All ${m.totalProjects} ${projectLabel} healthy`;
     return {
       severity: "healthy",
-      text,
+      issues: [{ text, filter: null }],
       icon: <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden="true" />,
     };
   }
 
-  const text = issues.join(", ");
   const icon =
     severity === "red" ? (
       <XCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -69,7 +77,7 @@ function deriveSummary(m: ExecutiveSummaryMetrics): SummaryResult {
       <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
     );
 
-  return { severity, text, icon };
+  return { severity, issues, icon };
 }
 
 const severityStyles: Record<
@@ -97,13 +105,23 @@ const severityStyles: Record<
 
 interface ExecutiveSummaryBannerProps {
   metrics: ExecutiveSummaryMetrics;
+  onFilterChange?: (filter: RunStatus | "stale") => void;
+  dismissed?: boolean;
+  onDismiss?: () => void;
 }
 
 export function ExecutiveSummaryBanner({
   metrics,
+  onFilterChange,
+  dismissed,
+  onDismiss,
 }: ExecutiveSummaryBannerProps) {
   const summary = useMemo(() => deriveSummary(metrics), [metrics]);
   const styles = severityStyles[summary.severity];
+
+  if (dismissed) return null;
+
+  const isClickable = summary.severity !== "healthy" && !!onFilterChange;
 
   return (
     <div
@@ -120,12 +138,40 @@ export function ExecutiveSummaryBanner({
       <span className={styles.iconColor}>{summary.icon}</span>
       <p
         className={cn(
-          "text-sm font-medium leading-snug",
+          "text-sm font-medium leading-snug flex-1",
           styles.text
         )}
       >
-        {summary.text}
+        {summary.issues.map((issue, i) => (
+          <span key={i}>
+            {i > 0 && ", "}
+            {issue.filter && onFilterChange ? (
+              <button
+                onClick={() => onFilterChange(issue.filter!)}
+                className="underline decoration-dotted underline-offset-2 hover:decoration-solid transition-all"
+              >
+                {issue.text}
+              </button>
+            ) : (
+              issue.text
+            )}
+          </span>
+        ))}
       </p>
+      {summary.severity !== "healthy" && onDismiss && (
+        <button
+          data-testid="executive-summary-dismiss"
+          onClick={onDismiss}
+          className={cn(
+            "rounded-md p-1.5 min-h-[44px] min-w-[44px] flex items-center justify-center transition-colors",
+            styles.iconColor,
+            "opacity-60 hover:opacity-100"
+          )}
+          aria-label="Dismiss banner"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      )}
     </div>
   );
 }

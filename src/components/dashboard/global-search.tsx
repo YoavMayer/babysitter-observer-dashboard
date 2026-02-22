@@ -133,10 +133,23 @@ export function GlobalSearch() {
     }
   }, [selectedIndex]);
 
-  // Cmd+K / Ctrl+K global shortcut
+  // Cmd+K / Ctrl+K and "/" global shortcut
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        inputRef.current?.focus();
+        setIsOpen(true);
+      }
+      // "/" key to focus search (skip if already in an input)
+      if (
+        e.key === "/" &&
+        !e.metaKey && !e.ctrlKey && !e.altKey &&
+        !(e.target instanceof HTMLInputElement) &&
+        !(e.target instanceof HTMLTextAreaElement) &&
+        !(e.target instanceof HTMLSelectElement) &&
+        !(e.target as HTMLElement)?.isContentEditable
+      ) {
         e.preventDefault();
         inputRef.current?.focus();
         setIsOpen(true);

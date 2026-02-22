@@ -80,7 +80,16 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
     setShowEventStream((v) => !v);
   }, []);
 
+  const openSelected = useCallback(() => {
+    if (selectedEffectId && !showDetail) {
+      setShowDetail(true);
+    } else if (!selectedEffectId && tasks.length > 0) {
+      handleSelectEffect(tasks[0].effectId);
+    }
+  }, [selectedEffectId, showDetail, tasks, handleSelectEffect]);
+
   const switchTab = useCallback((key: string) => {
+    if (!showDetail) return;
     const tabKeys: Record<string, string> = {
       "1": "agent",
       "2": "timing",
@@ -90,15 +99,15 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
     };
     const tab = tabKeys[key];
     if (tab) {
-      // Only allow breakpoint tab if the selected task is a breakpoint
       if (tab === "breakpoint" && selectedTask?.kind !== "breakpoint") return;
       setActiveTab(tab);
     }
-  }, [selectedTask]);
+  }, [selectedTask, showDetail]);
 
   useKeyboard([
     { key: "j", action: moveDown, description: "Next item" },
     { key: "k", action: moveUp, description: "Previous item" },
+    { key: "Enter", action: openSelected, description: "Open selected" },
     { key: "Escape", action: goBack, description: "Go back / Close" },
     { key: "e", action: toggleEventStream, description: "Toggle event stream" },
     { key: "1", action: () => switchTab("1"), description: "Agent tab" },

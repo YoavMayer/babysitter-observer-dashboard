@@ -36,6 +36,7 @@ export default function DashboardPage() {
   const { projects, recentCompletionWindowMs, loading, error, refresh } = useProjects();
   const [statusFilter, setStatusFilter] = useState<RunStatus | "all" | "stale">("all");
   const [sortMode, setSortMode] = usePersistedState<"status" | "activity">("observer:sort-mode", "status");
+  const [bannerDismissed, setBannerDismissed] = useState(false);
 
   // Toggle filter from metric tile: clicking active filter clears it
   const toggleMetricFilter = useCallback((filter: RunStatus | "all" | "stale") => {
@@ -145,7 +146,7 @@ export default function DashboardPage() {
         {/* Executive Summary Banner */}
         {!loading && !error && projects.length > 0 && (
           <ErrorBoundary section="Executive Summary">
-            <ExecutiveSummaryBanner metrics={summaryMetrics} />
+            <ExecutiveSummaryBanner metrics={summaryMetrics} onFilterChange={setStatusFilter} dismissed={bannerDismissed} onDismiss={() => setBannerDismissed(true)} />
           </ErrorBoundary>
         )}
 
