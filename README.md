@@ -2,13 +2,10 @@
 
 [![npm version](https://img.shields.io/npm/v/@yoavmayer/babysitter-observer-dashboard.svg)](https://www.npmjs.com/package/@yoavmayer/babysitter-observer-dashboard)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](https://nodejs.org)
 
 Real-time observability dashboard for [babysitter](https://github.com/a5c-ai/babysitter) orchestration runs.
 
-![Babysitter Observer Dashboard — Dashboard View](docs/dashboard-landing-page.jpg)
-
-![Babysitter Observer Dashboard — Run Detail View](docs/dashboard-run-detail-dark.png)
 
 ## What is Babysitter Observer Dashboard?
 
@@ -16,7 +13,7 @@ Babysitter Observer Dashboard is a real-time browser-based monitoring UI for [ba
 
 ## Prerequisites
 
-- **Node.js >= 18** (LTS recommended)
+- **Node.js >= 20** (LTS recommended)
 - A project using [babysitter](https://github.com/a5c-ai/babysitter) with `.a5c/runs/` directories
 - That's it -- zero config needed beyond that
 
@@ -28,10 +25,12 @@ Babysitter Observer Dashboard is a real-time browser-based monitoring UI for [ba
 - **Expanded project mini-dashboard** -- drill into any project to see runs organized into Active, Failed, and Completed sections with mini KPI pills
 - **Pipeline visualization** -- step-by-step view of task pipelines with parallel group rendering, duration tracking, and error details
 - **Real-time event stream** -- Server-Sent Events (SSE) push updates to the browser the instant a journal file changes on disk
-- **Breakpoint UI** -- approve or reject breakpoints directly from the dashboard without touching the terminal
+- **Breakpoint UI** -- view breakpoint details, questions, and attached files directly in the dashboard
 - **Run detail view** -- deep-dive into any run with agent details, timing breakdowns, logs, and raw JSON inspection
 - **Run retention** -- configurable retention window (default 30 days) filters old runs from the dashboard for performance at scale
-- **Keyboard shortcuts** -- navigate between runs and projects without leaving the keyboard
+- **Keyboard shortcuts** -- navigate runs with j/k, open with Enter, focus search with /, switch tabs with 1-5, and view all shortcuts with ?
+- **Executive summary banner** -- color-coded severity banner (green/amber/red) showing system health at a glance with clickable issue links that filter the dashboard
+- **Context-aware shortcuts help** -- press ? to see keyboard shortcuts relevant to your current page (dashboard vs run detail)
 - **Dark and light themes** -- toggle between dark and light mode; persisted in the registry file
 - **Configurable polling** -- adaptive smart-polling with backoff; poll interval is tunable via CLI, environment, or the settings panel
 - **Editable settings panel** -- add or remove watch sources, change poll interval, set retention window, and switch themes from the UI (persisted to `~/.a5c/observer.json`)
@@ -189,7 +188,6 @@ cp .env.example .env
 | `OBSERVER_STALE_THRESHOLD_MS` | `3600000` | Time in milliseconds after which an inactive run is considered stale |
 | `OBSERVER_RECENT_WINDOW_MS` | `14400000` | Time in milliseconds that recently completed projects stay in the Active section (default: 4 hours) |
 | `OBSERVER_RETENTION_DAYS` | `30` | Number of days to retain completed/failed runs in the dashboard (1-365) |
-| `BABYSITTER_CLI` | `babysitter` | Path to the babysitter CLI binary (used for breakpoint resolution) |
 
 ### Registry File
 
@@ -238,14 +236,13 @@ All endpoints include `Cache-Control: no-cache, no-store` headers and return JSO
 | `GET` | `/api/runs/:runId` | Full detail for a single run. Supports `?maxEvents=<n>` (default 50) to limit events in the response. |
 | `GET` | `/api/runs/:runId/events` | Paginated journal events. Supports `?limit=<n>&offset=<n>`. |
 | `GET` | `/api/runs/:runId/tasks/:effectId` | Full task detail including input, result, stdout, stderr, and breakpoint data. |
-| `POST` | `/api/runs/:runId/tasks/:effectId/resolve` | Resolve a breakpoint. Body: `{ "approved": true/false, "value": "optional feedback" }`. |
 | `GET` | `/api/stream` | SSE event stream. Emits `connected`, `update`, `new-run`, and `error` events. Sends keep-alive pings every 15 seconds. |
 
 ## Development
 
 ### Prerequisites
 
-- Node.js 18+ (LTS recommended)
+- Node.js 20+ (LTS recommended)
 - npm 9+
 
 ### Setup
@@ -288,7 +285,7 @@ src/
       runs/route.ts             # List runs, filter by project
       runs/[runId]/route.ts     # Single run detail
       runs/[runId]/events/      # Journal events for a run
-      runs/[runId]/tasks/       # Task detail + breakpoint resolve
+      runs/[runId]/tasks/       # Task detail
       stream/route.ts           # SSE event stream
       test/route.ts             # Health check endpoint
   components/
@@ -302,7 +299,6 @@ src/
     shared/                     # Reusable UI primitives (badges, pills, modals)
     ui/                         # Base UI components (button, card, tabs, etc.)
   hooks/
-    use-breakpoint-resolve.ts   # Breakpoint approval/rejection
     use-event-stream.ts         # SSE connection management
     use-keyboard.ts             # Keyboard shortcut bindings
     use-notifications.ts        # Browser + in-app notifications
@@ -323,7 +319,6 @@ src/
     watcher.ts                  # File-system watcher for run directories
   types/
     index.ts                    # Core type definitions
-    breakpoint.ts               # Breakpoint-related types
 ```
 
 ## Testing
@@ -439,14 +434,6 @@ The observer reads and writes `~/.a5c/observer.json`. If this file or directory 
 mkdir -p ~/.a5c
 ```
 
-### Breakpoint resolution fails
-
-Breakpoint approval/rejection depends on the `babysitter` CLI being available on your PATH. If the CLI is installed elsewhere, set the `BABYSITTER_CLI` environment variable:
-
-```bash
-BABYSITTER_CLI=/usr/local/bin/babysitter babysitter-observer-dashboard
-```
-
 ### Safe Chain blocks newly published versions
 
 If you have [Aikido Safe Chain](https://www.aikido.dev/) installed, you may see the following error when running `npx -y @yoavmayer/babysitter-observer-dashboard`:
@@ -483,7 +470,7 @@ The API and configuration format may change between minor versions.
 - **Single-instance only** -- Running multiple observer instances watching the same directories is untested and may produce duplicate SSE events.
 - **Large run directories** -- Discovery scans are cached and debounced (filesystem rescans happen at most once per 60 seconds, triggered by the watcher on new-run events). The digest API reads purely from the in-memory cache with zero filesystem I/O. Thousands of run directories are handled efficiently, though initial startup may take a few seconds for the first scan.
 - **Runs visible only after first write to `.a5c/runs/`** -- The dashboard monitors `.a5c/runs/` directories for run data. Regular Claude Code terminal sessions that do not use babysitter orchestration will not appear on the dashboard. A run becomes visible only after the babysitter runtime writes its first journal entry to `.a5c/runs/<runId>/journal/`. This means there is a brief delay between starting a babysitter process and seeing it on the dashboard.
-- **No run deletion or archival** -- The observer is read-only (except for breakpoint resolution). There is no UI to delete, archive, or export runs.
+- **No run deletion or archival** -- The observer is fully read-only (except for the settings panel). There is no UI to delete, archive, or export runs.
 - **Browser notifications** -- Notification support depends on browser permissions and may not work in all environments.
 
 
