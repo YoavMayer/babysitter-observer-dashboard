@@ -40,6 +40,9 @@ test-results/
 playwright-report/
 e2e-*.txt
 
+# Local docs and screenshots
+/docs/
+
 # Defects list (user screenshots and notes)
 /Defects List/
 
