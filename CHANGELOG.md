@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.10.1] - 2026-02-24
+### Changed
+- chore: remove duplicate auto-generated CHANGELOG entry for v0.10.0
+
 ## [0.10.0] - 2026-02-24
 ### Added
 - **UX accessibility overhaul** — shared app header/footer, WCAG AA compliance with minimum 44x44px touch targets, improved contrast ratios, and 12px minimum text sizes across all components
