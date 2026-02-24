@@ -81,6 +81,21 @@ npx babysitter-observer-dashboard --watch-dir .
 
 The dashboard opens at [http://localhost:3000](http://localhost:3000) by default.
 
+### Updating
+
+The CLI checks for newer versions on startup and shows a notice when an update is available:
+
+```
+  Update available: 0.10.1 → 0.11.0
+  Run: npm i -g @yoavmayer/babysitter-observer-dashboard@latest
+```
+
+To update, run the command shown in the notice. If you use `npx`, pass `@latest` to ensure you always get the newest version:
+
+```bash
+npx -y @yoavmayer/babysitter-observer-dashboard@latest
+```
+
 ## CLI Reference
 
 ```
