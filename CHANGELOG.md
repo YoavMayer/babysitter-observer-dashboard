@@ -4,28 +4,6 @@ All notable changes to this project will be documented in this file.
 
 ## [0.10.0] - 2026-02-24
 ### Added
-- feat: Sprint 1 alpha blockers — accessibility, breakpoint UX, and polish
-- feat: add neon eye SVG favicon matching cyberpunk dashboard theme
-- feat: UX accessibility overhaul — shared header/footer, WCAG improvements, typography fixes
-### Fixed
-- fix(ci): drop Node 18 from CI matrix, use Node 20/22
-- fix: keyboard shortcuts, executive banner dismiss, and context-aware help
-- fix: resolve merge conflicts from hotfix+feature RC combination
-- fix: remove dead breakpoint resolve write-path and add IDE panel PDR
-- fix: UX polish and fix 42 pre-existing test failures
-### Changed
-- chore: add docs/ to gitignore, keep local only
-- chore: remove IDE-INTEGRATED-DASHBOARD-PDR.md from repo, keep local
-### Other
-- Merge pull request #3 from YoavMayer/rc/v0.10.0-ux-overhaul
-- docs: update README and CHANGELOG for v0.10.0 release
-- Merge branch 'hotfix/testfailurefix' into rc/v0.10.0-ux-overhaul
-- Merge remote-tracking branch 'origin/main' into feature/ux-accessibility-overhaul
-- docs: add Safe Chain ENOVERSIONS troubleshooting entry to README
-- Merge origin/main into feature/ux-accessibility-overhaul
-
-## [0.10.0] - 2026-02-23
-### Added
 - **UX accessibility overhaul** — shared app header/footer, WCAG AA compliance with minimum 44x44px touch targets, improved contrast ratios, and 12px minimum text sizes across all components
 - **Executive summary banner** — color-coded severity banner (green/amber/red) at the top of the dashboard showing system health; clickable issue links filter the dashboard by status; dismissible for non-healthy states
 - **Context-aware keyboard shortcuts help** — press `?` to open shortcuts modal that shows only relevant shortcuts for the current page (global shortcuts everywhere, dashboard shortcuts on `/`, run-detail shortcuts on `/runs/*`) with section headers
