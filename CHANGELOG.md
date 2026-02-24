@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.11.0] - 2026-02-24
+### Added
+- feat: add startup update check to CLI
+
 ## [0.10.1] - 2026-02-24
 ### Changed
 - chore: remove duplicate auto-generated CHANGELOG entry for v0.10.0
