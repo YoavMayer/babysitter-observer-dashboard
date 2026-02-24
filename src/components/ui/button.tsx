@@ -15,9 +15,9 @@ const buttonVariants = cva(
       },
       size: {
         default: "h-9 px-4 py-2",
-        sm: "h-8 px-3 text-xs",
+        sm: "h-11 px-3 text-xs",
         lg: "h-10 px-6",
-        icon: "h-9 w-9",
+        icon: "h-11 w-11",
       },
     },
     defaultVariants: { variant: "default", size: "default" },
@@ -28,6 +28,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>, Var
   asChild?: boolean;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SlotComp = Slot as any;
 
 export function Button({ className, variant, size, asChild = false, ...props }: ButtonProps) {

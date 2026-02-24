@@ -141,7 +141,7 @@ describe('ProjectSection', () => {
   it('does not render pagination when totalCount is 0', () => {
     setupMockHook([], 0, false);
 
-    const { container } = render(
+    const { container: _container } = render(
       <ProjectSection projectName="test-project" runs={[]} />
     );
     // PaginationControls returns null when totalItems is 0

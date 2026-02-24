@@ -73,9 +73,9 @@ describe('StatusBadge', () => {
     expect(screen.getByText('Completed')).toBeInTheDocument();
   });
 
-  it('renders "Waiting: Breakpoint" when status is waiting and waitingKind is breakpoint', () => {
+  it('renders "Approval Needed" when status is waiting and waitingKind is breakpoint', () => {
     render(<StatusBadge status="waiting" waitingKind="breakpoint" />);
-    expect(screen.getByText('Waiting: Breakpoint')).toBeInTheDocument();
+    expect(screen.getByText('Approval Needed')).toBeInTheDocument();
   });
 
   it('renders "Working" when status is waiting and waitingKind is task', () => {
@@ -92,7 +92,7 @@ describe('StatusBadge', () => {
   it('renders normal waiting when waitingKind not provided', () => {
     render(<StatusBadge status="waiting" />);
     expect(screen.getByText('Waiting')).toBeInTheDocument();
-    expect(screen.queryByText('Waiting: Breakpoint')).not.toBeInTheDocument();
+    expect(screen.queryByText('Approval Needed')).not.toBeInTheDocument();
     expect(screen.queryByText('Working')).not.toBeInTheDocument();
   });
 });

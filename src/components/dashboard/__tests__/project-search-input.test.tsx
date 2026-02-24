@@ -98,7 +98,7 @@ describe('ProjectSearchInput', () => {
     });
 
     // Not called yet with the last character value change
-    const callsAfter50 = onSearch.mock.calls.length;
+    const _callsAfter50 = onSearch.mock.calls.length;
 
     // Advance past debounce
     act(() => {

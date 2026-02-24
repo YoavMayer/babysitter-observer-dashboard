@@ -13,7 +13,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <EventStreamProvider>
           <div className="flex flex-col min-h-screen">
             <AppHeader />
-            <main className="flex-1 flex flex-col">{children}</main>
+            <main id="main-content" className="flex-1 flex flex-col">{children}</main>
             <AppFooter />
           </div>
           <ShortcutsHelp />

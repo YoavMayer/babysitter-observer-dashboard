@@ -6,7 +6,6 @@ import type {
   JournalEvent,
   TaskEffect,
   TaskDetail,
-  TaskStatus,
   TaskKind,
   RunDigest,
   EffectRequestedPayload,

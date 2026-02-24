@@ -20,9 +20,9 @@ const PAGE_SIZE = 10;
 
 export function ProjectSection({
   projectName,
-  runs: initialRuns,
+  runs: _initialRuns,
   selectedIndex,
-  defaultExpanded = false,
+  defaultExpanded: _defaultExpanded = false,
   statusFilter,
   enabled = true,
 }: ProjectSectionProps) {

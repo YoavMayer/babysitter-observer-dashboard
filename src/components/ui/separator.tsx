@@ -9,6 +9,7 @@ export function Separator({
   className?: string;
   orientation?: "horizontal" | "vertical";
 }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Root = SeparatorPrimitive.Root as any;
   return (
     <Root

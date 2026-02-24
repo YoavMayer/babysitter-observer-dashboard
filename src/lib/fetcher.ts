@@ -108,9 +108,7 @@ function createMergedSignal(
   externalSignal?: AbortSignal,
 ): { signal: AbortSignal; cleanup: () => void } {
   const controller = new AbortController();
-  let timer: ReturnType<typeof setTimeout> | undefined;
-
-  timer = setTimeout(() => {
+  const timer: ReturnType<typeof setTimeout> | undefined = setTimeout(() => {
     controller.abort(new DOMException("Request timed out", "TimeoutError"));
   }, timeout);
 

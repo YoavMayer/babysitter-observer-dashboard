@@ -52,7 +52,7 @@ export function PaginationControls({
           onClick={() => onPageChange(currentPage - 1)}
           disabled={!canGoPrev}
           className={cn(
-            'inline-flex h-7 w-7 items-center justify-center rounded-md text-xs transition-all',
+            'inline-flex h-11 w-11 items-center justify-center rounded-md text-xs transition-all',
             canGoPrev
               ? 'text-foreground hover:bg-primary-muted hover:text-primary hover:shadow-neon-glow-primary-xs cursor-pointer'
               : 'text-foreground-muted cursor-not-allowed opacity-40'
@@ -63,7 +63,7 @@ export function PaginationControls({
         </button>
         {pageNumbers.map((p, idx) =>
           p === 'ellipsis' ? (
-            <span key={`ellipsis-${idx}`} className="inline-flex h-7 w-5 items-center justify-center text-xs text-foreground-muted">
+            <span key={`ellipsis-${idx}`} className="inline-flex h-11 w-5 items-center justify-center text-xs text-foreground-muted">
               ...
             </span>
           ) : (
@@ -71,7 +71,7 @@ export function PaginationControls({
               key={p}
               onClick={() => onPageChange(p)}
               className={cn(
-                'inline-flex h-7 min-w-7 items-center justify-center rounded-md px-1.5 text-xs font-medium tabular-nums transition-all',
+                'inline-flex h-11 min-w-[44px] items-center justify-center rounded-md px-1.5 text-xs font-medium tabular-nums transition-all',
                 p === currentPage
                   ? 'text-primary bg-primary/10'
                   : 'text-foreground-muted hover:bg-background-secondary hover:text-foreground-secondary cursor-pointer'
@@ -85,7 +85,7 @@ export function PaginationControls({
           onClick={() => onPageChange(currentPage + 1)}
           disabled={!canGoNext}
           className={cn(
-            'inline-flex h-7 w-7 items-center justify-center rounded-md text-xs transition-all',
+            'inline-flex h-11 w-11 items-center justify-center rounded-md text-xs transition-all',
             canGoNext
               ? 'text-foreground hover:bg-primary-muted hover:text-primary hover:shadow-neon-glow-primary-xs cursor-pointer'
               : 'text-foreground-muted cursor-not-allowed opacity-40'

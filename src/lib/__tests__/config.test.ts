@@ -4,6 +4,7 @@ import { promises as fs } from 'fs';
 import {
   getConfig,
   invalidateConfigCache,
+  invalidateDiscoveryCache,
   writeConfig,
   discoverAllRunDirs,
   findRunDir,
@@ -15,6 +16,7 @@ const mockWriteFile = vi.spyOn(fs, 'writeFile');
 const mockMkdir = vi.spyOn(fs, 'mkdir');
 const mockReaddir = vi.spyOn(fs, 'readdir');
 const mockStat = vi.spyOn(fs, 'stat');
+const mockAccess = vi.spyOn(fs, 'access');
 
 describe('config', () => {
   const originalEnv = process.env;
@@ -33,8 +35,11 @@ describe('config', () => {
     delete process.env.POLL_INTERVAL;
     delete process.env.OBSERVER_DEFAULT_THEME;
     delete process.env.THEME;
-    // Invalidate any cached config from previous test
+    // Invalidate any cached config/discovery from previous test
     invalidateConfigCache();
+    invalidateDiscoveryCache();
+    // Default: fs.access rejects (file does not exist)
+    mockAccess.mockRejectedValue(new Error('ENOENT'));
   });
 
   afterEach(() => {
@@ -56,7 +61,7 @@ describe('config', () => {
 
       // Second call should re-read
       mockReadFile.mockRejectedValue(new Error('no file'));
-      const config2 = await getConfig();
+      const _config2 = await getConfig();
       // readFile should have been called again
       expect(mockReadFile).toHaveBeenCalledTimes(2);
     });
@@ -404,7 +409,7 @@ describe('config', () => {
       });
 
       // readdir for scanning subdirectories and listing runs
-      mockReaddir.mockImplementation(async (dir: any, opts?: any) => {
+      mockReaddir.mockImplementation(async (dir: any, _opts?: any) => {
         const dirStr = typeof dir === 'string' ? dir : dir.toString();
         if (dirStr === '/projects/my-project') {
           // No subdirs to recurse into (only .a5c)
@@ -432,11 +437,18 @@ describe('config', () => {
     });
 
     it('handles depth=0 sources (direct runs directory)', async () => {
-      mockReadFile.mockResolvedValue(
-        JSON.stringify({
-          sources: [{ path: '/direct/runs', depth: 0, label: 'direct' }],
-        }),
-      );
+      const configJson = JSON.stringify({
+        sources: [{ path: '/direct/runs', depth: 0, label: 'direct' }],
+      });
+      // Use mockImplementation so config reads get the config JSON
+      // and run.json reads fail (no run.json file)
+      mockReadFile.mockImplementation(async (filePath: any) => {
+        const fileStr = typeof filePath === 'string' ? filePath : filePath.toString();
+        if (fileStr.includes('run.json')) {
+          throw new Error('ENOENT');
+        }
+        return configJson as any;
+      });
       invalidateConfigCache();
 
       mockReaddir.mockImplementation(async (dir: any) => {

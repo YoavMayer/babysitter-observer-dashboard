@@ -1,19 +1,43 @@
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { usePolling } from '../use-polling';
 
-function mockFetchSuccess(data: unknown) {
-  return vi.fn().mockResolvedValue({
-    ok: true,
-    json: () => Promise.resolve(data),
+/**
+ * Create a Response-like object that resilientFetch can consume.
+ * Uses real Response constructor for correct headers/ok/status behavior,
+ * but wraps json() to resolve immediately (avoids fake-timer issues with
+ * the real ReadableStream-based body parsing).
+ */
+function makeResponse(body: string, init: ResponseInit): Response {
+  const res = new Response(body, init);
+  // Override json() so it resolves on the next microtask tick rather than
+  // going through the ReadableStream path that can stall under fake timers.
+  const parsed = JSON.parse(body);
+  Object.defineProperty(res, 'json', {
+    value: () => Promise.resolve(parsed),
   });
+  return res;
+}
+
+function mockFetchSuccess(data: unknown) {
+  return vi.fn().mockImplementation(() =>
+    Promise.resolve(
+      makeResponse(JSON.stringify(data), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    )
+  );
 }
 
 function mockFetchFailure(status: number) {
-  return vi.fn().mockResolvedValue({
-    ok: false,
-    status,
-    text: () => Promise.resolve(`HTTP ${status}`),
-  });
+  return vi.fn().mockImplementation(() =>
+    Promise.resolve(
+      new Response(`HTTP ${status}`, {
+        status,
+        headers: { 'Content-Type': 'text/plain' },
+      })
+    )
+  );
 }
 
 describe('usePolling', () => {
@@ -107,8 +131,8 @@ describe('usePolling', () => {
   });
 
   it('handles fetch error', async () => {
-    // Use a 4xx error to avoid retries (resilientFetch only retries 5xx)
-    vi.stubGlobal('fetch', mockFetchFailure(404));
+    // Use 422 (non-retryable 4xx) to avoid retries — resilientFetch retries 5xx and 404
+    vi.stubGlobal('fetch', mockFetchFailure(422));
 
     const { result } = renderHook(() => usePolling('/api/data'));
 
@@ -116,13 +140,13 @@ describe('usePolling', () => {
       await vi.advanceTimersByTimeAsync(0);
     });
 
-    expect(result.current.error).toBe('HTTP 404');
+    expect(result.current.error).toBe('HTTP 422');
     expect(result.current.loading).toBe(false);
     expect(result.current.data).toBeNull();
   });
 
   it('handles network error', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network error')));
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Network error')));
 
     // Use a long interval so the poll timer doesn't abort in-progress retries
     // resilientFetch retries network errors: attempt 0 + sleep(1s) + attempt 1 + sleep(2s) + attempt 2 = ~3s
@@ -138,25 +162,30 @@ describe('usePolling', () => {
   });
 
   it('clears error on successful fetch after error', async () => {
-    // Use a 4xx error (non-retryable) so the first call fails immediately,
+    // Use a 422 error (non-retryable 4xx) so the first call fails immediately,
     // then subsequent calls succeed
     const fetchMock = vi.fn()
-      .mockResolvedValueOnce({
-        ok: false,
-        status: 400,
-        text: () => Promise.resolve('Bad request'),
-      })
-      .mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ ok: true }),
-      });
+      .mockResolvedValueOnce(
+        new Response('Bad request', {
+          status: 422,
+          headers: { 'Content-Type': 'text/plain' },
+        })
+      )
+      .mockImplementation(() =>
+        Promise.resolve(
+          makeResponse(JSON.stringify({ ok: true }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          })
+        )
+      );
     vi.stubGlobal('fetch', fetchMock);
 
     const { result } = renderHook(() =>
       usePolling('/api/data', { interval: 1000 })
     );
 
-    // First fetch fails (4xx, no retry)
+    // First fetch fails (422, no retry)
     await act(async () => {
       await vi.advanceTimersByTimeAsync(0);
     });
@@ -224,7 +253,7 @@ describe('usePolling', () => {
   });
 
   it('restarts polling when enabled toggles', async () => {
-    const { rerender, result } = renderHook(
+    const { rerender, result: _result } = renderHook(
       ({ enabled }) => usePolling('/api/data', { enabled, interval: 1000 }),
       { initialProps: { enabled: false } }
     );

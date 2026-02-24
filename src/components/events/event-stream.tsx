@@ -159,7 +159,7 @@ export const EventStream = memo(function EventStream({ events, onEventClick }: E
               key={f.value}
               onClick={() => setFilter(f.value)}
               className={cn(
-                "rounded-md px-2.5 py-1 text-xs leading-tight font-medium transition-all duration-200",
+                "rounded-md px-2.5 py-1 min-h-[44px] text-xs leading-tight font-medium transition-all duration-200",
                 filter === f.value
                   ? "bg-primary/15 text-primary border border-primary/25 shadow-event-filter-active"
                   : "text-foreground-muted hover:text-foreground-secondary hover:bg-muted/50 border border-transparent"

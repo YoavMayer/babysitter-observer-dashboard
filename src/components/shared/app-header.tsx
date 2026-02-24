@@ -42,8 +42,15 @@ export function AppHeader() {
     return () => window.removeEventListener("open-settings", handler);
   }, []);
 
+
   return (
     <>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md"
+      >
+        Skip to main content
+      </a>
       <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-md">
         <div className="mx-auto max-w-[1600px] px-6 py-3 flex items-center gap-3">
           <Eye className="h-5 w-5 text-primary" />
@@ -95,7 +102,7 @@ export function AppHeader() {
             {/* Notification bell */}
             <button
               onClick={toggleNotificationPanel}
-              className="relative rounded-md p-2 text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary transition-colors"
+              className="relative rounded-md p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary transition-colors"
               title="Notifications"
               aria-label={`Notifications${notifications.length > 0 ? ` (${notifications.length} unread)` : ""}`}
             >
@@ -109,7 +116,7 @@ export function AppHeader() {
             {/* Keyboard shortcuts help */}
             <button
               onClick={() => window.dispatchEvent(new CustomEvent("open-shortcuts-help"))}
-              className="rounded-md p-2 text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary transition-colors"
+              className="rounded-md p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary transition-colors"
               title="Keyboard shortcuts"
               aria-label="Keyboard shortcuts"
             >
@@ -117,7 +124,7 @@ export function AppHeader() {
             </button>
             <button
               onClick={() => setShowSettings(true)}
-              className="rounded-md p-2 text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary transition-colors"
+              className="rounded-md p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary transition-colors"
               title="Settings"
               aria-label="Settings"
             >
@@ -125,7 +132,7 @@ export function AppHeader() {
             </button>
             <button
               onClick={toggleTheme}
-              className="rounded-md p-2 text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary transition-colors"
+              className="rounded-md p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary transition-colors"
               title={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
               aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
             >
@@ -136,13 +143,12 @@ export function AppHeader() {
       </header>
 
       {/* Notification Panel */}
-      {showNotificationPanel && (
-        <NotificationPanel
-          notifications={notifications}
-          onDismiss={dismiss}
-          onClose={() => setShowNotificationPanel(false)}
-        />
-      )}
+      <NotificationPanel
+        open={showNotificationPanel}
+        notifications={notifications}
+        onDismiss={dismiss}
+        onClose={() => setShowNotificationPanel(false)}
+      />
 
       {/* Settings Modal */}
       <SettingsModal open={showSettings} onClose={() => setShowSettings(false)} />

@@ -60,7 +60,7 @@ export function BreakpointBanner({ breakpointRuns }: BreakpointBannerProps) {
   if (!hasWaiting && !hasResolved) return null;
 
   return (
-    <div className="flex flex-col gap-2 mb-6" data-testid="breakpoint-banner">
+    <div role="alert" aria-live="assertive" aria-atomic="true" className="flex flex-col gap-2 mb-6" data-testid="breakpoint-banner">
       {/* Active breakpoints waiting */}
       {breakpointRuns.map((bp) => (
         <Link
@@ -82,7 +82,7 @@ export function BreakpointBanner({ breakpointRuns }: BreakpointBannerProps) {
             <div className="flex items-center gap-2 mb-0.5">
               <AlertTriangle className="h-3 w-3 text-warning shrink-0" />
               <span className="text-xs font-bold text-warning uppercase tracking-wider">
-                Breakpoint Waiting
+                Approval Needed
               </span>
               <span className="text-xs text-foreground-muted font-medium">
                 {bp.projectName}
@@ -118,7 +118,7 @@ export function BreakpointBanner({ breakpointRuns }: BreakpointBannerProps) {
             <div className="flex items-center gap-2 mb-0.5">
               <CheckCircle2 className="h-3 w-3 text-success shrink-0" />
               <span className="text-xs font-bold text-success uppercase tracking-wider">
-                Breakpoint Resolved
+                Approved
               </span>
               <span className="text-xs text-foreground-muted font-medium">
                 {entry.bp.projectName}
@@ -139,7 +139,7 @@ export function BreakpointBanner({ breakpointRuns }: BreakpointBannerProps) {
         <div className="flex items-center gap-2 px-3 py-1">
           <Hand className="h-3.5 w-3.5 text-warning" />
           <span className="text-xs font-semibold text-warning">
-            {breakpointRuns.length} breakpoints waiting for approval
+            {breakpointRuns.length} approvals pending
           </span>
         </div>
       )}

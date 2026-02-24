@@ -2,19 +2,19 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, setupUser } from '@/test/test-utils';
 import { TaskDetailPanel } from '../task-detail';
-import { createMockTaskDetail, createMockTaskEffect } from '@/test/fixtures';
+import { createMockTaskDetail } from '@/test/fixtures';
 import type { TaskDetail } from '@/types';
 
 // Mock the useTaskDetail hook
 const mockUseTaskDetail = vi.fn<[], { task: TaskDetail | null; loading: boolean; error: string | null }>();
 
 vi.mock('@/hooks/use-run-detail', () => ({
-  useTaskDetail: (...args: unknown[]) => mockUseTaskDetail(),
+  useTaskDetail: (..._args: unknown[]) => mockUseTaskDetail(),
 }));
 
 // Mock BreakpointPanel to avoid its complex dependencies
 vi.mock('@/components/breakpoint/breakpoint-panel', () => ({
-  BreakpointPanel: ({ task }: { task: unknown }) => (
+  BreakpointPanel: ({ task: _task }: { task: unknown }) => (
     <div data-testid="breakpoint-panel">Breakpoint Panel Content</div>
   ),
 }));
@@ -63,18 +63,18 @@ describe('TaskDetailPanel', () => {
     expect(screen.getByText('Data')).toBeInTheDocument();
   });
 
-  it('does not render Breakpoint tab for non-breakpoint tasks', () => {
+  it('does not render Approval tab for non-breakpoint tasks', () => {
     const task = createMockTaskDetail({ kind: 'node' });
     mockUseTaskDetail.mockReturnValue({ task, loading: false, error: null });
     render(<TaskDetailPanel runId="run-1" effectId="eff-1" />);
-    expect(screen.queryByText('Breakpoint')).not.toBeInTheDocument();
+    expect(screen.queryByText('Approval')).not.toBeInTheDocument();
   });
 
-  it('renders Breakpoint tab for breakpoint tasks', () => {
+  it('renders Approval tab for breakpoint tasks', () => {
     const task = createMockTaskDetail({ kind: 'breakpoint' });
     mockUseTaskDetail.mockReturnValue({ task, loading: false, error: null });
     render(<TaskDetailPanel runId="run-1" effectId="eff-1" />);
-    expect(screen.getByText('Breakpoint')).toBeInTheDocument();
+    expect(screen.getByText('Approval')).toBeInTheDocument();
   });
 
   it('calls onTabChange when switching tabs', async () => {
@@ -186,7 +186,7 @@ describe('TaskDetailPanel', () => {
     const { container } = render(<TaskDetailPanel runId="run-1" effectId="eff-1" />);
     // Should render tabs, not spinner
     expect(screen.getByText('Agent')).toBeInTheDocument();
-    const spinner = container.querySelector('[data-lucide="Loader2"]');
+    const _spinner = container.querySelector('[data-lucide="Loader2"]');
     // The spinner should not appear (or if it does it's in the tab content, not the loading state)
     expect(screen.queryByText('Click a task to view details')).not.toBeInTheDocument();
   });

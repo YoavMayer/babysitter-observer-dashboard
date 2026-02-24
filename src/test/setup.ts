@@ -3,6 +3,14 @@ import { cleanup } from '@testing-library/react';
 import * as matchers from '@testing-library/jest-dom/matchers';
 import React from 'react';
 
+// Mock next/navigation
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn(), prefetch: vi.fn() }),
+  usePathname: () => '/',
+  useSearchParams: () => new URLSearchParams(),
+  useParams: () => ({}),
+}));
+
 // Mock lucide-react to avoid React version mismatch in monorepo
 // (observer has React 18 locally, root has React 19)
 vi.mock('lucide-react', () => {
@@ -28,7 +36,7 @@ vi.mock('lucide-react', () => {
     'ChevronRight', 'ChevronUp', 'Circle', 'Clock', 'Code', 'Cog', 'Copy',
     'ExternalLink', 'Eye', 'FileJson', 'FileText', 'FolderOpen', 'GitBranch',
     'Hand', 'History', 'Inbox', 'Info', 'Layers', 'Loader2', 'Moon', 'Palette',
-    'Pause', 'Percent', 'Plus', 'Puzzle', 'RefreshCw', 'Search', 'Settings',
+    'Pause', 'Percent', 'Pin', 'Plus', 'Puzzle', 'RefreshCw', 'Search', 'Settings',
     'Sun', 'Tag', 'Terminal', 'Timer', 'Trash2', 'X', 'XCircle',
   ];
 

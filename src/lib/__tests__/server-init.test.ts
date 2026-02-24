@@ -68,7 +68,7 @@ describe('server-init', () => {
       mockDiscoverAndCacheAll.mockResolvedValue(undefined);
 
       // Call concurrently
-      const [r1, r2, r3] = await Promise.all([
+      const [_r1, _r2, _r3] = await Promise.all([
         ensureInitialized(),
         ensureInitialized(),
         ensureInitialized(),

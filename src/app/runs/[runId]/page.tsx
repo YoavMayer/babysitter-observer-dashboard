@@ -9,7 +9,6 @@ import { TaskDetailPanel } from "@/components/details/task-detail";
 import { OutcomeBanner } from "@/components/shared/outcome-banner";
 import { MetricsRow } from "@/components/shared/metrics-row";
 import { useNotificationContext } from "@/components/notifications/notification-provider";
-import { NotificationPanel } from "@/components/notifications/notification-panel";
 import { cn } from "@/lib/cn";
 import { Loader2, X, ArrowLeft } from "lucide-react";
 import type { JournalEvent, EffectRequestedPayload } from "@/types";
@@ -17,12 +16,11 @@ import type { JournalEvent, EffectRequestedPayload } from "@/types";
 export default function RunDetailPage({ params }: { params: { runId: string } }) {
   const { runId } = params;
   const router = useRouter();
-  const { run, loading, error } = useRunDetail(runId);
-  const { notifications, dismiss } = useNotificationContext();
+  const { run, loading, error, hasBreakpointWaiting: _hasBreakpointWaiting } = useRunDetail(runId);
+  const { notifications: _notifications, dismiss: _dismiss, notify: _notify } = useNotificationContext();
   const [selectedEffectId, setSelectedEffectId] = useState<string | null>(null);
   const [showDetail, setShowDetail] = useState(false);
   const [showEventStream, setShowEventStream] = useState(true);
-  const [showNotificationPanel, setShowNotificationPanel] = useState(false);
   const [activeTab, setActiveTab] = useState("agent");
 
   const handleSelectEffect = useCallback((effectId: string) => {
@@ -58,7 +56,7 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
       : -1;
     const nextIdx = Math.min(currentIdx + 1, tasks.length - 1);
     handleSelectEffect(tasks[nextIdx].effectId);
-  }, [tasks, selectedEffectId]);
+  }, [tasks, selectedEffectId, handleSelectEffect]);
 
   const moveUp = useCallback(() => {
     if (!tasks.length) return;
@@ -67,7 +65,7 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
       : tasks.length;
     const prevIdx = Math.max(currentIdx - 1, 0);
     handleSelectEffect(tasks[prevIdx].effectId);
-  }, [tasks, selectedEffectId]);
+  }, [tasks, selectedEffectId, handleSelectEffect]);
 
   const goBack = useCallback(() => {
     if (showDetail) {
@@ -82,43 +80,46 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
     setShowEventStream((v) => !v);
   }, []);
 
-  const toggleNotificationPanel = useCallback(() => {
-    setShowNotificationPanel((v) => !v);
-  }, []);
-
-  const tabKeys: Record<string, string> = {
-    "1": "agent",
-    "2": "timing",
-    "3": "logs",
-    "4": "data",
-    "5": "breakpoint",
-  };
+  const openSelected = useCallback(() => {
+    if (selectedEffectId && !showDetail) {
+      setShowDetail(true);
+    } else if (!selectedEffectId && tasks.length > 0) {
+      handleSelectEffect(tasks[0].effectId);
+    }
+  }, [selectedEffectId, showDetail, tasks, handleSelectEffect]);
 
   const switchTab = useCallback((key: string) => {
+    if (!showDetail) return;
+    const tabKeys: Record<string, string> = {
+      "1": "agent",
+      "2": "timing",
+      "3": "logs",
+      "4": "data",
+      "5": "breakpoint",
+    };
     const tab = tabKeys[key];
     if (tab) {
-      // Only allow breakpoint tab if the selected task is a breakpoint
       if (tab === "breakpoint" && selectedTask?.kind !== "breakpoint") return;
       setActiveTab(tab);
     }
-  }, [selectedTask]);
+  }, [selectedTask, showDetail]);
 
   useKeyboard([
     { key: "j", action: moveDown, description: "Next item" },
     { key: "k", action: moveUp, description: "Previous item" },
+    { key: "Enter", action: openSelected, description: "Open selected" },
     { key: "Escape", action: goBack, description: "Go back / Close" },
     { key: "e", action: toggleEventStream, description: "Toggle event stream" },
-    { key: "n", action: toggleNotificationPanel, description: "Toggle notifications" },
     { key: "1", action: () => switchTab("1"), description: "Agent tab" },
     { key: "2", action: () => switchTab("2"), description: "Timing tab" },
     { key: "3", action: () => switchTab("3"), description: "Logs tab" },
     { key: "4", action: () => switchTab("4"), description: "Data tab" },
-    { key: "5", action: () => switchTab("5"), description: "Breakpoint tab" },
+    { key: "5", action: () => switchTab("5"), description: "Approval tab" },
   ]);
 
   if (loading && !run) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center flex-1">
         <Loader2 className="h-6 w-6 animate-spin text-foreground-muted" />
       </div>
     );
@@ -126,7 +127,7 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
 
   if (error || !run) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center flex-1">
         <div data-testid="run-error-message" className="rounded-lg border border-error/20 bg-error-muted p-4 text-sm text-error">
           {error || "Run not found"}
         </div>
@@ -135,12 +136,12 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="flex flex-col flex-1 bg-background">
       {/* Navigation header with back button */}
       <div className="flex items-center gap-3 px-4 py-2 border-b border-border bg-background-secondary/40">
         <button
           onClick={() => router.push("/")}
-          className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-xs font-medium text-foreground-muted hover:text-foreground hover:border-primary/50 hover:shadow-neon-glow-primary-ring transition-all duration-200"
+          className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 min-h-[44px] text-xs font-medium text-foreground-muted hover:text-foreground hover:border-primary/50 hover:shadow-neon-glow-primary-ring transition-all duration-200"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           Dashboard
@@ -186,7 +187,7 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
               <button
                 data-testid="close-detail-btn"
                 onClick={() => { setShowDetail(false); setSelectedEffectId(null); }}
-                className="inline-flex items-center gap-1.5 rounded-md border border-primary/20 px-2.5 py-1 text-xs font-medium text-foreground-muted hover:text-primary hover:border-primary/50 hover:shadow-neon-glow-primary-ring transition-all duration-200"
+                className="inline-flex items-center gap-1.5 rounded-md border border-primary/20 px-2.5 py-1 min-h-[44px] text-xs font-medium text-foreground-muted hover:text-primary hover:border-primary/50 hover:shadow-neon-glow-primary-ring transition-all duration-200"
               >
                 <X className="h-3.5 w-3.5" />
                 Close
@@ -214,14 +215,6 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
         )}
       </div>
 
-      {/* Notification Panel */}
-      {showNotificationPanel && (
-        <NotificationPanel
-          notifications={notifications}
-          onDismiss={dismiss}
-          onClose={() => setShowNotificationPanel(false)}
-        />
-      )}
     </div>
   );
 }

@@ -45,7 +45,7 @@ const statusConfig: Record<string, { variant: "success" | "error" | "warning" | 
   waiting_breakpoint: {
     variant: "warning",
     icon: <Hand className={cn(iconSize, "animate-pulse drop-shadow-[var(--drop-glow-warning)]")} />,
-    label: "Waiting: Breakpoint",
+    label: "Approval Needed",
     extraClass: "ring-warning/40 animate-breakpoint-glow",
   },
   waiting_task: {

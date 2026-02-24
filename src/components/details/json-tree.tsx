@@ -35,7 +35,7 @@ function CopyButton({ value, size = "md", className: extraClass }: { value: stri
 
   const sizeClasses = size === "sm"
     ? "h-4 w-4"
-    : "h-5 w-5";
+    : "min-h-[44px] min-w-[44px]";
   const iconClasses = size === "sm"
     ? "h-2.5 w-2.5"
     : "h-3 w-3";
@@ -593,7 +593,7 @@ function FindingCard({
           <button
             type="button"
             onClick={() => setExpanded((p) => !p)}
-            className="ml-1 text-xs text-primary hover:text-primary-hover transition-colors"
+            className="ml-1 text-xs text-primary hover:text-primary-hover transition-colors min-h-[44px] inline-flex items-center"
           >
             {expanded ? "Show less" : "Show more"}
           </button>
@@ -944,7 +944,7 @@ export function JsonTree({ task }: { task: TaskDetail | null }) {
           type="button"
           onClick={() => setShowInput(true)}
           className={cn(
-            "text-xs px-2 py-1 rounded transition-colors",
+            "text-xs px-3 py-1 min-h-[44px] rounded transition-colors",
             showInput
               ? "bg-primary-muted text-primary"
               : "text-foreground-muted hover:text-foreground-secondary"
@@ -956,7 +956,7 @@ export function JsonTree({ task }: { task: TaskDetail | null }) {
           type="button"
           onClick={() => setShowInput(false)}
           className={cn(
-            "text-xs px-2 py-1 rounded transition-colors",
+            "text-xs px-3 py-1 min-h-[44px] rounded transition-colors",
             !showInput
               ? "bg-primary-muted text-primary"
               : "text-foreground-muted hover:text-foreground-secondary"

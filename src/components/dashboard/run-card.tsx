@@ -95,7 +95,7 @@ export function RunCard({ run, selected }: RunCardProps) {
               {hasActiveBreakpoint && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 border border-warning/30 px-2 py-0.5 text-xs leading-tight font-bold text-warning uppercase tracking-wider shrink-0 animate-pulse-dot">
                   <Hand className="h-2.5 w-2.5" />
-                  Breakpoint
+                  Approval Required
                 </span>
               )}
             </div>
@@ -116,11 +116,6 @@ export function RunCard({ run, selected }: RunCardProps) {
                 <span className="inline-flex items-center gap-1 rounded-full bg-background-secondary px-2 py-0.5 text-xs leading-tight font-medium text-foreground-muted shrink-0">
                   <Tag className="h-2.5 w-2.5" />
                   {run.projectName}
-                </span>
-              )}
-              {run.sourceLabel && run.sourceLabel !== run.projectName && (
-                <span className="rounded-full bg-background-secondary px-2 py-0.5 text-xs leading-tight text-foreground-muted shrink-0">
-                  {run.sourceLabel}
                 </span>
               )}
             </div>
@@ -152,7 +147,7 @@ export function RunCard({ run, selected }: RunCardProps) {
                     "text-xs font-semibold text-warning",
                     "hover:bg-warning/20 transition-colors"
                   )}>
-                    Respond
+                    Review & Approve
                     <ExternalLink className="h-2.5 w-2.5" />
                   </span>
                 </div>
@@ -163,14 +158,14 @@ export function RunCard({ run, selected }: RunCardProps) {
               <div className="flex items-center gap-2 mt-2 px-3 py-2 rounded-md bg-warning-muted border border-warning/25 border-l-2 border-l-warning shadow-breakpoint-glow">
                 <Hand className="h-4 w-4 text-warning shrink-0 animate-pulse-dot" />
                 <span className="text-xs font-semibold text-warning">
-                  Breakpoint waiting for approval
+                  Approval needed
                 </span>
                 <span className={cn(
                   "ml-auto shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-md",
                   "bg-warning/10 border border-warning/20",
                   "text-xs font-semibold text-warning"
                 )}>
-                  Respond
+                  Review & Approve
                   <ExternalLink className="h-2.5 w-2.5" />
                 </span>
               </div>

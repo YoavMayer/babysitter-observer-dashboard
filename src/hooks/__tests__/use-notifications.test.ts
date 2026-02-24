@@ -68,7 +68,7 @@ describe('useNotifications', () => {
     const { result } = renderHook(() => useNotifications());
 
     act(() => {
-      result.current.notify('Title', 'Body', 'info', '/some/link');
+      result.current.notify('Title', 'Body', 'info', { href: '/some/link' });
     });
 
     expect(result.current.notifications[0].href).toBe('/some/link');
@@ -118,7 +118,7 @@ describe('useNotifications', () => {
     expect(result.current.notifications[0].title).toBe('Second');
   });
 
-  it('auto-dismisses notification after 5 seconds', () => {
+  it('auto-dismisses non-persistent notification after 5 seconds', () => {
     const { result } = renderHook(() => useNotifications());
 
     act(() => {
@@ -137,6 +137,43 @@ describe('useNotifications', () => {
     act(() => {
       vi.advanceTimersByTime(1);
     });
+    expect(result.current.notifications).toHaveLength(0);
+  });
+
+  it('does NOT auto-dismiss persistent notifications', () => {
+    const { result } = renderHook(() => useNotifications());
+
+    act(() => {
+      result.current.notify('Breakpoint', 'Needs approval', 'warning', { href: '/runs/abc', persistent: true });
+    });
+
+    expect(result.current.notifications).toHaveLength(1);
+    expect(result.current.notifications[0].persistent).toBe(true);
+
+    // Advance well past the normal auto-dismiss timeout
+    act(() => {
+      vi.advanceTimersByTime(30000);
+    });
+
+    // Persistent notification should still be present
+    expect(result.current.notifications).toHaveLength(1);
+    expect(result.current.notifications[0].title).toBe('Breakpoint');
+  });
+
+  it('persistent notifications can still be manually dismissed', () => {
+    const { result } = renderHook(() => useNotifications());
+
+    act(() => {
+      result.current.notify('Breakpoint', 'Needs approval', 'warning', { href: '/runs/abc', persistent: true });
+    });
+
+    expect(result.current.notifications).toHaveLength(1);
+    const id = result.current.notifications[0].id;
+
+    act(() => {
+      result.current.dismiss(id);
+    });
+
     expect(result.current.notifications).toHaveLength(0);
   });
 

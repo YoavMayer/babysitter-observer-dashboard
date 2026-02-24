@@ -5,9 +5,12 @@ import { discoverAndCacheAll } from "./run-cache";
 // Shared event bus for SSE endpoints — persist across HMR
 const SERVER_EVENTS_KEY = '__observer_server_events__';
 function getServerEvents(): EventEmitter {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (!(globalThis as any)[SERVER_EVENTS_KEY]) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (globalThis as any)[SERVER_EVENTS_KEY] = new EventEmitter();
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (globalThis as any)[SERVER_EVENTS_KEY];
 }
 
@@ -23,13 +26,16 @@ interface InitState {
 }
 
 function getInitState(): InitState {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (!(globalThis as any)[INIT_KEY]) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (globalThis as any)[INIT_KEY] = {
       initialized: false,
       initPromise: null,
       cleanup: null,
     };
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (globalThis as any)[INIT_KEY];
 }
 

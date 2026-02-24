@@ -182,7 +182,7 @@ export function ProjectHealthCard({ project, statusFilter, sortMode = "status", 
                 "animate-pulse-dot"
               )}>
                 <Hand className="h-2.5 w-2.5" />
-                {project.pendingBreakpoints} BP
+                {project.pendingBreakpoints} Pending
               </span>
             )}
           </div>
@@ -193,7 +193,7 @@ export function ProjectHealthCard({ project, statusFilter, sortMode = "status", 
               onClick={handleHide}
               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleHide(e as unknown as React.MouseEvent); } }}
               className={cn(
-                "rounded-md p-1 transition-colors",
+                "rounded-md p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center transition-colors",
                 hiding
                   ? "text-foreground-muted cursor-wait"
                   : "text-foreground-muted/40 hover:text-foreground-muted hover:bg-background-secondary"
@@ -231,25 +231,29 @@ export function ProjectHealthCard({ project, statusFilter, sortMode = "status", 
               {formatRelativeTime(project.latestUpdate)}
             </span>
           </div>
-          {/* Compact status badges */}
+          {/* Compact status badges with icons */}
           <div className="flex items-center gap-1.5 shrink-0">
             {project.activeRuns > 0 && (
-              <span className="inline-flex items-center rounded-full bg-warning/10 border border-warning/20 px-1.5 py-0.5 text-xs leading-tight font-medium text-warning tabular-nums">
+              <span className="inline-flex items-center gap-0.5 rounded-full bg-warning/10 border border-warning/20 px-1.5 py-0.5 text-xs leading-tight font-medium text-warning tabular-nums" title={`${project.activeRuns} active`}>
+                <Activity className="h-3 w-3" />
                 {project.activeRuns}
               </span>
             )}
             {project.staleRuns > 0 && (
-              <span className="inline-flex items-center rounded-full bg-zinc-500/10 border border-zinc-500/20 px-1.5 py-0.5 text-xs leading-tight font-medium text-zinc-500 tabular-nums">
+              <span className="inline-flex items-center gap-0.5 rounded-full bg-zinc-500/10 border border-zinc-500/20 px-1.5 py-0.5 text-xs leading-tight font-medium text-zinc-500 tabular-nums" title={`${project.staleRuns} stale`}>
+                <Pause className="h-3 w-3" />
                 {project.staleRuns}
               </span>
             )}
             {project.completedRuns > 0 && (
-              <span className="inline-flex items-center rounded-full bg-success/10 border border-success/20 px-1.5 py-0.5 text-xs leading-tight font-medium text-success tabular-nums">
+              <span className="inline-flex items-center gap-0.5 rounded-full bg-success/10 border border-success/20 px-1.5 py-0.5 text-xs leading-tight font-medium text-success tabular-nums" title={`${project.completedRuns} completed`}>
+                <CheckCircle2 className="h-3 w-3" />
                 {project.completedRuns}
               </span>
             )}
             {project.failedRuns > 0 && (
-              <span className="inline-flex items-center rounded-full bg-error/10 border border-error/20 px-1.5 py-0.5 text-xs leading-tight font-medium text-error tabular-nums">
+              <span className="inline-flex items-center gap-0.5 rounded-full bg-error/10 border border-error/20 px-1.5 py-0.5 text-xs leading-tight font-medium text-error tabular-nums" title={`${project.failedRuns} failed`}>
+                <AlertCircle className="h-3 w-3" />
                 {project.failedRuns}
               </span>
             )}

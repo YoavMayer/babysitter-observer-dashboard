@@ -12,6 +12,7 @@ interface TabsProps {
 }
 
 export function Tabs({ className, children, "data-testid": testId, ...props }: TabsProps) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Root = TabsPrimitive.Root as any;
   return (
     <Root className={className} data-testid={testId} {...props}>
@@ -21,6 +22,7 @@ export function Tabs({ className, children, "data-testid": testId, ...props }: T
 }
 
 export function TabsList({ className, children }: { className?: string; children: React.ReactNode }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const List = TabsPrimitive.List as any;
   return (
     <List
@@ -32,6 +34,7 @@ export function TabsList({ className, children }: { className?: string; children
 }
 
 export function TabsTrigger({ className, children, value }: { className?: string; children: React.ReactNode; value: string }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Trigger = TabsPrimitive.Trigger as any;
   return (
     <Trigger
@@ -51,6 +54,7 @@ export function TabsTrigger({ className, children, value }: { className?: string
 }
 
 export function TabsContent({ className, children, value }: { className?: string; children: React.ReactNode; value: string }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Content = TabsPrimitive.Content as any;
   return (
     <Content value={value} className={cn("mt-2 focus-visible:outline-none", className)}>

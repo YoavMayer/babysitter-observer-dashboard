@@ -1,4 +1,4 @@
-import { render, screen, renderHook, act } from '@/test/test-utils';
+import { render, screen } from '@/test/test-utils';
 import { NotificationProvider, useNotificationContext } from '../notification-provider';
 import React from 'react';
 
@@ -28,7 +28,7 @@ vi.mock('@/hooks/use-polling', () => ({
 
 // Mock ToastStack to avoid next/navigation dependency
 vi.mock('../toast-stack', () => ({
-  ToastStack: ({ notifications, onDismiss }: { notifications: unknown[]; onDismiss: (id: string) => void }) =>
+  ToastStack: ({ notifications, onDismiss: _onDismiss }: { notifications: unknown[]; onDismiss: (id: string) => void }) =>
     React.createElement('div', { 'data-testid': 'toast-stack' }, `toasts: ${(notifications as unknown[]).length}`),
 }));
 

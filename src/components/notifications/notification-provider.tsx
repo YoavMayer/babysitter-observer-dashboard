@@ -14,7 +14,7 @@ interface NotificationContextValue {
     title: string,
     body: string,
     type?: AppNotification["type"],
-    href?: string,
+    options?: { href?: string; persistent?: boolean },
   ) => void;
   requestPermission: () => void;
   permission: NotificationPermission;
@@ -91,7 +91,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           "New Run Started",
           `${formatShortId(run.runId, 4)} started`,
           "info",
-          `/runs/${run.runId}`,
+          { href: `/runs/${run.runId}` },
         );
         continue;
       }
@@ -103,7 +103,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           "Run Completed",
           `${formatShortId(run.runId, 4)} finished successfully`,
           "success",
-          `/runs/${run.runId}`,
+          { href: `/runs/${run.runId}` },
         );
       }
 
@@ -114,7 +114,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           "Run Failed",
           `${formatShortId(run.runId, 4)} failed`,
           "error",
-          `/runs/${run.runId}`,
+          { href: `/runs/${run.runId}` },
         );
       }
 
@@ -126,11 +126,12 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           "Tasks Completed",
           `${diff} task${diff > 1 ? "s" : ""} completed in ${formatShortId(run.runId, 4)}`,
           "info",
-          `/runs/${run.runId}`,
+          { href: `/runs/${run.runId}` },
         );
       }
 
       // Run transitioned to waiting (breakpoint) — only notify once per waiting episode
+      // These notifications are persistent (no auto-dismiss) so users cannot miss them
       if (run.status === "waiting" && !wm.notifiedWaiting) {
         wm.notifiedWaiting = true;
         const breakpointTitle = run.breakpointQuestion || "Review required";
@@ -138,7 +139,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           `Run ${formatShortId(run.runId, 4)} needs attention`,
           breakpointTitle,
           "warning",
-          `/runs/${run.runId}`,
+          { href: `/runs/${run.runId}`, persistent: true },
         );
       }
 
@@ -153,7 +154,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           "Breakpoint Resolved",
           `Breakpoint in ${formatShortId(run.runId, 4)} was approved`,
           "success",
-          `/runs/${run.runId}`,
+          { href: `/runs/${run.runId}` },
         );
       }
       wm.pendingBreakpoints = run.pendingBreakpoints || 0;

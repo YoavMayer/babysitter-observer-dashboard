@@ -8,6 +8,8 @@ export interface AppNotification {
   type: "success" | "error" | "warning" | "info";
   timestamp: number;
   href?: string;
+  /** When true the notification will not auto-dismiss and must be closed manually or resolved externally. */
+  persistent?: boolean;
 }
 
 export function useNotifications() {
@@ -33,7 +35,7 @@ export function useNotifications() {
       title: string,
       body: string,
       type: AppNotification["type"] = "info",
-      href?: string,
+      options?: { href?: string; persistent?: boolean },
     ) => {
       const id = `notif-${++counterRef.current}-${Date.now()}`;
 
@@ -44,14 +46,17 @@ export function useNotifications() {
         body,
         type,
         timestamp: Date.now(),
-        href,
+        href: options?.href,
+        persistent: options?.persistent,
       };
       setNotifications((prev) => [...prev, notification]);
 
-      // Auto-dismiss after 5 seconds
-      setTimeout(() => {
-        setNotifications((prev) => prev.filter((n) => n.id !== id));
-      }, 5000);
+      // Auto-dismiss after 5 seconds (skip for persistent notifications like breakpoints)
+      if (!options?.persistent) {
+        setTimeout(() => {
+          setNotifications((prev) => prev.filter((n) => n.id !== id));
+        }, 5000);
+      }
 
       // Browser notification when tab is hidden
       if (

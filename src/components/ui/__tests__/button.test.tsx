@@ -79,7 +79,7 @@ describe('Button', () => {
   it('applies sm size classes', () => {
     render(<Button size="sm">Small</Button>);
     const btn = screen.getByRole('button');
-    expect(btn.className).toContain('h-8');
+    expect(btn.className).toContain('h-11');
   });
 
   it('applies lg size classes', () => {
@@ -91,7 +91,7 @@ describe('Button', () => {
   it('applies icon size classes', () => {
     render(<Button size="icon">I</Button>);
     const btn = screen.getByRole('button');
-    expect(btn.className).toContain('w-9');
+    expect(btn.className).toContain('w-11');
   });
 
   it('applies custom className', () => {

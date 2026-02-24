@@ -122,8 +122,9 @@ export function FilePreview({ files, runId, effectId }: FilePreviewProps) {
 
   // Abort all in-flight file requests on unmount
   useEffect(() => {
+    const refs = abortRefs.current;
     return () => {
-      for (const controller of Object.values(abortRefs.current)) {
+      for (const controller of Object.values(refs)) {
         controller.abort();
       }
     };

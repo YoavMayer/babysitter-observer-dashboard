@@ -1,4 +1,4 @@
-import { render, screen, setupUser, within } from '@/test/test-utils';
+import { render, screen, setupUser } from '@/test/test-utils';
 import { EventStream } from '../event-stream';
 import { createMockJournalEvent } from '@/test/fixtures';
 import type { JournalEvent } from '@/types';

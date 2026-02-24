@@ -133,10 +133,23 @@ export function GlobalSearch() {
     }
   }, [selectedIndex]);
 
-  // Cmd+K / Ctrl+K global shortcut
+  // Cmd+K / Ctrl+K and "/" global shortcut
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        inputRef.current?.focus();
+        setIsOpen(true);
+      }
+      // "/" key to focus search (skip if already in an input)
+      if (
+        e.key === "/" &&
+        !e.metaKey && !e.ctrlKey && !e.altKey &&
+        !(e.target instanceof HTMLInputElement) &&
+        !(e.target instanceof HTMLTextAreaElement) &&
+        !(e.target instanceof HTMLSelectElement) &&
+        !(e.target as HTMLElement)?.isContentEditable
+      ) {
         e.preventDefault();
         inputRef.current?.focus();
         setIsOpen(true);
@@ -199,7 +212,7 @@ export function GlobalSearch() {
                 setIsOpen(false);
                 inputRef.current?.focus();
               }}
-              className="rounded p-0.5 text-foreground-muted hover:text-foreground-secondary transition-colors"
+              className="rounded-md p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-foreground-muted hover:text-foreground-secondary transition-colors"
               aria-label="Clear search"
             >
               <X className="h-3.5 w-3.5" />

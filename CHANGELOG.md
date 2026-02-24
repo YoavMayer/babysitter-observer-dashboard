@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.10.0] - 2026-02-23
+### Added
+- **UX accessibility overhaul** — shared app header/footer, WCAG AA compliance with minimum 44x44px touch targets, improved contrast ratios, and 12px minimum text sizes across all components
+- **Executive summary banner** — color-coded severity banner (green/amber/red) at the top of the dashboard showing system health; clickable issue links filter the dashboard by status; dismissible for non-healthy states
+- **Context-aware keyboard shortcuts help** — press `?` to open shortcuts modal that shows only relevant shortcuts for the current page (global shortcuts everywhere, dashboard shortcuts on `/`, run-detail shortcuts on `/runs/*`) with section headers
+- **Neon eye SVG favicon** — cyberpunk-themed custom favicon matching the dashboard's design system
+- **`/` keyboard shortcut** — focus the global search input from anywhere on the dashboard (in addition to existing Ctrl+K)
+- **`Enter` keyboard shortcut** — open the selected task in run detail view
+- **Tab keyboard hints** — `<Kbd>` badges on detail panel tab triggers showing 1-5 shortcut keys
+- **ESLint configuration** — added `.eslintrc.json` for consistent code quality enforcement
+- **IDE-integrated dashboard PDR** — Product Design Review document for potential IDE integration (local only, not shipped)
+
+### Fixed
+- **Banner dismiss resets on polling** — moved dismissed state from banner child component to parent DashboardPage so it survives SSE polling re-renders
+- **Shortcuts help showing irrelevant shortcuts** — made context-aware using `usePathname`; only shows shortcuts relevant to the current page
+- **42 pre-existing test failures** — fixed across unit test suites (mock updates, assertion corrections, timer handling)
+- **CI failing on Node 18** — updated CI matrix from [18, 20] to [20, 22]; auto-version workflow from Node 18 to Node 20 (`balanced-match@4.0.3` requires Node 20+)
+- **1-5 tab shortcuts silently failing** — made `switchTab` no-op when detail panel is closed instead of erroring; added visual hints on tab triggers
+
+### Removed
+- **Breakpoint resolve API route** — `/api/runs/:runId/tasks/:effectId/resolve` endpoint deleted; dashboard is now fully read-only (breakpoint resolution belongs to the CLI/SDK)
+- **`useBreakpointResolve` hook** — removed along with its 295-line test suite and TypeScript types
+- **Node 18 CI support** — dropped from CI matrix (EOL April 2025)
+
+### Changed
+- **Dashboard is now fully read-only** — except for POST /api/config (settings). All breakpoint approve/reject UI removed in favor of CLI-based resolution
+- **Notification panel redesign** — improved layout, accessibility labels, and keyboard support
+- **Settings modal redesign** — restructured with `data-testid` attributes for reliable E2E testing
+- **UI components** — added `displayName` and ARIA attributes to Accordion, ScrollArea, Separator, Tabs, and Tooltip
+
 ## [1.0.1] - 2026-02-19
 ### Fixed
 - fix: restore conventional commit detection for minor/major version bumps
