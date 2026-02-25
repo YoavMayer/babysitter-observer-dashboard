@@ -42,6 +42,9 @@ interface RunWatermark {
   notifiedWaiting: boolean;
 }
 
+/** Duration after mount during which watermarks are seeded silently (no notifications). */
+export const STABILIZATION_WINDOW_MS = 10_000; // 10 seconds
+
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const { notifications, notify, dismiss, requestPermission, permission } =
     useNotifications();
@@ -50,17 +53,20 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   });
   // Permanent watermark: tracks highest-seen state per run across all polls
   const watermarkRef = useRef<Map<string, RunWatermark>>(new Map());
-  const initCountRef = useRef(0);
-  const INIT_SKIP = 2; // Skip first 2 digest loads to seed watermarks
+  const mountedAtRef = useRef(Date.now());
 
   useEffect(() => {
     if (!digest) return;
 
     const watermarks = watermarkRef.current;
+    const isStabilizing =
+      Date.now() - mountedAtRef.current < STABILIZATION_WINDOW_MS;
 
-    // Seed phase: populate watermarks without firing notifications
-    if (initCountRef.current < INIT_SKIP) {
-      initCountRef.current++;
+    // During the stabilization window, seed watermarks for every run without
+    // firing any notifications. This replaces the old count-based INIT_SKIP
+    // approach which could miss runs when there are many active runs and the
+    // first N polls didn't cover them all.
+    if (isStabilizing) {
       for (const run of digest.runs) {
         watermarks.set(run.runId, {
           status: run.status,

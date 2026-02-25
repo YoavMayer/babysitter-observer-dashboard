@@ -1,5 +1,6 @@
-import { render, screen } from '@/test/test-utils';
-import { NotificationProvider, useNotificationContext } from '../notification-provider';
+import { render, screen, act } from '@/test/test-utils';
+import { NotificationProvider, useNotificationContext, STABILIZATION_WINDOW_MS } from '../notification-provider';
+import type { DigestResponse, RunDigest } from '@/types';
 import React from 'react';
 
 // Mock hooks used by NotificationProvider
@@ -17,9 +18,13 @@ vi.mock('@/hooks/use-notifications', () => ({
   }),
 }));
 
+// Mutable digest data that the usePolling mock reads from.
+// Tests update this variable and rerender to simulate new poll responses.
+let mockDigestData: DigestResponse | null = null;
+
 vi.mock('@/hooks/use-polling', () => ({
   usePolling: () => ({
-    data: null,
+    data: mockDigestData,
     loading: false,
     error: null,
     refresh: vi.fn(),
@@ -35,6 +40,7 @@ vi.mock('../toast-stack', () => ({
 describe('NotificationProvider', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockDigestData = null;
   });
 
   // -----------------------------------------------------------------------
@@ -196,5 +202,388 @@ describe('NotificationProvider', () => {
     // These should not throw
     screen.getByText('n').click();
     screen.getByText('d').click();
+  });
+
+  // =======================================================================
+  // Stabilization window tests
+  // =======================================================================
+  describe('stabilization window', () => {
+    /** Helper to create a RunDigest with sensible defaults. */
+    function makeRun(overrides: Partial<RunDigest> = {}): RunDigest {
+      return {
+        runId: 'run-001',
+        latestSeq: 1,
+        status: 'pending',
+        taskCount: 5,
+        completedTasks: 0,
+        updatedAt: new Date().toISOString(),
+        pendingBreakpoints: 0,
+        ...overrides,
+      };
+    }
+
+    beforeEach(() => {
+      vi.useFakeTimers({ shouldAdvanceTime: false });
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    // -------------------------------------------------------------------
+    // 1. No notifications during stabilization window
+    // -------------------------------------------------------------------
+    it('does not fire notifications during the stabilization window', async () => {
+      mockDigestData = {
+        runs: [
+          makeRun({ runId: 'run-001' }),
+          makeRun({ runId: 'run-002' }),
+          makeRun({ runId: 'run-003' }),
+        ],
+      };
+
+      await act(async () => {
+        render(
+          <NotificationProvider>
+            <span>child</span>
+          </NotificationProvider>,
+        );
+      });
+
+      // We are within the stabilization window — no notifications should fire
+      expect(mockNotify).not.toHaveBeenCalled();
+    });
+
+    // -------------------------------------------------------------------
+    // 2. Watermarks seeded during stabilization (no duplicate notifications)
+    // -------------------------------------------------------------------
+    it('seeds watermarks during stabilization so existing runs do not trigger notifications after window', async () => {
+      const runs = [
+        makeRun({ runId: 'run-001' }),
+        makeRun({ runId: 'run-002' }),
+      ];
+
+      mockDigestData = { runs };
+
+      const { rerender } = await act(async () =>
+        render(
+          <NotificationProvider>
+            <span>child</span>
+          </NotificationProvider>,
+        ),
+      );
+
+      expect(mockNotify).not.toHaveBeenCalled();
+
+      // Advance past the stabilization window
+      await act(async () => {
+        vi.advanceTimersByTime(STABILIZATION_WINDOW_MS + 100);
+      });
+
+      // Provide the SAME runs again (simulating a new poll)
+      mockDigestData = { runs: [...runs] };
+      await act(async () => {
+        rerender(
+          <NotificationProvider>
+            <span>child</span>
+          </NotificationProvider>,
+        );
+      });
+
+      // No "New Run Started" notifications because watermarks were already seeded
+      expect(mockNotify).not.toHaveBeenCalled();
+    });
+
+    // -------------------------------------------------------------------
+    // 3. New run after stabilization fires notification
+    // -------------------------------------------------------------------
+    it('fires "New Run Started" for a genuinely new run after stabilization', async () => {
+      const existingRuns = [makeRun({ runId: 'run-001' })];
+      mockDigestData = { runs: existingRuns };
+
+      const { rerender } = await act(async () =>
+        render(
+          <NotificationProvider>
+            <span>child</span>
+          </NotificationProvider>,
+        ),
+      );
+
+      expect(mockNotify).not.toHaveBeenCalled();
+
+      // Advance past stabilization window
+      await act(async () => {
+        vi.advanceTimersByTime(STABILIZATION_WINDOW_MS + 100);
+      });
+
+      // Add a new run to the digest
+      mockDigestData = {
+        runs: [...existingRuns, makeRun({ runId: 'run-new' })],
+      };
+      await act(async () => {
+        rerender(
+          <NotificationProvider>
+            <span>child</span>
+          </NotificationProvider>,
+        );
+      });
+
+      expect(mockNotify).toHaveBeenCalledTimes(1);
+      expect(mockNotify).toHaveBeenCalledWith(
+        'New Run Started',
+        expect.stringContaining('started'),
+        'info',
+        expect.objectContaining({ href: '/runs/run-new' }),
+      );
+    });
+
+    // -------------------------------------------------------------------
+    // 4. Run completed during stabilization doesn't fire notification
+    // -------------------------------------------------------------------
+    it('does not fire "Run Completed" for a run that was already completed during stabilization', async () => {
+      mockDigestData = {
+        runs: [makeRun({ runId: 'run-001', status: 'completed' })],
+      };
+
+      const { rerender } = await act(async () =>
+        render(
+          <NotificationProvider>
+            <span>child</span>
+          </NotificationProvider>,
+        ),
+      );
+
+      expect(mockNotify).not.toHaveBeenCalled();
+
+      // Advance past stabilization window
+      await act(async () => {
+        vi.advanceTimersByTime(STABILIZATION_WINDOW_MS + 100);
+      });
+
+      // Same run, still completed
+      mockDigestData = {
+        runs: [makeRun({ runId: 'run-001', status: 'completed' })],
+      };
+      await act(async () => {
+        rerender(
+          <NotificationProvider>
+            <span>child</span>
+          </NotificationProvider>,
+        );
+      });
+
+      // No notification since it was completed before stabilization ended
+      expect(mockNotify).not.toHaveBeenCalled();
+    });
+
+    // -------------------------------------------------------------------
+    // 5. Status transition after stabilization fires once
+    // -------------------------------------------------------------------
+    it('fires "Run Completed" exactly once when a run transitions to completed after stabilization', async () => {
+      mockDigestData = {
+        runs: [makeRun({ runId: 'run-001', status: 'pending' })],
+      };
+
+      const { rerender } = await act(async () =>
+        render(
+          <NotificationProvider>
+            <span>child</span>
+          </NotificationProvider>,
+        ),
+      );
+
+      expect(mockNotify).not.toHaveBeenCalled();
+
+      // Advance past stabilization window
+      await act(async () => {
+        vi.advanceTimersByTime(STABILIZATION_WINDOW_MS + 100);
+      });
+
+      // Run transitions to completed
+      mockDigestData = {
+        runs: [makeRun({ runId: 'run-001', status: 'completed' })],
+      };
+      await act(async () => {
+        rerender(
+          <NotificationProvider>
+            <span>child</span>
+          </NotificationProvider>,
+        );
+      });
+
+      expect(mockNotify).toHaveBeenCalledTimes(1);
+      expect(mockNotify).toHaveBeenCalledWith(
+        'Run Completed',
+        expect.stringContaining('finished successfully'),
+        'success',
+        expect.objectContaining({ href: '/runs/run-001' }),
+      );
+
+      mockNotify.mockClear();
+
+      // Same completed state on next poll — should NOT fire again
+      mockDigestData = {
+        runs: [makeRun({ runId: 'run-001', status: 'completed' })],
+      };
+      await act(async () => {
+        rerender(
+          <NotificationProvider>
+            <span>child</span>
+          </NotificationProvider>,
+        );
+      });
+
+      expect(mockNotify).not.toHaveBeenCalled();
+    });
+
+    // -------------------------------------------------------------------
+    // 6. Tasks completed after stabilization
+    // -------------------------------------------------------------------
+    it('fires "Tasks Completed" with the correct diff after stabilization', async () => {
+      mockDigestData = {
+        runs: [makeRun({ runId: 'run-001', completedTasks: 3, taskCount: 10 })],
+      };
+
+      const { rerender } = await act(async () =>
+        render(
+          <NotificationProvider>
+            <span>child</span>
+          </NotificationProvider>,
+        ),
+      );
+
+      expect(mockNotify).not.toHaveBeenCalled();
+
+      // Advance past stabilization window
+      await act(async () => {
+        vi.advanceTimersByTime(STABILIZATION_WINDOW_MS + 100);
+      });
+
+      // completedTasks goes from 3 to 5 (diff = 2)
+      mockDigestData = {
+        runs: [makeRun({ runId: 'run-001', completedTasks: 5, taskCount: 10 })],
+      };
+      await act(async () => {
+        rerender(
+          <NotificationProvider>
+            <span>child</span>
+          </NotificationProvider>,
+        );
+      });
+
+      expect(mockNotify).toHaveBeenCalledTimes(1);
+      expect(mockNotify).toHaveBeenCalledWith(
+        'Tasks Completed',
+        expect.stringContaining('2 tasks completed'),
+        'info',
+        expect.objectContaining({ href: '/runs/run-001' }),
+      );
+    });
+
+    // -------------------------------------------------------------------
+    // 7. Waiting state notification after stabilization
+    // -------------------------------------------------------------------
+    it('fires a persistent breakpoint notification when a run transitions to waiting after stabilization', async () => {
+      mockDigestData = {
+        runs: [makeRun({ runId: 'run-001', status: 'pending' })],
+      };
+
+      const { rerender } = await act(async () =>
+        render(
+          <NotificationProvider>
+            <span>child</span>
+          </NotificationProvider>,
+        ),
+      );
+
+      expect(mockNotify).not.toHaveBeenCalled();
+
+      // Advance past stabilization window
+      await act(async () => {
+        vi.advanceTimersByTime(STABILIZATION_WINDOW_MS + 100);
+      });
+
+      // Run transitions to waiting
+      mockDigestData = {
+        runs: [
+          makeRun({
+            runId: 'run-001',
+            status: 'waiting',
+            breakpointQuestion: 'Approve deployment?',
+          }),
+        ],
+      };
+      await act(async () => {
+        rerender(
+          <NotificationProvider>
+            <span>child</span>
+          </NotificationProvider>,
+        );
+      });
+
+      expect(mockNotify).toHaveBeenCalledTimes(1);
+      expect(mockNotify).toHaveBeenCalledWith(
+        expect.stringContaining('needs attention'),
+        'Approve deployment?',
+        'warning',
+        expect.objectContaining({ href: '/runs/run-001', persistent: true }),
+      );
+    });
+
+    // -------------------------------------------------------------------
+    // 8. Breakpoint resolved notification
+    // -------------------------------------------------------------------
+    it('fires "Breakpoint Resolved" when pendingBreakpoints drops to 0 after stabilization', async () => {
+      // Seed with a run that already has a pending breakpoint
+      mockDigestData = {
+        runs: [
+          makeRun({
+            runId: 'run-001',
+            status: 'waiting',
+            pendingBreakpoints: 1,
+          }),
+        ],
+      };
+
+      const { rerender } = await act(async () =>
+        render(
+          <NotificationProvider>
+            <span>child</span>
+          </NotificationProvider>,
+        ),
+      );
+
+      expect(mockNotify).not.toHaveBeenCalled();
+
+      // Advance past stabilization window
+      await act(async () => {
+        vi.advanceTimersByTime(STABILIZATION_WINDOW_MS + 100);
+      });
+
+      // Breakpoint resolved: pendingBreakpoints drops from 1 to 0
+      mockDigestData = {
+        runs: [
+          makeRun({
+            runId: 'run-001',
+            status: 'pending',
+            pendingBreakpoints: 0,
+          }),
+        ],
+      };
+      await act(async () => {
+        rerender(
+          <NotificationProvider>
+            <span>child</span>
+          </NotificationProvider>,
+        );
+      });
+
+      expect(mockNotify).toHaveBeenCalledWith(
+        'Breakpoint Resolved',
+        expect.stringContaining('approved'),
+        'success',
+        expect.objectContaining({ href: '/runs/run-001' }),
+      );
+    });
   });
 });
