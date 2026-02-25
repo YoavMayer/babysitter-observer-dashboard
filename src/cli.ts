@@ -26,7 +26,14 @@ interface CliOptions {
   version?: boolean;
 }
 
+// Injected at build time by esbuild define. Falls back to reading package.json
+// at runtime for development (ts-node) usage.
+declare const __CLI_VERSION__: string | undefined;
+
 function getVersion(): string {
+  if (typeof __CLI_VERSION__ !== "undefined") {
+    return __CLI_VERSION__;
+  }
   try {
     const pkgPath = resolve(__dirname, "..", "package.json");
     const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
