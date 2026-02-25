@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.11.2] - 2026-02-25
+### Fixed
+- **Notification flood on first page load** — replaced count-based INIT_SKIP=2 seed with 10-second time-based stabilization window; watermarks are seeded silently during the window, preventing a burst of mixed notifications when many runs are active
+
 ## [0.11.0] - 2026-02-24
 ### Added
 - feat: add startup update check to CLI
