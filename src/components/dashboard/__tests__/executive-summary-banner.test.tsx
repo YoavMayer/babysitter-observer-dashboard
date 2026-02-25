@@ -1,4 +1,6 @@
 import { render, screen } from '@/test/test-utils';
+import { vi } from 'vitest';
+import userEvent from '@testing-library/user-event';
 import { ExecutiveSummaryBanner, type ExecutiveSummaryMetrics } from '../executive-summary-banner';
 
 function makeMetrics(overrides: Partial<ExecutiveSummaryMetrics> = {}): ExecutiveSummaryMetrics {
@@ -111,5 +113,52 @@ describe('ExecutiveSummaryBanner', () => {
     render(<ExecutiveSummaryBanner metrics={makeMetrics()} />);
     const banner = screen.getByTestId('executive-summary-banner');
     expect(banner.className).toMatch(/border-success/);
+  });
+
+  // --- Dismissed state ---
+  it('returns null when dismissed is true', () => {
+    const { container } = render(
+      <ExecutiveSummaryBanner metrics={makeMetrics({ failedRuns: 1 })} dismissed={true} />
+    );
+    expect(container.innerHTML).toBe('');
+    expect(screen.queryByTestId('executive-summary-banner')).not.toBeInTheDocument();
+  });
+
+  it('renders normally when dismissed is false', () => {
+    render(
+      <ExecutiveSummaryBanner metrics={makeMetrics({ failedRuns: 1 })} dismissed={false} />
+    );
+    expect(screen.getByTestId('executive-summary-banner')).toBeInTheDocument();
+  });
+
+  // --- onDismiss callback ---
+  it('fires onDismiss callback when X button is clicked', async () => {
+    const user = userEvent.setup();
+    const onDismiss = vi.fn();
+    render(
+      <ExecutiveSummaryBanner
+        metrics={makeMetrics({ failedRuns: 1 })}
+        onDismiss={onDismiss}
+      />
+    );
+
+    const dismissBtn = screen.getByTestId('executive-summary-dismiss');
+    await user.click(dismissBtn);
+
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not show dismiss button when onDismiss is not provided', () => {
+    render(
+      <ExecutiveSummaryBanner metrics={makeMetrics({ failedRuns: 1 })} />
+    );
+    expect(screen.queryByTestId('executive-summary-dismiss')).not.toBeInTheDocument();
+  });
+
+  it('does not show dismiss button in healthy state even if onDismiss is provided', () => {
+    render(
+      <ExecutiveSummaryBanner metrics={makeMetrics()} onDismiss={vi.fn()} />
+    );
+    expect(screen.queryByTestId('executive-summary-dismiss')).not.toBeInTheDocument();
   });
 });

@@ -24,6 +24,7 @@ import {
   getProjectSummaries,
   discoverAndCacheAll,
   getCacheStats,
+  forceRefreshBreakpointRuns,
 } from '../run-cache';
 
 const mockGetRunDigest = vi.mocked(getRunDigest);
@@ -375,6 +376,173 @@ describe('run-cache', () => {
       // At least the successful run should be cached
       expect(getCacheStats().size).toBeGreaterThanOrEqual(1);
       consoleSpy.mockRestore();
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // forceRefreshBreakpointRuns
+  // -----------------------------------------------------------------------
+  describe('forceRefreshBreakpointRuns', () => {
+    it('deletes entries with pendingBreakpoints > 0', async () => {
+      mockReadFile.mockResolvedValue(JSON.stringify({ processId: 'proc' }));
+
+      // Entry with pending breakpoints — should be deleted
+      mockGetRunDigest.mockResolvedValue(
+        makeDigest({ runId: 'bp-run', status: 'waiting', pendingBreakpoints: 2, waitingKind: 'breakpoint' })
+      );
+      await getDigestCached('/runs/bp-run', defaultSource, 'proj');
+
+      // Entry without breakpoints — should survive
+      mockGetRunDigest.mockResolvedValue(
+        makeDigest({ runId: 'normal-run', status: 'completed', pendingBreakpoints: 0 })
+      );
+      await getDigestCached('/runs/normal-run', defaultSource, 'proj');
+
+      expect(getCacheStats().size).toBe(2);
+
+      forceRefreshBreakpointRuns();
+
+      expect(getCacheStats().size).toBe(1);
+      const remaining = getCacheStats().entries;
+      expect(remaining[0].runDir).toBe('/runs/normal-run');
+    });
+
+    it('leaves entries intact when pendingBreakpoints is 0 or undefined', async () => {
+      mockReadFile.mockResolvedValue(JSON.stringify({ processId: 'proc' }));
+
+      // Entry with pendingBreakpoints = 0
+      mockGetRunDigest.mockResolvedValue(
+        makeDigest({ runId: 'run-zero', status: 'waiting', pendingBreakpoints: 0 })
+      );
+      await getDigestCached('/runs/run-zero', defaultSource, 'proj');
+
+      // Entry with pendingBreakpoints undefined
+      mockGetRunDigest.mockResolvedValue(
+        makeDigest({ runId: 'run-undef', status: 'completed' })
+      );
+      await getDigestCached('/runs/run-undef', defaultSource, 'proj');
+
+      expect(getCacheStats().size).toBe(2);
+
+      forceRefreshBreakpointRuns();
+
+      expect(getCacheStats().size).toBe(2);
+    });
+
+    it('deletes multiple breakpoint entries in one call', async () => {
+      mockReadFile.mockResolvedValue(JSON.stringify({ processId: 'proc' }));
+
+      mockGetRunDigest.mockResolvedValue(
+        makeDigest({ runId: 'bp-1', status: 'waiting', pendingBreakpoints: 1, waitingKind: 'breakpoint' })
+      );
+      await getDigestCached('/runs/bp-1', defaultSource, 'proj');
+
+      mockGetRunDigest.mockResolvedValue(
+        makeDigest({ runId: 'bp-2', status: 'waiting', pendingBreakpoints: 3, waitingKind: 'breakpoint' })
+      );
+      await getDigestCached('/runs/bp-2', defaultSource, 'proj');
+
+      mockGetRunDigest.mockResolvedValue(
+        makeDigest({ runId: 'safe', status: 'completed' })
+      );
+      await getDigestCached('/runs/safe', defaultSource, 'proj');
+
+      expect(getCacheStats().size).toBe(3);
+
+      forceRefreshBreakpointRuns();
+
+      expect(getCacheStats().size).toBe(1);
+      expect(getCacheStats().entries[0].runDir).toBe('/runs/safe');
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // Breakpoint TTL eviction via getProjectSummaries
+  // -----------------------------------------------------------------------
+  describe('breakpoint TTL eviction', () => {
+    it('evicts breakpoint entries past TTL_BREAKPOINT (3s) when getProjectSummaries is called', async () => {
+      mockReadFile.mockResolvedValue(JSON.stringify({ processId: 'proc' }));
+
+      // Cache a breakpoint entry
+      mockGetRunDigest.mockResolvedValue(
+        makeDigest({
+          runId: 'bp-ttl',
+          status: 'waiting',
+          pendingBreakpoints: 1,
+          waitingKind: 'breakpoint',
+          breakpointQuestion: 'Deploy?',
+        })
+      );
+      await getDigestCached('/runs/bp-ttl', defaultSource, 'proj');
+
+      // Immediately, breakpoints should be counted
+      const before = getProjectSummaries();
+      expect(before).toHaveLength(1);
+      expect(before[0].pendingBreakpoints).toBe(1);
+
+      // Advance past TTL_BREAKPOINT (3s)
+      vi.advanceTimersByTime(3500);
+
+      // After TTL, getProjectSummaries should evict the stale breakpoint entry
+      const after = getProjectSummaries();
+      // The entry itself is evicted from cache, so the project summary
+      // either has no entries or pendingBreakpoints is 0
+      if (after.length > 0) {
+        expect(after[0].pendingBreakpoints).toBe(0);
+      }
+    });
+
+    it('does not evict breakpoint entries before TTL_BREAKPOINT expires', async () => {
+      mockReadFile.mockResolvedValue(JSON.stringify({ processId: 'proc' }));
+
+      mockGetRunDigest.mockResolvedValue(
+        makeDigest({
+          runId: 'bp-fresh',
+          status: 'waiting',
+          pendingBreakpoints: 2,
+          waitingKind: 'breakpoint',
+          breakpointQuestion: 'Approve?',
+        })
+      );
+      await getDigestCached('/runs/bp-fresh', defaultSource, 'proj');
+
+      // Advance only 2s (within 3s TTL_BREAKPOINT)
+      vi.advanceTimersByTime(2000);
+
+      const summaries = getProjectSummaries();
+      expect(summaries).toHaveLength(1);
+      expect(summaries[0].pendingBreakpoints).toBe(2);
+    });
+
+    it('leaves non-breakpoint entries unaffected by breakpoint TTL eviction', async () => {
+      mockReadFile.mockResolvedValue(JSON.stringify({ processId: 'proc' }));
+
+      // Breakpoint entry
+      mockGetRunDigest.mockResolvedValue(
+        makeDigest({
+          runId: 'bp-entry',
+          status: 'waiting',
+          pendingBreakpoints: 1,
+          waitingKind: 'breakpoint',
+        })
+      );
+      await getDigestCached('/runs/bp-entry', defaultSource, 'proj');
+
+      // Normal completed entry
+      mockGetRunDigest.mockResolvedValue(
+        makeDigest({ runId: 'normal', status: 'completed' })
+      );
+      await getDigestCached('/runs/normal', defaultSource, 'proj');
+
+      // Advance past breakpoint TTL but within completed TTL (30s)
+      vi.advanceTimersByTime(4000);
+
+      const summaries = getProjectSummaries();
+      expect(summaries).toHaveLength(1);
+      // The breakpoint entry was evicted but the completed entry remains
+      expect(summaries[0].totalRuns).toBe(1);
+      expect(summaries[0].completedRuns).toBe(1);
+      expect(summaries[0].pendingBreakpoints).toBe(0);
     });
   });
 

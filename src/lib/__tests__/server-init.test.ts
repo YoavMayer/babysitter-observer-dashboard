@@ -11,10 +11,11 @@ vi.mock('../watcher', () => {
 
 vi.mock('../run-cache', () => ({
   discoverAndCacheAll: vi.fn(),
+  forceRefreshBreakpointRuns: vi.fn(),
 }));
 
 import { initWatcher, watcherEvents } from '../watcher';
-import { discoverAndCacheAll } from '../run-cache';
+import { discoverAndCacheAll, forceRefreshBreakpointRuns } from '../run-cache';
 import {
   ensureInitialized,
   shutdownServer,
@@ -24,6 +25,7 @@ import {
 
 const mockInitWatcher = vi.mocked(initWatcher);
 const mockDiscoverAndCacheAll = vi.mocked(discoverAndCacheAll);
+const mockForceRefreshBreakpointRuns = vi.mocked(forceRefreshBreakpointRuns);
 
 describe('server-init', () => {
   beforeEach(async () => {
@@ -110,6 +112,34 @@ describe('server-init', () => {
       watcherEvents.emit('change', { type: 'run-changed', runDir: '/runs/r1' });
 
       expect(handler).toHaveBeenCalledWith({ type: 'run-changed', runDir: '/runs/r1' });
+    });
+
+    it('calls forceRefreshBreakpointRuns on run-changed events to clear stale breakpoint cache', async () => {
+      const cleanupMock = vi.fn();
+      mockInitWatcher.mockResolvedValue(cleanupMock);
+      mockDiscoverAndCacheAll.mockResolvedValue(undefined);
+
+      await ensureInitialized();
+
+      watcherEvents.emit('change', { type: 'run-changed', runDir: '/runs/r1' });
+
+      expect(mockForceRefreshBreakpointRuns).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call forceRefreshBreakpointRuns on new-run or error events', async () => {
+      const cleanupMock = vi.fn();
+      mockInitWatcher.mockResolvedValue(cleanupMock);
+      mockDiscoverAndCacheAll.mockResolvedValue(undefined);
+
+      await ensureInitialized();
+
+      // Add error listener to prevent Node.js from throwing on 'error' event
+      serverEvents.on('error', () => {});
+
+      watcherEvents.emit('change', { type: 'new-run', runDir: '/runs' });
+      watcherEvents.emit('change', { type: 'error', runDir: '/runs', error: new Error('test') });
+
+      expect(mockForceRefreshBreakpointRuns).not.toHaveBeenCalled();
     });
 
     it('forwards new-run events from watcher to server events', async () => {

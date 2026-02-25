@@ -37,6 +37,8 @@ const MAX_CACHE_SIZE = 1000;
 // TTL constants
 const TTL_COMPLETED = 30000; // 30s for completed runs
 const TTL_ACTIVE = 5000; // 5s for active runs (waiting/pending)
+const TTL_BREAKPOINT = 3000; // 3s for breakpoint entries — half the active TTL to ensure
+                              // resolved breakpoints are refreshed more aggressively
 
 function getTTL(status: RunDigest["status"]): number {
   return status === "waiting" || status === "pending" ? TTL_ACTIVE : TTL_COMPLETED;
@@ -173,6 +175,17 @@ export function invalidateRun(runDir: string): void {
   getCache().delete(runDir);
 }
 
+/**
+ * Force-invalidate all cached entries that have pending breakpoints.
+ *
+ * Design note: this intentionally checks only `pendingBreakpoints > 0` without
+ * also requiring `waitingKind === "breakpoint"`.  The broader condition is safer
+ * because it ensures *any* entry that might represent a breakpoint — even one
+ * whose waitingKind was not yet set by the parser — is evicted and refetched.
+ * `getProjectSummaries()` applies the stricter `waitingKind === "breakpoint"`
+ * filter when *counting* breakpoints for display, so the worst case of a
+ * broader eviction here is an extra cache miss, not a false positive in the UI.
+ */
 export function forceRefreshBreakpointRuns(): void {
   const cache = getCache();
   for (const [runDir, entry] of cache) {
@@ -190,6 +203,26 @@ export function invalidateAll(): void {
 
 export function getProjectSummaries(): ProjectSummary[] {
   const cache = getCache();
+  const now = Date.now();
+
+  // First pass: invalidate stale breakpoint cache entries so the next poll
+  // fetches fresh journal data. Collect keys to invalidate separately to avoid
+  // mutating the cache while iterating.
+  const staleBreakpointKeys: string[] = [];
+  for (const [runDir, entry] of cache) {
+    if (entry.digest.pendingBreakpoints && entry.digest.pendingBreakpoints > 0 &&
+        entry.digest.waitingKind === "breakpoint") {
+      const breakpointAge = now - entry.cachedAt;
+      if (breakpointAge > TTL_BREAKPOINT) {
+        staleBreakpointKeys.push(runDir);
+      }
+    }
+  }
+  for (const runDir of staleBreakpointKeys) {
+    invalidateRun(runDir);
+  }
+
+  // Second pass: build project summaries from remaining (fresh) cache entries
   const projectMap = new Map<string, {
     totalRuns: number;
     activeRuns: number;
@@ -234,8 +267,8 @@ export function getProjectSummaries(): ProjectSummary[] {
       existing.staleRuns++;
     }
 
-    // Track pending breakpoints — only count from cache entries that haven't expired
-    // to ensure stale cache entries don't contribute breakpoint counts
+    // Track pending breakpoints — only count from cache entries that are still
+    // within the stricter breakpoint TTL (stale ones were already evicted above)
     if (entry.digest.pendingBreakpoints && entry.digest.pendingBreakpoints > 0 &&
         entry.digest.waitingKind === "breakpoint" && isCacheValid(entry)) {
       existing.pendingBreakpoints += entry.digest.pendingBreakpoints;

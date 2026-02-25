@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { Hand, AlertTriangle, CheckCircle2 } from "lucide-react";
@@ -11,6 +11,8 @@ interface ResolvedEntry {
 }
 
 const RESOLVED_DISPLAY_MS = 20000; // 20 seconds
+const STALENESS_THRESHOLD_MS = 120000; // 2 minutes — if a breakpoint has been shown
+                                        // continuously for this long, show a hint
 
 interface BreakpointBannerProps {
   breakpointRuns: BreakpointRunInfo[];
@@ -19,6 +21,13 @@ interface BreakpointBannerProps {
 export function BreakpointBanner({ breakpointRuns }: BreakpointBannerProps) {
   const [resolvedEntries, setResolvedEntries] = useState<ResolvedEntry[]>([]);
   const prevRunIdsRef = useRef<Map<string, BreakpointRunInfo>>(new Map());
+
+  // Track when each breakpoint entry was first seen (by runId).
+  // Entries are cleaned up when the breakpoint disappears from the list.
+  const firstSeenRef = useRef<Map<string, number>>(new Map());
+
+  // State to trigger re-renders for staleness checks
+  const [, setStalenessTick] = useState(0);
 
   // Detect resolved breakpoints: runs that were previously in the list but are now gone
   useEffect(() => {
@@ -29,6 +38,8 @@ export function BreakpointBanner({ breakpointRuns }: BreakpointBannerProps) {
     for (const [runId, bp] of prevRunIdsRef.current) {
       if (!currentIds.has(runId)) {
         newlyResolved.push({ bp, resolvedAt: now });
+        // Clean up first-seen tracking for resolved breakpoints
+        firstSeenRef.current.delete(runId);
       }
     }
 
@@ -36,9 +47,34 @@ export function BreakpointBanner({ breakpointRuns }: BreakpointBannerProps) {
       setResolvedEntries((prev) => [...prev, ...newlyResolved]);
     }
 
+    // Record first-seen time for new breakpoints
+    for (const bp of breakpointRuns) {
+      if (!firstSeenRef.current.has(bp.runId)) {
+        firstSeenRef.current.set(bp.runId, now);
+      }
+    }
+
     // Update prev ref
     prevRunIdsRef.current = new Map(breakpointRuns.map((bp) => [bp.runId, bp]));
   }, [breakpointRuns]);
+
+  // Periodic tick to re-evaluate staleness (every 10s while breakpoints are active)
+  useEffect(() => {
+    if (breakpointRuns.length === 0) return;
+
+    const timer = setInterval(() => {
+      setStalenessTick((t) => t + 1);
+    }, 10000);
+
+    return () => clearInterval(timer);
+  }, [breakpointRuns.length]);
+
+  // Helper: check if a breakpoint has been shown for longer than the staleness threshold
+  const isStale = useCallback((runId: string): boolean => {
+    const firstSeen = firstSeenRef.current.get(runId);
+    if (!firstSeen) return false;
+    return Date.now() - firstSeen > STALENESS_THRESHOLD_MS;
+  }, []);
 
   // Auto-cleanup expired resolved entries
   useEffect(() => {
@@ -62,41 +98,50 @@ export function BreakpointBanner({ breakpointRuns }: BreakpointBannerProps) {
   return (
     <div role="alert" aria-live="assertive" aria-atomic="true" className="flex flex-col gap-2 mb-6" data-testid="breakpoint-banner">
       {/* Active breakpoints waiting */}
-      {breakpointRuns.map((bp) => (
-        <Link
-          key={bp.runId}
-          href={`/runs/${bp.runId}`}
-          className={cn(
-            "group relative flex items-center gap-3 px-4 py-3 rounded-lg",
-            "bg-warning-muted border border-warning/30",
-            "shadow-breakpoint-glow animate-breakpoint-glow",
-            "hover:border-warning/50 hover:bg-warning-muted",
-            "transition-colors cursor-pointer"
-          )}
-        >
-          <div className="relative shrink-0">
-            <Hand className="h-5 w-5 text-warning animate-pulse-dot" />
-            <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-warning animate-ping" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5">
-              <AlertTriangle className="h-3 w-3 text-warning shrink-0" />
-              <span className="text-xs font-bold text-warning uppercase tracking-wider">
-                Approval Needed
-              </span>
-              <span className="text-xs text-foreground-muted font-medium">
-                {bp.projectName}
-              </span>
-              <span className="font-mono text-xs text-info">
-                {bp.runId.slice(0, 8)}
-              </span>
+      {breakpointRuns.map((bp) => {
+        const stale = isStale(bp.runId);
+        return (
+          <Link
+            key={bp.runId}
+            href={`/runs/${bp.runId}`}
+            className={cn(
+              "group relative flex items-center gap-3 px-4 py-3 rounded-lg",
+              "bg-warning-muted border border-warning/30",
+              "shadow-breakpoint-glow animate-breakpoint-glow",
+              "hover:border-warning/50 hover:bg-warning-muted",
+              "transition-colors cursor-pointer",
+              stale && "opacity-70"
+            )}
+          >
+            <div className="relative shrink-0">
+              <Hand className="h-5 w-5 text-warning animate-pulse-dot" />
+              <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-warning animate-ping" />
             </div>
-            <p className="text-sm text-foreground truncate">
-              {bp.breakpointQuestion}
-            </p>
-          </div>
-        </Link>
-      ))}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-0.5">
+                <AlertTriangle className="h-3 w-3 text-warning shrink-0" />
+                <span className="text-xs font-bold text-warning uppercase tracking-wider">
+                  Approval Needed
+                </span>
+                {stale && (
+                  <span className="text-xs text-foreground-muted italic" data-testid="staleness-indicator">
+                    (checking...)
+                  </span>
+                )}
+                <span className="text-xs text-foreground-muted font-medium">
+                  {bp.projectName}
+                </span>
+                <span className="font-mono text-xs text-info">
+                  {bp.runId.slice(0, 8)}
+                </span>
+              </div>
+              <p className="text-sm text-foreground truncate">
+                {bp.breakpointQuestion}
+              </p>
+            </div>
+          </Link>
+        );
+      })}
 
       {/* Recently resolved breakpoints — green transient display */}
       {resolvedEntries.map((entry) => (

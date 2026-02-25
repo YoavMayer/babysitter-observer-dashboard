@@ -1,6 +1,6 @@
 import { EventEmitter } from "events";
 import { initWatcher, watcherEvents, type WatcherEvent } from "./watcher";
-import { discoverAndCacheAll } from "./run-cache";
+import { discoverAndCacheAll, forceRefreshBreakpointRuns } from "./run-cache";
 
 // Shared event bus for SSE endpoints — persist across HMR
 const SERVER_EVENTS_KEY = '__observer_server_events__';
@@ -66,10 +66,16 @@ export async function ensureInitialized(): Promise<void> {
       await discoverAndCacheAll();
 
       // Step 3: Listen to watcher events and broadcast
-      // Watcher already invalidates cache in handleJournalChange
-      // Here we just broadcast to SSE clients
+      // Watcher already invalidates the specific run cache in handleJournalChange.
+      // Additionally, when a journal change is detected, force-refresh all breakpoint
+      // cache entries. This ensures that EFFECT_RESOLVED events for breakpoints
+      // immediately clear stale breakpoint data across all cached runs — not just
+      // the specific run that changed.
       watcherEvents.on("change", (event: WatcherEvent) => {
         if (event.type === "run-changed") {
+          // Eagerly invalidate all breakpoint-related cache entries so
+          // resolved breakpoints don't linger in the dashboard banner
+          forceRefreshBreakpointRuns();
           serverEvents.emit("run-changed", event);
         } else if (event.type === "new-run") {
           serverEvents.emit("new-run", event);

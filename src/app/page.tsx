@@ -36,7 +36,7 @@ export default function DashboardPage() {
   const { projects, recentCompletionWindowMs, loading, error, refresh } = useProjects();
   const [statusFilter, setStatusFilter] = useState<RunStatus | "all" | "stale">("all");
   const [sortMode, setSortMode] = usePersistedState<"status" | "activity">("observer:sort-mode", "status");
-  const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [dismissedFingerprint, setDismissedFingerprint] = usePersistedState<string | null>("banner-dismissed-fingerprint", null);
 
   // Toggle filter from metric tile: clicking active filter clears it
   const toggleMetricFilter = useCallback((filter: RunStatus | "all" | "stale") => {
@@ -74,6 +74,12 @@ export default function DashboardPage() {
     staleRuns: metrics.staleRuns,
     pendingBreakpoints: projects.reduce((s, p) => s + p.pendingBreakpoints, 0),
   }), [projects, metrics]);
+
+  // Fingerprint for banner dismiss — only tracks issue-related metrics so the
+  // banner auto-reappears when the situation changes but stays dismissed across
+  // polling cycles / remounts when the numbers are the same.
+  const bannerFingerprint = `${summaryMetrics.failedRuns}-${summaryMetrics.staleRuns}-${summaryMetrics.pendingBreakpoints}`;
+  const bannerDismissed = dismissedFingerprint === bannerFingerprint;
 
   const filterCounts = useMemo(() => {
     return {
@@ -146,7 +152,7 @@ export default function DashboardPage() {
         {/* Executive Summary Banner */}
         {!loading && !error && projects.length > 0 && (
           <ErrorBoundary section="Executive Summary">
-            <ExecutiveSummaryBanner metrics={summaryMetrics} onFilterChange={setStatusFilter} dismissed={bannerDismissed} onDismiss={() => setBannerDismissed(true)} />
+            <ExecutiveSummaryBanner metrics={summaryMetrics} onFilterChange={setStatusFilter} dismissed={bannerDismissed} onDismiss={() => setDismissedFingerprint(bannerFingerprint)} />
           </ErrorBoundary>
         )}
 
