@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // Mock source-discovery since path-resolver imports from it
 vi.mock('../source-discovery', () => ({
   discoverAllRunDirs: vi.fn(),
+  invalidateDiscoveryCache: vi.fn(),
 }));
 
 import { discoverAllRunDirs } from '../source-discovery';

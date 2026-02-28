@@ -2,6 +2,40 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.0] - 2026-02-28
+### Added
+- **Catch-up banner** — overnight summary context showing failed/completed/pending counts when revisiting after extended absence
+- **Stale breakpoint dismiss** — X button to dismiss stale breakpoints from the dashboard banner with localStorage persistence; auto-cleans dismissed IDs when breakpoints resolve
+- **Orphaned run detection** — parser detects runs where all tasks resolved but no RUN_COMPLETED event was written (process crash); shows "Interrupted" status badge
+- **KPI grid component** — dedicated grid for key performance indicators on the dashboard
+- **Virtualized run list** — efficient rendering for large numbers of runs
+- **Run filter bar** — filter runs by status directly in the dashboard
+- **Project list view** — collapsible project sections with persisted expand/collapse state
+- **Run dashboard hook** — centralized state management for dashboard filtering, sorting, and pagination
+- **Animated number transitions** — smooth count animations in KPI displays
+- **Batched updates hook** — debounced batch processing (1500ms) to prevent UI thrash from rapid SSE events
+- **Config loader** — dedicated module for loading and validating observer configuration
+- **Source discovery** — automatic detection of babysitter project directories
+- **Global registry** — shared singleton registry for cross-component state
+- **Smart JSON tree viewer** — refactored into submodules (categorize, json-node, smart-summary, tree-controls) with AI-friendly summaries
+- **Breakpoint approval component** — dedicated approval UI with server action (writes result.json directly, no API POST)
+- **E2E test suites** — new specs for breakpoints, notifications, settings/theme, and SSE connections
+
+### Fixed
+- **Blinking/flash on initial load** — replaced useEffect-based localStorage hydration with lazy useState initializer in usePersistedState; first render now reflects persisted value with zero flash
+- **next.config.mjs startup blocking** — reduced execSync timeout from 5000ms to 1000ms for CLI version detection
+- **ESLint errors and warnings** — fixed empty interface, removed unused imports/variables, prefixed intentionally-unused vars with underscore; now zero errors, zero warnings
+- **Collapsed state resets on navigation** — usePersistedState with per-project localStorage keys ensures state survives navigation
+
+### Changed
+- **Dashboard architecture** — extracted page.tsx monolith into composable components (KpiGrid, ProjectListView, RunFilterBar, ExecutiveSummaryBanner, CatchUpBanner)
+- **Parser improvements** — enhanced run parsing with breakpoint question extraction, waiting-kind detection, staleness checks, and orphaned-run inference
+- **Smart polling** — SSE + polling hybrid with ETag/304 support and automatic fallback
+- **Event stream** — shared EventSource with exponential backoff reconnection
+- **Fetcher resilience** — retry logic with ETag caching and HTML-response detection
+- **Run cache** — improved TTL logic, breakpoint caching, and project summary aggregation
+- **Server initialization** — restructured with config-loader and path-resolver modules
+
 ## [0.11.3] - 2026-02-25
 ### Fixed
 - **CLI --version showing stale version** — inject version at build time via esbuild `define` instead of reading package.json at runtime, which broke with cached npx installs

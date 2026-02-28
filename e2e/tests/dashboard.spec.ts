@@ -156,16 +156,15 @@ test.describe("Project Health Cards", () => {
   });
 
   test("project cards display total run count", async ({ dashboardPage }) => {
-    // Each project card should contain a number representing total runs
+    // Each project card should contain a number representing total runs.
+    // Use Playwright's auto-retrying toContainText instead of a one-shot
+    // innerText() read, which can flake when cards are still hydrating.
     const cards = dashboardPage.getProjectCards();
     const count = await cards.count();
     expect(count).toBeGreaterThan(0);
 
     for (let i = 0; i < count; i++) {
-      const card = cards.nth(i);
-      const text = await card.innerText();
-      // The card should contain at least a number (total runs count)
-      expect(text).toMatch(/\d+/);
+      await expect(cards.nth(i)).toContainText(/\d+/, { timeout: 10_000 });
     }
   });
 

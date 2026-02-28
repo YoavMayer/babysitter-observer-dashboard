@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef, useCallback, useTransition } from "react";
+import { useState, useEffect, useLayoutEffect, useRef, useCallback, useTransition } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { Hand, AlertTriangle, CheckCircle2, Check, X } from "lucide-react";
@@ -130,15 +130,19 @@ export function BreakpointBanner({ breakpointRuns }: BreakpointBannerProps) {
   const firstSeenRef = useRef<Map<string, number>>(new Map());
 
   // Dismissed stale breakpoints (client-side only, persisted in localStorage)
-  const [dismissedIds, setDismissedIds] = useState<Set<string>>(() => {
-    if (typeof window === "undefined") return new Set();
+  // Start with empty set to match SSR, then read localStorage before paint.
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+
+  useLayoutEffect(() => {
     try {
       const raw = localStorage.getItem(DISMISSED_KEY);
-      return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
+      if (raw) {
+        setDismissedIds(new Set(JSON.parse(raw) as string[]));
+      }
     } catch {
-      return new Set();
+      // localStorage unavailable
     }
-  });
+  }, []);
 
   const dismissBreakpoint = useCallback((runId: string) => {
     setDismissedIds((prev) => {

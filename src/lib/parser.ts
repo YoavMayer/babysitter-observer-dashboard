@@ -615,10 +615,31 @@ export async function getRunDigest(runPath: string): Promise<RunDigest> {
     if (status === "pending" && taskCount > 0) status = "waiting";
   }
 
-  // Count pending breakpoints (requested but not yet resolved)
+  // Count pending breakpoints (requested but not yet resolved).
+  // Also check result.json — the dashboard writes it on approve but can't
+  // write journal events, so the journal alone may lag behind.
   let pendingBreakpoints = 0;
-  for (const bpId of requestedBreakpoints) {
-    if (!resolvedEffects.has(bpId)) pendingBreakpoints++;
+  if (requestedBreakpoints.size > 0) {
+    const unresolvedBps = [...requestedBreakpoints].filter(
+      (id) => !resolvedEffects.has(id)
+    );
+    if (unresolvedBps.length > 0) {
+      const resultChecks = await Promise.all(
+        unresolvedBps.map((id) =>
+          readJsonSafe<Record<string, unknown>>(
+            path.join(runPath, "tasks", id, "result.json"),
+            null
+          )
+        )
+      );
+      for (let i = 0; i < unresolvedBps.length; i++) {
+        if (resultChecks[i] && resultChecks[i]!.status === "ok") {
+          resolvedEffects.add(unresolvedBps[i]);
+        } else {
+          pendingBreakpoints++;
+        }
+      }
+    }
   }
 
   // Extract breakpoint question and effectId from pending breakpoint tasks — batch-read all at once
