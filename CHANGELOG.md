@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.12.0] - 2026-02-28
+## [0.12.0] - 2026-03-01
 ### Added
 - **Catch-up banner** — overnight summary context showing failed/completed/pending counts when revisiting after extended absence
 - **Stale breakpoint dismiss** — X button to dismiss stale breakpoints from the dashboard banner with localStorage persistence; auto-cleans dismissed IDs when breakpoints resolve
@@ -18,11 +18,15 @@ All notable changes to this project will be documented in this file.
 - **Source discovery** — automatic detection of babysitter project directories
 - **Global registry** — shared singleton registry for cross-component state
 - **Smart JSON tree viewer** — refactored into submodules (categorize, json-node, smart-summary, tree-controls) with AI-friendly summaries
-- **Breakpoint approval component** — dedicated approval UI with server action (writes result.json directly, no API POST)
+- **Breakpoint approval with journal write** — dedicated approval UI that writes both result.json AND an EFFECT_RESOLVED journal entry (SHA-256 checksummed, ULID-sequenced), ensuring the SDK's state machine recognizes the approval
 - **E2E test suites** — new specs for breakpoints, notifications, settings/theme, and SSE connections
 
 ### Fixed
-- **Blinking/flash on initial load** — replaced useEffect-based localStorage hydration with lazy useState initializer in usePersistedState; first render now reflects persisted value with zero flash
+- **Breakpoint approval stuck forever** — root cause: approveBreakpoint only wrote result.json but NOT a journal entry; the SDK reads the journal (not result files) to track resolution, so approved breakpoints reappeared as "Awaiting Decision" and runs stayed in "Waiting" permanently; now writes EFFECT_RESOLVED journal entry alongside result.json
+- **Breakpoint ghosting in parser** — parser now checks result.json for breakpoints that appear unresolved in the journal, preventing approved breakpoints from flickering back as pending
+- **SSR hydration mismatch** — usePersistedState and breakpoint-banner used lazy useState initializers that read localStorage on client but returned defaultValue on server; replaced with useIsomorphicLayoutEffect pattern
+- **"Run not found" errors** — path-resolver now invalidates the discovery cache and retries when a run isn't found on first lookup
+- **Flaky E2E test** — "project cards display total run count" used one-shot innerText() without retry; replaced with Playwright's auto-retrying toContainText
 - **next.config.mjs startup blocking** — reduced execSync timeout from 5000ms to 1000ms for CLI version detection
 - **ESLint errors and warnings** — fixed empty interface, removed unused imports/variables, prefixed intentionally-unused vars with underscore; now zero errors, zero warnings
 - **Collapsed state resets on navigation** — usePersistedState with per-project localStorage keys ensures state survives navigation
