@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getConfig, invalidateConfigCache, writeConfig } from "@/lib/config";
+import { getConfig, invalidateConfigCache, writeConfig } from "@/lib/config-loader";
 import { invalidateAll, discoverAndCacheAll } from "@/lib/run-cache";
 import { normalizeError } from "@/lib/error-handler";
 

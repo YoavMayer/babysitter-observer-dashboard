@@ -1,7 +1,13 @@
 import { render, screen } from '@/test/test-utils';
+import { vi } from 'vitest';
 import { BreakpointPanel } from '../breakpoint-panel';
 import { createMockTaskDetail } from '@/test/fixtures';
 import type { TaskDetail } from '@/types';
+
+// Mock the server action used by BreakpointApproval
+vi.mock('@/app/actions/approve-breakpoint', () => ({
+  approveBreakpoint: vi.fn().mockResolvedValue({ success: true }),
+}));
 
 describe('BreakpointPanel', () => {
   const defaultRunId = 'run-123';
@@ -53,14 +59,22 @@ describe('BreakpointPanel', () => {
   });
 
   // -----------------------------------------------------------------------
-  // No approve/reject buttons (read-only panel)
+  // Approval form for pending breakpoints
   // -----------------------------------------------------------------------
-  it('does not render Approve or Reject buttons', () => {
+  it('renders approval form for requested breakpoints', () => {
     const task = makeBreakpointTask({ status: 'requested' });
     render(<BreakpointPanel task={task} runId={defaultRunId} />);
 
-    expect(screen.queryByText('Approve')).not.toBeInTheDocument();
+    expect(screen.getByTestId('breakpoint-approval')).toBeInTheDocument();
+    expect(screen.getByTestId('approve-btn')).toBeInTheDocument();
     expect(screen.queryByText('Reject')).not.toBeInTheDocument();
+  });
+
+  it('does not render approval form for resolved breakpoints', () => {
+    const task = makeBreakpointTask({ status: 'resolved' });
+    render(<BreakpointPanel task={task} runId={defaultRunId} />);
+
+    expect(screen.queryByTestId('breakpoint-approval')).not.toBeInTheDocument();
   });
 
   // -----------------------------------------------------------------------

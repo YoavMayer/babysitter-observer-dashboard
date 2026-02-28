@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import path from "path";
-import { findRunDir } from "@/lib/config";
+import { findRunDir } from "@/lib/path-resolver";
 import { parseJournalDir } from "@/lib/parser";
 import { normalizeError } from "@/lib/error-handler";
 

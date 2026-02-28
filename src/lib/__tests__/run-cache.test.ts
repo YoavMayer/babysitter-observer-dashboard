@@ -7,14 +7,17 @@ vi.mock('../parser', () => ({
   parseRunDir: vi.fn(),
 }));
 
-vi.mock('../config', () => ({
+vi.mock('../source-discovery', () => ({
   discoverAllRunDirs: vi.fn(),
+}));
+
+vi.mock('../config-loader', () => ({
   getConfig: vi.fn(),
 }));
 
 import { getRunDigest, parseRunDir } from '../parser';
-import { discoverAllRunDirs } from '../config';
-import type { WatchSource } from '../config';
+import { discoverAllRunDirs } from '../source-discovery';
+import type { WatchSource } from '../config-loader';
 import type { RunDigest, Run } from '@/types';
 import {
   getDigestCached,
@@ -47,7 +50,7 @@ function makeDigest(overrides: Partial<RunDigest> = {}): RunDigest {
   };
 }
 
-function makeRun(overrides: Partial<Run> = {}): Run {
+function makeRun(overrides: Partial<Run> & { _journalFileCount?: number } = {}): Run & { _journalFileCount?: number } {
   return {
     runId: 'run-001',
     processId: 'data-pipeline',
@@ -60,6 +63,7 @@ function makeRun(overrides: Partial<Run> = {}): Run {
     completedTasks: 3,
     failedTasks: 0,
     duration: 5000,
+    _journalFileCount: 5,
     ...overrides,
   };
 }
@@ -187,7 +191,7 @@ describe('run-cache', () => {
 
       const result = await getRunCached('/runs/run-001', defaultSource, 'proj');
 
-      expect(mockParseRunDir).toHaveBeenCalledWith('/runs/run-001');
+      expect(mockParseRunDir).toHaveBeenCalledWith('/runs/run-001', undefined);
       expect(result.runId).toBe('run-001');
       expect(result.sourceLabel).toBe('test');
       expect(result.projectName).toBe('proj');

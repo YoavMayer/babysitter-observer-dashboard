@@ -1,17 +1,76 @@
 "use client";
 import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { useRunDetail } from "@/hooks/use-run-detail";
 import { useKeyboard } from "@/hooks/use-keyboard";
-import { PipelineView } from "@/components/pipeline/pipeline-view";
-import { EventStream } from "@/components/events/event-stream";
-import { TaskDetailPanel } from "@/components/details/task-detail";
 import { OutcomeBanner } from "@/components/shared/outcome-banner";
 import { MetricsRow } from "@/components/shared/metrics-row";
 import { useNotificationContext } from "@/components/notifications/notification-provider";
 import { cn } from "@/lib/cn";
 import { Loader2, X, ArrowLeft } from "lucide-react";
 import type { JournalEvent, EffectRequestedPayload } from "@/types";
+
+/* -------------------------------------------------------------------------- */
+/*  Loading skeletons for lazy-loaded route panels                            */
+/* -------------------------------------------------------------------------- */
+
+function PipelineSkeleton() {
+  return (
+    <div className="flex flex-col h-full animate-pulse p-4 space-y-3">
+      <div className="h-5 w-40 rounded bg-foreground-muted/10" />
+      <div className="h-2 w-full rounded-full bg-foreground-muted/10" />
+      <div className="space-y-2 mt-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="h-16 rounded-lg bg-foreground-muted/10" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function EventStreamSkeleton() {
+  return (
+    <div className="flex flex-col h-full animate-pulse p-3 space-y-2">
+      <div className="h-4 w-24 rounded bg-foreground-muted/10" />
+      <div className="h-8 w-full rounded bg-foreground-muted/10" />
+      <div className="space-y-1.5 mt-2">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="h-10 rounded bg-foreground-muted/10" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function DetailPanelSkeleton() {
+  return (
+    <div className="flex flex-col h-full animate-pulse p-4 space-y-3">
+      <div className="h-8 w-full rounded bg-foreground-muted/10" />
+      <div className="h-4 w-3/4 rounded bg-foreground-muted/10" />
+      <div className="h-4 w-1/2 rounded bg-foreground-muted/10" />
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Lazy-loaded heavy route panels                                            */
+/* -------------------------------------------------------------------------- */
+
+const PipelineView = dynamic(
+  () => import("@/components/pipeline/pipeline-view").then((mod) => ({ default: mod.PipelineView })),
+  { ssr: false, loading: PipelineSkeleton }
+);
+
+const EventStream = dynamic(
+  () => import("@/components/events/event-stream").then((mod) => ({ default: mod.EventStream })),
+  { ssr: false, loading: EventStreamSkeleton }
+);
+
+const TaskDetailPanel = dynamic(
+  () => import("@/components/details/task-detail").then((mod) => ({ default: mod.TaskDetailPanel })),
+  { ssr: false, loading: DetailPanelSkeleton }
+);
 
 export default function RunDetailPage({ params }: { params: { runId: string } }) {
   const { runId } = params;

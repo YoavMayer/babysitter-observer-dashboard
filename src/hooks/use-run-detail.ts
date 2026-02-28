@@ -28,7 +28,8 @@ export function useRunDetail(runId: string, intervalOverride?: number) {
     `/api/runs/${runId}?maxEvents=50`,
     {
       interval: adaptiveInterval,
-      sseFilter: (event) => event.runId === runId // Only refetch for this run's updates
+      sseFilter: (event) =>
+        event.runId === runId || (event.runIds?.includes(runId) ?? false)
     }
   );
 
@@ -64,7 +65,8 @@ export function useTaskDetail(runId: string, effectId: string | null) {
     {
       enabled: !!effectId,
       interval: 5000,
-      sseFilter: (event) => event.runId === runId,
+      sseFilter: (event) =>
+        event.runId === runId || (event.runIds?.includes(runId) ?? false),
     }
   );
   return {

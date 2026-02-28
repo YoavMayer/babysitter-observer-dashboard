@@ -98,7 +98,7 @@ describe('TaskDetailPanel', () => {
     expect(onTabChange).toHaveBeenCalledWith('timing');
   });
 
-  it('renders with activeTab controlling which tab content is visible', () => {
+  it('renders with activeTab controlling which tab content is visible', async () => {
     const task = createMockTaskDetail({
       kind: 'node',
       stdout: 'log output here',
@@ -115,11 +115,11 @@ describe('TaskDetailPanel', () => {
       />
     );
 
-    // Logs tab content should be visible since activeTab="logs"
-    expect(screen.getByText('stdout')).toBeInTheDocument();
+    // LogViewer is lazy-loaded via next/dynamic; wait for it to resolve
+    expect(await screen.findByText('stdout')).toBeInTheDocument();
   });
 
-  it('renders agent panel content when agent tab is active', () => {
+  it('renders agent panel content when agent tab is active', async () => {
     const task = createMockTaskDetail({
       kind: 'agent',
       title: 'My Agent Task',
@@ -135,10 +135,11 @@ describe('TaskDetailPanel', () => {
       />
     );
 
-    expect(screen.getByText('My Agent Task')).toBeInTheDocument();
+    // AgentPanel is lazy-loaded via next/dynamic; wait for it to resolve
+    expect(await screen.findByText('My Agent Task')).toBeInTheDocument();
   });
 
-  it('renders timing panel content when timing tab is active', () => {
+  it('renders timing panel content when timing tab is active', async () => {
     const task = createMockTaskDetail({
       kind: 'node',
       duration: 5000,
@@ -154,11 +155,12 @@ describe('TaskDetailPanel', () => {
       />
     );
 
-    expect(screen.getByText('Requested')).toBeInTheDocument();
+    // TimingPanel is lazy-loaded via next/dynamic; wait for it to resolve
+    expect(await screen.findByText('Requested')).toBeInTheDocument();
     expect(screen.getByText('Duration')).toBeInTheDocument();
   });
 
-  it('renders data panel (JsonTree) when data tab is active', () => {
+  it('renders data panel (JsonTree) when data tab is active', async () => {
     const task = createMockTaskDetail({
       kind: 'node',
       input: { query: 'some-input-data' },
@@ -175,8 +177,8 @@ describe('TaskDetailPanel', () => {
       />
     );
 
-    // JsonTree shows Input and Output buttons
-    expect(screen.getByText('Input')).toBeInTheDocument();
+    // JsonTree is lazy-loaded via next/dynamic; wait for it to resolve
+    expect(await screen.findByText('Input')).toBeInTheDocument();
     expect(screen.getByText('Output')).toBeInTheDocument();
   });
 
@@ -191,7 +193,7 @@ describe('TaskDetailPanel', () => {
     expect(screen.queryByText('Click a task to view details')).not.toBeInTheDocument();
   });
 
-  it('renders breakpoint panel content when breakpoint tab is active', () => {
+  it('renders breakpoint panel content when breakpoint tab is active', async () => {
     const task = createMockTaskDetail({ kind: 'breakpoint' });
     mockUseTaskDetail.mockReturnValue({ task, loading: false, error: null });
 
@@ -204,6 +206,7 @@ describe('TaskDetailPanel', () => {
       />
     );
 
-    expect(screen.getByTestId('breakpoint-panel')).toBeInTheDocument();
+    // BreakpointPanel is lazy-loaded via next/dynamic; wait for it to resolve
+    expect(await screen.findByTestId('breakpoint-panel')).toBeInTheDocument();
   });
 });

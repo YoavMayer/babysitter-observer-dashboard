@@ -437,9 +437,9 @@ describe('NotificationProvider', () => {
     });
 
     // -------------------------------------------------------------------
-    // 6. Tasks completed after stabilization
+    // 6. Task completion does NOT fire per-task notification (flood fix)
     // -------------------------------------------------------------------
-    it('fires "Tasks Completed" with the correct diff after stabilization', async () => {
+    it('does not fire per-task notifications when completedTasks increases after stabilization', async () => {
       mockDigestData = {
         runs: [makeRun({ runId: 'run-001', completedTasks: 3, taskCount: 10 })],
       };
@@ -459,7 +459,7 @@ describe('NotificationProvider', () => {
         vi.advanceTimersByTime(STABILIZATION_WINDOW_MS + 100);
       });
 
-      // completedTasks goes from 3 to 5 (diff = 2)
+      // completedTasks goes from 3 to 5 — watermark updates silently
       mockDigestData = {
         runs: [makeRun({ runId: 'run-001', completedTasks: 5, taskCount: 10 })],
       };
@@ -471,13 +471,9 @@ describe('NotificationProvider', () => {
         );
       });
 
-      expect(mockNotify).toHaveBeenCalledTimes(1);
-      expect(mockNotify).toHaveBeenCalledWith(
-        'Tasks Completed',
-        expect.stringContaining('2 tasks completed'),
-        'info',
-        expect.objectContaining({ href: '/runs/run-001' }),
-      );
+      // No per-task "Tasks Completed" notification should fire (flood fix).
+      // The terminal "Run Completed" notification covers this use case.
+      expect(mockNotify).not.toHaveBeenCalled();
     });
 
     // -------------------------------------------------------------------

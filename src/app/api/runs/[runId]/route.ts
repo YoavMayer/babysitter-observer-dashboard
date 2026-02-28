@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { findRunDir } from "@/lib/config";
+import { findRunDir } from "@/lib/path-resolver";
 import { ensureInitialized } from "@/lib/server-init";
 import { getRunCached } from "@/lib/run-cache";
 import { normalizeError } from "@/lib/error-handler";

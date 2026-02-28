@@ -3,6 +3,7 @@ import { useState, useCallback } from "react";
 import { cn } from "@/lib/cn";
 import { Card } from "@/components/ui/card";
 import { RunCard } from "./run-card";
+import { VirtualizedRunList } from "./virtualized-run-list";
 import { PaginationControls } from "./pagination-controls";
 import { useProjectRuns } from "@/hooks/use-project-runs";
 import { usePersistedState } from "@/hooks/use-persisted-state";
@@ -363,9 +364,11 @@ export function ProjectHealthCard({ project, statusFilter, sortMode = "status", 
                     {runs.length}
                   </span>
                 </div>
-                <div className="flex flex-col gap-2">
-                  {runs.map((run) => (
-                    <div key={run.runId} className="relative">
+                <VirtualizedRunList
+                  runs={runs}
+                  maxHeight={500}
+                  renderItem={(run) => (
+                    <div className="relative">
                       <RunCard run={run} />
                       {/* Relative time overlay label */}
                       <span className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-background/80 backdrop-blur-sm border border-border px-2 py-0.5 text-xs text-foreground-muted tabular-nums pointer-events-none z-10">
@@ -373,8 +376,8 @@ export function ProjectHealthCard({ project, statusFilter, sortMode = "status", 
                         {formatRelativeTime(run.updatedAt)}
                       </span>
                     </div>
-                  ))}
-                </div>
+                  )}
+                />
               </div>
             ) : (
               /* ── Status mode: grouped sections (original behavior) ── */
@@ -432,9 +435,7 @@ export function ProjectHealthCard({ project, statusFilter, sortMode = "status", 
                         {activeRuns.length}
                       </span>
                     </div>
-                    <div className="flex flex-col gap-2">
-                      {activeRuns.map((run) => (<RunCard key={run.runId} run={run} />))}
-                    </div>
+                    <VirtualizedRunList runs={activeRuns} maxHeight={500} />
                   </div>
                 )}
 
@@ -457,8 +458,8 @@ export function ProjectHealthCard({ project, statusFilter, sortMode = "status", 
                       )}
                     </button>
                     {showFailed && (
-                      <div className="flex flex-col gap-2 mt-1 opacity-70">
-                        {failedRuns.map((run) => (<RunCard key={run.runId} run={run} />))}
+                      <div className="mt-1 opacity-70">
+                        <VirtualizedRunList runs={failedRuns} maxHeight={400} />
                       </div>
                     )}
                   </div>
@@ -483,8 +484,8 @@ export function ProjectHealthCard({ project, statusFilter, sortMode = "status", 
                       )}
                     </button>
                     {showCompleted && (
-                      <div className="flex flex-col gap-2 mt-1 opacity-60">
-                        {successRuns.map((run) => (<RunCard key={run.runId} run={run} />))}
+                      <div className="mt-1 opacity-60">
+                        <VirtualizedRunList runs={successRuns} maxHeight={400} />
                       </div>
                     )}
                   </div>

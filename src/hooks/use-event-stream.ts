@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from "react";
 export interface StreamEvent {
   type: string;
   runId?: string;
+  /** Batched runIds from leading-edge debounce (SSE broadcast level). */
+  runIds?: string[];
   status?: string;
   timestamp?: number;
 }
@@ -52,7 +54,7 @@ function createEventSource() {
     sharedEventSource = null;
 
     // Notify subscribers of disconnect so they can fall back to polling
-    subscribers.forEach((callback) => callback({ type: "error" }));
+    subscribers.forEach((callback) => callback({ type: "disconnect" }));
 
     // Auto-reconnect with exponential backoff
     if (subscriberCount > 0) {
@@ -118,8 +120,11 @@ export function useEventStream() {
     const handleEvent = (event: StreamEvent) => {
       if (mountedRef.current) {
         setLastEvent(event);
-        setConnected(true);
-        setError(null);
+        // Only mark as connected for real data events, not disconnect/error
+        if (event.type !== "disconnect" && event.type !== "error") {
+          setConnected(true);
+          setError(null);
+        }
       }
     };
 

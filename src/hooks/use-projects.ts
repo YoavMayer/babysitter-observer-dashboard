@@ -7,12 +7,13 @@ interface ProjectsResponse {
   recentCompletionWindowMs?: number;
 }
 
-export function useProjects(interval: number = 5000) {
+export function useProjects(interval: number = 5000, suppressSseRefetch: boolean = false) {
   const { data, loading, error, refresh } = useSmartPolling<ProjectsResponse>(
     '/api/runs?mode=projects',
     {
       interval,
-      sseFilter: () => true // Any event triggers refetch since project counts change
+      sseFilter: (event) => event.type === 'update' || event.type === 'new-run',
+      suppressSseRefetch,
     }
   );
   return {

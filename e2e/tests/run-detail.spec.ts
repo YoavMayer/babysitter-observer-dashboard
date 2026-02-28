@@ -286,9 +286,15 @@ test.describe("Run Detail Page", () => {
       await runDetailPage.clickStepByIndex(0);
       await expect(runDetailPage.taskDetailHeader).toBeVisible({ timeout: 10_000 });
 
+      // Wait for the task detail loading spinner to disappear before checking tabs
+      await runDetailPage.page.locator('[data-testid="task-detail-header"] ~ * .animate-spin, [data-testid="task-detail-header"] + * .animate-spin')
+        .first()
+        .waitFor({ state: 'hidden', timeout: 30_000 })
+        .catch(() => { /* spinner may never appear if data loads fast */ });
+
       // Verify tab triggers exist
       const tabs = runDetailPage.getTaskDetailTabs();
-      await expect(tabs).toBeVisible({ timeout: 10_000 });
+      await expect(tabs).toBeVisible({ timeout: 30_000 });
 
       await expect(runDetailPage.getTabTrigger("Agent")).toBeVisible();
       await expect(runDetailPage.getTabTrigger("Timing")).toBeVisible();

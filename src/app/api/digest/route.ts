@@ -21,8 +21,13 @@ export async function GET() {
     // Cache is populated by server-init and kept fresh by the watcher + periodic discovery.
     const runs = getAllCachedDigests();
 
-    // Sort by updatedAt descending (most recent first)
-    runs.sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
+    // Sort by updatedAt descending (most recent first), with runId tiebreaker
+    // to ensure stable ordering when multiple runs share the same timestamp.
+    runs.sort((a, b) => {
+      const cmp = (b.updatedAt || "").localeCompare(a.updatedAt || "");
+      if (cmp !== 0) return cmp;
+      return a.runId.localeCompare(b.runId);
+    });
 
     return NextResponse.json({ runs }, {
       headers: { "Cache-Control": "no-cache, no-store" },

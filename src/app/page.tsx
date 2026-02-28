@@ -1,503 +1,112 @@
 "use client";
-import { useState, useMemo, useCallback } from "react";
-import { useProjects } from "@/hooks/use-projects";
-import { usePersistedState } from "@/hooks/use-persisted-state";
-import { ProjectHealthCard } from "@/components/dashboard/project-health-card";
+import { useRunDashboard } from "@/hooks/use-run-dashboard";
 import { BreakpointBanner } from "@/components/dashboard/breakpoint-banner";
+import { CatchUpBanner } from "@/components/dashboard/catch-up-banner";
 import { ExecutiveSummaryBanner } from "@/components/dashboard/executive-summary-banner";
-import {
-  FolderOpen,
-  Activity,
-  CheckCircle2,
-  AlertCircle,
-  Layers,
-  Pause,
-  History,
-  ChevronDown,
-  ChevronUp,
-  ArrowUpDown,
-  Eye,
-  Clock,
-} from "lucide-react";
-import { cn } from "@/lib/cn";
+import { KpiGrid } from "@/components/dashboard/kpi-grid";
+import { RunFilterBar } from "@/components/dashboard/run-filter-bar";
+import { ProjectListView } from "@/components/dashboard/project-list-view";
 import { ErrorBoundary } from "@/components/shared/error-boundary";
 import { GlobalSearch } from "@/components/dashboard/global-search";
-import type { RunStatus, BreakpointRunInfo } from "@/types";
-
-const filters: { label: string; value: RunStatus | "all" | "stale" }[] = [
-  { label: "All", value: "all" },
-  { label: "Running", value: "waiting" },
-  { label: "Stale", value: "stale" },
-  { label: "Completed", value: "completed" },
-  { label: "Failed", value: "failed" },
-];
 
 export default function DashboardPage() {
-  const { projects, recentCompletionWindowMs, loading, error, refresh } = useProjects();
-  const [statusFilter, setStatusFilter] = useState<RunStatus | "all" | "stale">("all");
-  const [sortMode, setSortMode] = usePersistedState<"status" | "activity">("observer:sort-mode", "status");
-  const [dismissedFingerprint, setDismissedFingerprint] = usePersistedState<string | null>("banner-dismissed-fingerprint", null);
+  const {
+    projects,
+    loading,
+    error,
+    metrics,
+    allBreakpointRuns,
+    summaryMetrics,
+    bannerFingerprint,
+    bannerDismissed,
+    filterCounts,
+    filteredProjects,
+    activeProjects,
+    historyProjects,
+    statusFilter,
+    sortMode,
+    historyCollapsed,
+    cardStatusFilter,
+    hasStaleRuns,
+    catchUp,
+    setStatusFilter,
+    setSortMode,
+    setHistoryCollapsed,
+    setDismissedFingerprint,
+    toggleMetricFilter,
+    handleHideProject,
+  } = useRunDashboard();
 
-  // Toggle filter from metric tile: clicking active filter clears it
-  const toggleMetricFilter = useCallback((filter: RunStatus | "all" | "stale") => {
-    setStatusFilter((prev) => (prev === filter ? "all" : filter));
-  }, []);
-
-  const handleHideProject = useCallback((_projectName: string) => {
-    // Refresh projects list to remove the hidden project from the dashboard
-    refresh();
-  }, [refresh]);
-
-  // Aggregate metrics across all projects
-  const metrics = useMemo(() => {
-    const totalRuns = projects.reduce((s, p) => s + p.totalRuns, 0);
-    const activeRuns = projects.reduce((s, p) => s + p.activeRuns, 0);
-    const completedRuns = projects.reduce((s, p) => s + p.completedRuns, 0);
-    const failedRuns = projects.reduce((s, p) => s + p.failedRuns, 0);
-    const staleRuns = projects.reduce((s, p) => s + p.staleRuns, 0);
-    const totalTasks = projects.reduce((s, p) => s + p.totalTasks, 0);
-    const completedTasks = projects.reduce((s, p) => s + p.completedTasksAggregate, 0);
-    return { totalRuns, activeRuns, completedRuns, failedRuns, staleRuns, totalTasks, completedTasks };
-  }, [projects]);
-
-  // Collect all breakpoint runs across all projects
-  const allBreakpointRuns = useMemo<BreakpointRunInfo[]>(() => {
-    return projects.flatMap((p) => p.breakpointRuns ?? []);
-  }, [projects]);
-
-  // Executive summary metrics for the banner
-  const summaryMetrics = useMemo(() => ({
-    totalProjects: projects.length,
-    activeRuns: metrics.activeRuns,
-    failedRuns: metrics.failedRuns,
-    completedRuns: metrics.completedRuns,
-    staleRuns: metrics.staleRuns,
-    pendingBreakpoints: projects.reduce((s, p) => s + p.pendingBreakpoints, 0),
-  }), [projects, metrics]);
-
-  // Fingerprint for banner dismiss — only tracks issue-related metrics so the
-  // banner auto-reappears when the situation changes but stays dismissed across
-  // polling cycles / remounts when the numbers are the same.
-  const bannerFingerprint = `${summaryMetrics.failedRuns}-${summaryMetrics.staleRuns}-${summaryMetrics.pendingBreakpoints}`;
-  const bannerDismissed = dismissedFingerprint === bannerFingerprint;
-
-  const filterCounts = useMemo(() => {
-    return {
-      all: metrics.totalRuns,
-      waiting: metrics.activeRuns,
-      stale: metrics.staleRuns,
-      completed: metrics.completedRuns,
-      failed: metrics.failedRuns,
-      pending: 0,
-    } as Record<RunStatus | "all" | "stale", number>;
-  }, [metrics]);
-
-  // Filter projects by status counts
-  const filteredProjects = useMemo(() => {
-    if (statusFilter === "all") return projects;
-    if (statusFilter === "stale") return projects.filter((p) => p.staleRuns > 0);
-    return projects.filter((project) => {
-      if (statusFilter === "waiting") return project.activeRuns > 0;
-      if (statusFilter === "completed") return project.completedRuns > 0;
-      if (statusFilter === "failed") return project.failedRuns > 0;
-      return false;
-    });
-  }, [projects, statusFilter]);
-
-  // Determine the status filter to pass to ProjectHealthCard (map "stale" to "all" since it's not a RunStatus)
-  const cardStatusFilter: RunStatus | "all" = statusFilter === "stale" ? "all" : statusFilter;
-
-  // Split filtered projects into sections based on sort mode
-  // "status" mode: In Progress (active/stale/recent) vs Recent History
-  // "activity" mode: Recent Activity (last 24h) vs Earlier
-  const { activeProjects, historyProjects } = useMemo(() => {
-    const now = Date.now();
-    if (sortMode === "activity") {
-      const twentyFourHours = 24 * 60 * 60 * 1000;
-      const recent = filteredProjects.filter((p) =>
-        now - new Date(p.latestUpdate).getTime() < twentyFourHours
-      );
-      const earlier = filteredProjects.filter((p) =>
-        now - new Date(p.latestUpdate).getTime() >= twentyFourHours
-      );
-      return { activeProjects: recent, historyProjects: earlier };
-    }
-    const active = filteredProjects.filter((p) =>
-      p.activeRuns > 0 || p.staleRuns > 0 ||
-      (now - new Date(p.latestUpdate).getTime() < recentCompletionWindowMs)
-    );
-    const history = filteredProjects.filter((p) =>
-      p.activeRuns === 0 && p.staleRuns === 0 &&
-      (now - new Date(p.latestUpdate).getTime() >= recentCompletionWindowMs)
-    );
-    return { activeProjects: active, historyProjects: history };
-  }, [filteredProjects, recentCompletionWindowMs, sortMode]);
-
-  const [historyCollapsed, setHistoryCollapsed] = usePersistedState(
-    "observer:history-collapsed",
-    historyProjects.length > 5
-  );
-
-  const hasStaleRuns = metrics.staleRuns > 0;
-  const kpiCols = hasStaleRuns ? "grid-cols-2 sm:grid-cols-5" : "grid-cols-2 sm:grid-cols-4";
+  const showBanners = !loading && !error && projects.length > 0;
 
   return (
     <div className="bg-gradient-brand flex-1">
-      {/* Header and footer are now in AppHeader/AppFooter via Providers */}
-
       <div className="mx-auto max-w-[1600px] px-6 py-6">
         {/* Global Search */}
         <GlobalSearch />
 
         {/* Executive Summary Banner */}
-        {!loading && !error && projects.length > 0 && (
+        {showBanners && (
           <ErrorBoundary section="Executive Summary">
-            <ExecutiveSummaryBanner metrics={summaryMetrics} onFilterChange={setStatusFilter} dismissed={bannerDismissed} onDismiss={() => setDismissedFingerprint(bannerFingerprint)} />
+            <ExecutiveSummaryBanner
+              metrics={summaryMetrics}
+              onFilterChange={setStatusFilter}
+              dismissed={bannerDismissed}
+              onDismiss={() => setDismissedFingerprint(bannerFingerprint)}
+            />
           </ErrorBoundary>
         )}
 
         {/* KPI Metrics Row */}
-        {!loading && !error && projects.length > 0 && (
+        {showBanners && (
           <ErrorBoundary section="KPI Metrics">
-            <div data-testid="kpi-grid" aria-live="polite" aria-label="Key metrics" className={cn("grid gap-3 mb-6", kpiCols)}>
-              <MetricTile
-                label="Total Runs"
-                value={metrics.totalRuns}
-                icon={<Layers className="h-4 w-4" />}
-                color="primary"
-                testId="metric-tile-total-runs"
-                onClick={() => toggleMetricFilter("all")}
-                active={statusFilter === "all"}
-              />
-              <MetricTile
-                label="In Progress"
-                value={metrics.activeRuns}
-                icon={<Activity className="h-4 w-4" />}
-                color="warning"
-                pulse={metrics.activeRuns > 0}
-                testId="metric-tile-active"
-                onClick={() => toggleMetricFilter("waiting")}
-                active={statusFilter === "waiting"}
-              />
-              {hasStaleRuns && (
-                <MetricTile
-                  label="Stale"
-                  value={metrics.staleRuns}
-                  icon={<Pause className="h-4 w-4" />}
-                  color="muted"
-                  testId="metric-tile-stale"
-                  onClick={() => toggleMetricFilter("stale")}
-                  active={statusFilter === "stale"}
-                />
-              )}
-              <MetricTile
-                label="Completed"
-                value={metrics.completedRuns}
-                icon={<CheckCircle2 className="h-4 w-4" />}
-                color="success"
-                testId="metric-tile-completed"
-                onClick={() => toggleMetricFilter("completed")}
-                active={statusFilter === "completed"}
-              />
-              <MetricTile
-                label="Failed"
-                value={metrics.failedRuns}
-                icon={<AlertCircle className="h-4 w-4" />}
-                color="error"
-                testId="metric-tile-failed"
-                onClick={() => toggleMetricFilter("failed")}
-                active={statusFilter === "failed"}
-              />
-            </div>
+            <KpiGrid
+              metrics={metrics}
+              statusFilter={statusFilter}
+              hasStaleRuns={hasStaleRuns}
+              onToggleFilter={toggleMetricFilter}
+            />
           </ErrorBoundary>
         )}
 
-        {/* Global Breakpoint Banner */}
+        {/* Catch-up mode banner — shown when burst of SSE updates detected */}
+        {catchUp.active && (
+          <CatchUpBanner catchUp={catchUp} />
+        )}
+
+        {/* Global Breakpoint Banner — pinned with sticky positioning */}
         {!loading && !error && allBreakpointRuns.length > 0 && (
           <ErrorBoundary section="Breakpoint Banner">
-            <BreakpointBanner breakpointRuns={allBreakpointRuns} />
+            <div className="sticky top-0 z-40">
+              <BreakpointBanner breakpointRuns={allBreakpointRuns} />
+            </div>
           </ErrorBoundary>
         )}
 
-        {/* Filter pills */}
-        <div className="mb-5">
-          <div data-testid="filter-bar" className="flex items-center gap-1">
-            {filters.map((f) => {
-              const count = filterCounts[f.value] ?? 0;
-              // Hide Stale filter pill when there are no stale runs
-              if (f.value === "stale" && count === 0) return null;
-              return (
-                <button
-                  key={f.value}
-                  data-testid={`filter-pill-${f.value}`}
-                  aria-pressed={statusFilter === f.value}
-                  onClick={() => setStatusFilter(f.value)}
-                  className={cn(
-                    "rounded-md px-3 py-1.5 min-h-[44px] text-xs font-medium transition-all inline-flex items-center gap-1.5",
-                    statusFilter === f.value
-                      ? f.value === "stale"
-                        ? "bg-zinc-500/10 text-zinc-500"
-                        : "bg-primary/10 text-primary shadow-neon-glow-primary-xs"
-                      : "text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary"
-                  )}
-                >
-                  {f.label}
-                  {count > 0 && (
-                    <span className={cn(
-                      "rounded-full px-1.5 py-px text-xs leading-tight font-semibold tabular-nums",
-                      statusFilter === f.value
-                        ? f.value === "stale"
-                          ? "bg-zinc-500/20 text-zinc-500"
-                          : "bg-primary/20 text-primary"
-                        : "bg-background-secondary text-foreground-muted"
-                    )}>
-                      {count}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-            {/* Sort toggle + Project count */}
-            <div className="ml-auto flex items-center gap-2">
-              <button
-                data-testid="sort-toggle"
-                onClick={() => setSortMode((prev) => prev === "status" ? "activity" : "status")}
-                className={cn(
-                  "rounded-md px-2.5 py-1.5 min-h-[44px] text-xs font-medium inline-flex items-center gap-1.5",
-                  "transition-all duration-200 ease-in-out",
-                  sortMode === "status"
-                    ? "bg-warning/10 border border-warning/30 text-warning hover:bg-warning/15 hover:border-warning/40 shadow-sm"
-                    : "bg-primary/10 border border-primary/30 text-primary hover:bg-primary/15 hover:border-primary/40 shadow-sm"
-                )}
-                title={sortMode === "status"
-                  ? "Currently sorting by status priority (active first, then failed, then completed). Click to switch to chronological activity view."
-                  : "Currently sorting by most recent activity (newest updates first). Click to switch to status-grouped view."
-                }
-              >
-                {sortMode === "status" ? (
-                  <ArrowUpDown className="h-3 w-3 transition-transform duration-200" />
-                ) : (
-                  <Clock className="h-3 w-3 transition-transform duration-200" />
-                )}
-                {sortMode === "status" ? "By Status" : "By Activity"}
-              </button>
-              <span data-testid="project-count" className="text-xs text-foreground-muted tabular-nums">
-                {filteredProjects.length} project{filteredProjects.length !== 1 ? "s" : ""}
-              </span>
-            </div>
-          </div>
-        </div>
+        {/* Filter pills + sort toggle */}
+        <RunFilterBar
+          statusFilter={statusFilter}
+          onStatusFilterChange={setStatusFilter}
+          filterCounts={filterCounts}
+          sortMode={sortMode}
+          onSortModeToggle={() => setSortMode((prev) => prev === "status" ? "activity" : "status")}
+          filteredProjectCount={filteredProjects.length}
+        />
 
-        {/* Content */}
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="rounded-lg border border-border bg-card p-4 animate-pulse">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="h-2.5 w-2.5 rounded-full bg-foreground-muted/20" />
-                  <div className="h-4 w-32 rounded bg-foreground-muted/10" />
-                </div>
-                <div className="h-1.5 w-full rounded-full bg-foreground-muted/10 mb-3" />
-                <div className="flex items-center gap-3">
-                  <div className="h-5 w-16 rounded-full bg-foreground-muted/10" />
-                  <div className="h-5 w-16 rounded-full bg-foreground-muted/10" />
-                  <div className="h-3 w-12 rounded bg-foreground-muted/10" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : error ? (
-          <div data-testid="error-banner" className="rounded-lg border border-error/20 bg-error-muted p-4 text-sm text-error">
-            Failed to load projects: {error}
-          </div>
-        ) : filteredProjects.length === 0 ? (
-          <div data-testid="empty-state" className="text-center py-16">
-            <FolderOpen className="h-10 w-10 text-foreground-muted/30 mx-auto mb-3" />
-            <p className="text-sm text-foreground-muted mb-1">No projects found</p>
-            <p className="text-xs text-foreground-muted/60">
-              Configure watch sources in{" "}
-              <button
-                onClick={() => window.dispatchEvent(new CustomEvent("open-settings"))}
-                className="text-primary hover:underline"
-              >
-                Settings
-              </button>{" "}
-              or edit <span className="font-mono">~/.a5c/observer.json</span>
-            </p>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-8">
-            {/* Idle empty state: no active and no history runs at all */}
-            {activeProjects.length === 0 && historyProjects.length === 0 && (
-              <div data-testid="idle-empty-state" className="text-center py-16">
-                <Eye className="h-10 w-10 text-foreground-muted/30 mx-auto mb-3" />
-                <p className="text-sm text-foreground-muted mb-1">All quiet — no active orchestration runs</p>
-                <p className="text-xs text-foreground-muted/60">
-                  Runs will appear here when babysitter processes are started
-                </p>
-              </div>
-            )}
-
-            {/* Idle with history: no active/recent runs but has history */}
-            {activeProjects.length === 0 && historyProjects.length > 0 && (statusFilter === "all" || statusFilter === "stale") && (
-              <div data-testid="idle-with-history-banner" className="flex items-center gap-2 px-3 py-2 rounded-md bg-background-secondary/50 border border-border w-fit">
-                <Activity className="h-3.5 w-3.5 text-foreground-muted/50" />
-                <span className="text-xs text-foreground-muted">
-                  {sortMode === "activity" ? "No activity in the last 24 hours" : "No runs in progress"}
-                </span>
-              </div>
-            )}
-
-            {/* Active / Recent section */}
-            {activeProjects.length > 0 && (statusFilter === "all" || statusFilter === "stale" || statusFilter === "waiting") && (
-              <ErrorBoundary section="Active Runs">
-                <section data-testid="active-runs-section">
-                  <div className="flex items-center gap-2 mb-3">
-                    {sortMode === "activity" ? (
-                      <Clock className="h-4 w-4 text-primary" />
-                    ) : (
-                      <Activity className="h-4 w-4 text-warning animate-pulse-dot" />
-                    )}
-                    <h2 className="text-sm font-semibold text-foreground">
-                      {sortMode === "activity" ? "Recent Activity" : "In Progress"}
-                    </h2>
-                    <span className={cn(
-                      "rounded-full px-2 py-px text-xs font-semibold tabular-nums",
-                      sortMode === "activity"
-                        ? "bg-primary/10 border border-primary/20 text-primary"
-                        : "bg-warning/10 border border-warning/20 text-warning"
-                    )}>
-                      {activeProjects.length}
-                    </span>
-                  </div>
-                  <div data-testid="project-grid-active" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
-                    {activeProjects.map((project) => (
-                      <ProjectHealthCard
-                        key={project.projectName}
-                        project={project}
-                        statusFilter={cardStatusFilter}
-                        sortMode={sortMode}
-                        onHide={handleHideProject}
-                      />
-                    ))}
-                  </div>
-                </section>
-              </ErrorBoundary>
-            )}
-
-            {/* When filter is "completed" or "failed", show filteredProjects directly without sectioning */}
-            {(statusFilter === "completed" || statusFilter === "failed") && (
-              <ErrorBoundary section="Filtered Results">
-                <div data-testid="project-grid-filtered" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
-                  {filteredProjects.map((project) => (
-                    <ProjectHealthCard
-                      key={project.projectName}
-                      project={project}
-                      statusFilter={cardStatusFilter}
-                      sortMode={sortMode}
-                    />
-                  ))}
-                </div>
-              </ErrorBoundary>
-            )}
-
-            {/* History / Earlier section */}
-            {historyProjects.length > 0 && (statusFilter === "all" || statusFilter === "stale") && (
-              <ErrorBoundary section="Recent History">
-                <section data-testid="recent-history-section">
-                  <button
-                    onClick={() => setHistoryCollapsed((v) => !v)}
-                    className="flex items-center gap-2 mb-3 group w-fit"
-                  >
-                    <History className="h-4 w-4 text-foreground-muted/70" />
-                    <h2 className="text-sm font-semibold text-foreground-muted group-hover:text-foreground-secondary transition-colors">
-                      {sortMode === "activity" ? "Earlier" : "Recent History"}
-                    </h2>
-                    <span className="rounded-full bg-background-secondary border border-border px-2 py-px text-xs font-semibold text-foreground-muted tabular-nums">
-                      {historyProjects.length}
-                    </span>
-                    {historyCollapsed ? (
-                      <ChevronDown className="h-3.5 w-3.5 text-foreground-muted/60 group-hover:text-foreground-muted transition-colors" />
-                    ) : (
-                      <ChevronUp className="h-3.5 w-3.5 text-foreground-muted/60 group-hover:text-foreground-muted transition-colors" />
-                    )}
-                  </button>
-                  {!historyCollapsed && (
-                    <div className="opacity-70">
-                      <div data-testid="project-grid-history" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
-                        {historyProjects.map((project) => (
-                          <ProjectHealthCard
-                            key={project.projectName}
-                            project={project}
-                            statusFilter={cardStatusFilter}
-                            sortMode={sortMode}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </section>
-              </ErrorBoundary>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Notifications and settings are now in AppHeader */}
-    </div>
-  );
-}
-
-/* --- KPI Metric Tile --- */
-interface MetricTileProps {
-  label: string;
-  value: number;
-  icon: React.ReactNode;
-  color: "primary" | "success" | "warning" | "error" | "muted";
-  pulse?: boolean;
-  testId?: string;
-  active?: boolean;
-  onClick?: () => void;
-}
-
-const colorMap: Record<MetricTileProps["color"], { text: string; bg: string; glow: string; borderL: string; ring: string }> = {
-  primary: { text: "text-primary", bg: "bg-primary/10", glow: "", borderL: "", ring: "ring-primary/50" },
-  success: { text: "text-success", bg: "bg-success/10", glow: "", borderL: "border-l-success/60", ring: "ring-success/50" },
-  warning: { text: "text-warning", bg: "bg-warning/10", glow: "shadow-[0_0_8px_var(--warning)]", borderL: "border-l-warning/60", ring: "ring-warning/50" },
-  error: { text: "text-error", bg: "bg-error/10", glow: "", borderL: "border-l-error/60", ring: "ring-error/50" },
-  muted: { text: "text-zinc-500", bg: "bg-zinc-500/10", glow: "", borderL: "border-l-zinc-500/60", ring: "ring-zinc-500/50" },
-};
-
-function MetricTile({ label, value, icon, color, pulse, testId, active, onClick }: MetricTileProps) {
-  const c = colorMap[color];
-  const isClickable = !!onClick;
-  return (
-    <div
-      data-testid={testId}
-      role={isClickable ? "button" : undefined}
-      aria-pressed={isClickable ? !!active : undefined}
-      tabIndex={isClickable ? 0 : undefined}
-      onClick={onClick}
-      onKeyDown={isClickable ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick?.(); } } : undefined}
-      className={cn(
-        "rounded-lg border border-border bg-card/80 backdrop-blur-sm p-3 flex items-center gap-3 transition-all",
-        value > 0 && color !== "primary" && "border-l-2",
-        value > 0 && color !== "primary" && c.borderL,
-        isClickable && "cursor-pointer hover:bg-background-secondary/50",
-        active && "ring-2",
-        active && c.ring,
-      )}
-    >
-      <div className={cn("rounded-md p-2", c.bg)}>
-        <span className={cn(c.text, pulse && "animate-pulse-dot")}>{icon}</span>
-      </div>
-      <div>
-        <p className={cn("text-lg font-bold tabular-nums leading-none mb-0.5", c.text)}>
-          {value}
-        </p>
-        <p className="text-xs leading-tight text-foreground-muted uppercase tracking-wider font-medium">
-          {label}
-        </p>
+        {/* Project cards content */}
+        <ProjectListView
+          loading={loading}
+          error={error}
+          filteredProjects={filteredProjects}
+          activeProjects={activeProjects}
+          historyProjects={historyProjects}
+          statusFilter={statusFilter}
+          sortMode={sortMode}
+          cardStatusFilter={cardStatusFilter}
+          historyCollapsed={historyCollapsed}
+          onHistoryCollapsedChange={setHistoryCollapsed}
+          onHideProject={handleHideProject}
+        />
       </div>
     </div>
   );

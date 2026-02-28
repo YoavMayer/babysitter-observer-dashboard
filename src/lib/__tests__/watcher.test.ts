@@ -1,18 +1,20 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { promises as fsPromises } from 'fs';
 
-// Mock config
-vi.mock('../config', () => ({
+// Mock source-discovery (watcher.ts imports directly from source-discovery)
+vi.mock('../source-discovery', () => ({
   discoverAllRunDirs: vi.fn(),
-  getConfig: vi.fn(),
+  invalidateDiscoveryCache: vi.fn(),
+  discoverAllRunsParentDirs: vi.fn().mockResolvedValue([]),
 }));
 
 // Mock run-cache
 vi.mock('../run-cache', () => ({
   invalidateRun: vi.fn(),
+  requestDiscovery: vi.fn(),
 }));
 
-import { discoverAllRunDirs } from '../config';
+import { discoverAllRunDirs } from '../source-discovery';
 import { invalidateRun } from '../run-cache';
 import { initWatcher, watcherEvents, getWatcherStats } from '../watcher';
 

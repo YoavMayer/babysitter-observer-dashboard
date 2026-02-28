@@ -1,5 +1,5 @@
 import path from "path";
-import { ensureInitialized, serverEvents } from "@/lib/server-init";
+import { ensureInitialized, serverEvents, type BatchedRunChangedEvent } from "@/lib/server-init";
 
 export const dynamic = "force-dynamic";
 
@@ -27,18 +27,15 @@ export async function GET() {
           )
         );
 
-        // Listen for run-changed events — include runId for client-side filtering
-        const runChangedListener = (event: {
-          type: string;
-          runDir: string;
-          error?: Error;
-        }) => {
+        // Listen for run-changed events (batched by leading-edge debounce).
+        // Each event contains runIds[] and runDirs[] for targeted client refresh.
+        const runChangedListener = (event: BatchedRunChangedEvent) => {
           try {
-            const runId = extractRunId(event.runDir);
             const message = {
               type: "update",
-              runId,
-              runDir: event.runDir,
+              runIds: event.runIds,
+              // Keep singular runId for backward compatibility (first in batch)
+              runId: event.runIds[0],
               timestamp: new Date().toISOString(),
             };
             controller.enqueue(
@@ -71,30 +68,26 @@ export async function GET() {
           }
         };
 
-        // Listen for error events
+        // Listen for watcher-error events (deduplicated in server-init)
+        // These are logged server-side but NOT forwarded as SSE data events
+        // to prevent transient filesystem errors from triggering client-side
+        // status flashes. The client will self-heal via normal polling.
         const errorListener = (event: {
           type: string;
           runDir: string;
           error?: Error;
         }) => {
-          try {
-            const message = {
-              type: "error",
-              runDir: event.runDir,
-              error: event.error?.message,
-              timestamp: new Date().toISOString(),
-            };
-            controller.enqueue(
-              encoder.encode(`data: ${JSON.stringify(message)}\n\n`)
-            );
-          } catch (err) {
-            console.error("Failed to send error event:", err);
-          }
+          // Log server-side only; do not push to client SSE stream
+          console.warn(
+            "Watcher error (suppressed from SSE):",
+            event.error?.message ?? "unknown",
+            event.runDir
+          );
         };
 
         serverEvents.on("run-changed", runChangedListener);
         serverEvents.on("new-run", newRunListener);
-        serverEvents.on("error", errorListener);
+        serverEvents.on("watcher-error", errorListener);
 
         // Keep-alive ping every 15 seconds
         const pingInterval = setInterval(() => {
@@ -111,7 +104,7 @@ export async function GET() {
           clearInterval(pingInterval);
           serverEvents.off("run-changed", runChangedListener);
           serverEvents.off("new-run", newRunListener);
-          serverEvents.off("error", errorListener);
+          serverEvents.off("watcher-error", errorListener);
         };
       },
       cancel() {

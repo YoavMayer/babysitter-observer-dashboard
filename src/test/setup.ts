@@ -11,6 +11,50 @@ vi.mock('next/navigation', () => ({
   useParams: () => ({}),
 }));
 
+// Mock next/dynamic — pass through to the real component synchronously.
+// The loader function (e.g. () => import("./agent-panel")) returns a Promise,
+// but in vitest the module is already loaded. We extract the module path from
+// the loader's toString() to resolve it synchronously. As a fallback, we use
+// async resolution with React state.
+vi.mock('next/dynamic', () => {
+  const dynamic = (loader: () => Promise<any>, _opts?: any) => {
+    // Attempt synchronous resolution: call loader and intercept the result.
+    // In vitest, the dynamic import resolves on the next microtick, so we
+    // eagerly kick it off and cache the result for subsequent renders.
+    let Resolved: React.ComponentType<any> | null = null;
+    const loadPromise = loader().then((mod: any) => {
+      Resolved = mod.default || mod;
+    });
+
+    const DynamicComponent = (props: any) => {
+      const [Comp, setComp] = React.useState<React.ComponentType<any> | null>(() => Resolved);
+
+      React.useEffect(() => {
+        if (!Comp && !Resolved) {
+          loadPromise.then(() => {
+            if (Resolved) setComp(() => Resolved);
+          });
+        } else if (!Comp && Resolved) {
+          setComp(() => Resolved);
+        }
+      }, [Comp]);
+
+      const Active = Comp || Resolved;
+      if (Active) {
+        return React.createElement(Active, props);
+      }
+      if (_opts?.loading) {
+        return React.createElement(_opts.loading, {});
+      }
+      return null;
+    };
+    DynamicComponent.displayName = 'DynamicComponent';
+    (DynamicComponent as any).preload = () => loadPromise;
+    return DynamicComponent;
+  };
+  return { __esModule: true, default: dynamic };
+});
+
 // Mock lucide-react to avoid React version mismatch in monorepo
 // (observer has React 18 locally, root has React 19)
 vi.mock('lucide-react', () => {
@@ -31,13 +75,17 @@ vi.mock('lucide-react', () => {
 
   // All icon names used across the codebase
   const iconNames = [
-    'Activity', 'AlertCircle', 'AlertTriangle', 'ArrowLeft', 'Bell', 'Bot',
+    'Activity', 'AlertCircle', 'AlertTriangle', 'ArrowLeft', 'ArrowRight',
+    'ArrowUpDown', 'Bell', 'Bot',
     'CalendarDays', 'Check', 'CheckCircle2', 'ChevronDown', 'ChevronLeft',
     'ChevronRight', 'ChevronUp', 'Circle', 'Clock', 'Code', 'Cog', 'Copy',
-    'ExternalLink', 'Eye', 'FileJson', 'FileText', 'FolderOpen', 'GitBranch',
-    'Hand', 'History', 'Inbox', 'Info', 'Layers', 'Loader2', 'Moon', 'Palette',
+    'ExternalLink', 'Eye', 'EyeOff', 'FileJson', 'FileText', 'FolderOpen',
+    'GitBranch', 'Github',
+    'Hand', 'Hash', 'HelpCircle', 'History', 'Inbox', 'Info', 'Layers',
+    'Loader2', 'Moon', 'Palette',
     'Pause', 'Percent', 'Pin', 'Plus', 'Puzzle', 'RefreshCw', 'Search', 'Settings',
-    'Sun', 'Tag', 'Terminal', 'Timer', 'Trash2', 'X', 'XCircle',
+    'Sun', 'Tag', 'Terminal', 'Timer', 'Trash2', 'Wifi', 'WifiOff',
+    'X', 'XCircle',
   ];
 
   const mocks: Record<string, any> = {};

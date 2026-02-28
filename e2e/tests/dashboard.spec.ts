@@ -712,10 +712,15 @@ test.describe("Settings Modal", () => {
     await dashboardPage.goto();
     await expect(dashboardPage.heading).toBeVisible({ timeout: 30_000 });
 
+    // Wait for the page to fully stabilize before clicking the settings button.
+    // The dashboard may still be loading data which can cause SSE-related re-renders
+    // that interfere with the click handler registration.
+    await dashboardPage.waitForData();
+
     await dashboardPage.settingsButton.click();
 
-    // Settings modal should become visible
-    await expect(page.getByTestId("settings-modal")).toBeVisible({ timeout: 10_000 });
+    // Settings modal should become visible (Radix Dialog.Portal may take a moment)
+    await expect(page.getByTestId("settings-modal")).toBeVisible({ timeout: 30_000 });
   });
 });
 

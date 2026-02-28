@@ -125,7 +125,7 @@ describe('useSmartPolling', () => {
     expect(result.current.loading).toBe(false);
   });
 
-  it('triggers immediate refetch when SSE event matches filter', async () => {
+  it('triggers debounced refetch when SSE event matches filter', async () => {
     const sseFilter = vi.fn().mockReturnValue(true);
 
     renderHook(() =>
@@ -154,12 +154,77 @@ describe('useSmartPolling', () => {
       });
     }
 
+    // Before debounce window (1500ms), no additional fetch
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1000);
+    });
+    expect((fetch as ReturnType<typeof vi.fn>).mock.calls.length).toBe(initialCallCount);
+
+    // After debounce window completes (1500ms total)
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(500);
+    });
+
+    // Should have triggered an additional fetch after 1500ms debounce
+    expect((fetch as ReturnType<typeof vi.fn>).mock.calls.length).toBeGreaterThan(initialCallCount);
+  });
+
+  it('coalesces rapid SSE events within debounce window into single fetch', async () => {
+    const sseFilter = vi.fn().mockReturnValue(true);
+
+    renderHook(() =>
+      useSmartPolling('/api/data', {
+        interval: 5000,
+        sseFilter,
+      })
+    );
+
+    // Initial fetch
     await act(async () => {
       await vi.advanceTimersByTimeAsync(0);
     });
 
-    // Should have triggered an additional fetch
-    expect((fetch as ReturnType<typeof vi.fn>).mock.calls.length).toBeGreaterThan(initialCallCount);
+    const initialCallCount = (fetch as ReturnType<typeof vi.fn>).mock.calls.length;
+
+    const instance = mockEventSourceInstances[0];
+    if (instance?.onmessage) {
+      // Fire 3 rapid SSE events within 100ms
+      act(() => {
+        instance.onmessage!(
+          new MessageEvent('message', {
+            data: JSON.stringify({ type: 'update', runId: 'run-1' }),
+          })
+        );
+      });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(50);
+      });
+      act(() => {
+        instance.onmessage!(
+          new MessageEvent('message', {
+            data: JSON.stringify({ type: 'update', runId: 'run-2' }),
+          })
+        );
+      });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(50);
+      });
+      act(() => {
+        instance.onmessage!(
+          new MessageEvent('message', {
+            data: JSON.stringify({ type: 'update', runId: 'run-3' }),
+          })
+        );
+      });
+    }
+
+    // Wait for the debounce to fire (1500ms from last event)
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1500);
+    });
+
+    // Should only trigger ONE additional fetch despite 3 events
+    expect((fetch as ReturnType<typeof vi.fn>).mock.calls.length).toBe(initialCallCount + 1);
   });
 
   it('does not refetch when SSE event does not match filter', async () => {
