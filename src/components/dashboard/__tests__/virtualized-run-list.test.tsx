@@ -159,7 +159,7 @@ describe('RunCard React.memo', () => {
 
   it('skips re-render when props are equal', () => {
     const renderSpy = vi.fn();
-    const WrappedCard = vi.fn(({ run, selected }: { run: Run; selected?: boolean }) => {
+    vi.fn(({ run, selected: _selected }: { run: Run; selected?: boolean }) => {
       renderSpy();
       return <div data-testid="spy-card">{run.runId}</div>;
     });

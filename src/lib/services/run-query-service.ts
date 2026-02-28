@@ -23,9 +23,7 @@ export interface RunQueryParams {
   sort: SortMode;
 }
 
-export interface ProjectsQueryParams {
-  /* intentionally empty for now -- extensible */
-}
+export type ProjectsQueryParams = Record<string, never>;
 
 export interface ProjectRunsQueryParams extends RunQueryParams {
   project: string;

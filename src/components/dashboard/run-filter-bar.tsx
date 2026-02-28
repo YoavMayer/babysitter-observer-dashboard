@@ -1,7 +1,6 @@
 "use client";
 import { ArrowUpDown, Clock } from "lucide-react";
 import { cn } from "@/lib/cn";
-import type { RunStatus } from "@/types";
 import type { DashboardSortMode, DashboardStatusFilter } from "@/hooks/use-run-dashboard";
 
 const filters: { label: string; value: DashboardStatusFilter }[] = [

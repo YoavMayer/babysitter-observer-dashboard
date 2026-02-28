@@ -140,6 +140,7 @@ export interface RunDigest {
   updatedAt: string;
   pendingBreakpoints?: number;
   breakpointQuestion?: string;
+  breakpointEffectId?: string;
   sourceLabel?: string;
   projectName?: string;
   isStale?: boolean;
@@ -160,6 +161,7 @@ export interface ProjectGroup {
 // Breakpoint info for a single waiting run
 export interface BreakpointRunInfo {
   runId: string;
+  effectId: string;
   projectName: string;
   processId: string;
   breakpointQuestion: string;

@@ -1,8 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Create hoisted mock functions
-const { mockExecFileAsync, mockAccess, mockWriteFile, mockFindRunDir } = vi.hoisted(() => ({
-  mockExecFileAsync: vi.fn(),
+const { mockAccess, mockWriteFile, mockFindRunDir } = vi.hoisted(() => ({
   mockAccess: vi.fn(),
   mockWriteFile: vi.fn(),
   mockFindRunDir: vi.fn(),
@@ -29,18 +28,6 @@ vi.mock("fs", () => {
   };
 });
 
-// Mock child_process
-vi.mock("child_process", () => ({
-  default: { execFile: vi.fn() },
-  execFile: vi.fn(),
-}));
-
-// Mock util
-vi.mock("util", () => ({
-  default: { promisify: () => mockExecFileAsync },
-  promisify: () => mockExecFileAsync,
-}));
-
 import { approveBreakpoint } from "../approve-breakpoint";
 
 const defaultSource = { path: "/projects", depth: 2, label: "test" };
@@ -48,7 +35,6 @@ const defaultSource = { path: "/projects", depth: 2, label: "test" };
 describe("approveBreakpoint", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockExecFileAsync.mockResolvedValue({ stdout: "", stderr: "" });
   });
 
   // -------------------------------------------------------------------------
@@ -121,7 +107,7 @@ describe("approveBreakpoint", () => {
   // Success path
   // -------------------------------------------------------------------------
 
-  it("writes output.json and calls babysitter CLI on success", async () => {
+  it("writes result.json directly on success", async () => {
     const runDir = "/projects/app/.a5c/runs/run-001";
     mockFindRunDir.mockResolvedValue({
       runDir,
@@ -135,24 +121,19 @@ describe("approveBreakpoint", () => {
     const result = await approveBreakpoint("run-001", "eff-001", "Deploy approved");
     expect(result.success).toBe(true);
 
-    // Verify output.json was written
+    // Verify result.json was written
     expect(mockWriteFile).toHaveBeenCalledTimes(1);
     const [writePath, content] = mockWriteFile.mock.calls[0];
     expect(writePath).toContain("eff-001");
-    expect(writePath).toContain("output.json");
+    expect(writePath).toContain("result.json");
 
     const parsed = JSON.parse(content as string);
-    expect(parsed.answer).toBe("Deploy approved");
-    expect(parsed.approvedBy).toBe("observer-dashboard");
-    expect(parsed.approvedAt).toBeDefined();
-
-    // Verify babysitter CLI was called
-    expect(mockExecFileAsync).toHaveBeenCalledTimes(1);
-    expect(mockExecFileAsync).toHaveBeenCalledWith(
-      "babysitter",
-      expect.arrayContaining(["task:post", runDir, "eff-001", "--status", "ok"]),
-      expect.objectContaining({ cwd: runDir }),
-    );
+    expect(parsed.status).toBe("ok");
+    expect(parsed.value.answer).toBe("Deploy approved");
+    expect(parsed.value.approvedBy).toBe("observer-dashboard");
+    expect(parsed.value.approvedAt).toBeDefined();
+    expect(parsed.startedAt).toBeDefined();
+    expect(parsed.finishedAt).toBeDefined();
   });
 
   it("trims whitespace from the answer", async () => {
@@ -171,14 +152,14 @@ describe("approveBreakpoint", () => {
 
     const [, content] = mockWriteFile.mock.calls[0];
     const parsed = JSON.parse(content as string);
-    expect(parsed.answer).toBe("yes");
+    expect(parsed.value.answer).toBe("yes");
   });
 
   // -------------------------------------------------------------------------
-  // CLI failure (non-fatal)
+  // Write failure
   // -------------------------------------------------------------------------
 
-  it("reports CLI failure but still writes output.json", async () => {
+  it("returns error when file write fails", async () => {
     const runDir = "/projects/app/.a5c/runs/run-001";
     mockFindRunDir.mockResolvedValue({
       runDir,
@@ -187,15 +168,10 @@ describe("approveBreakpoint", () => {
       projectPath: "/projects/app",
     });
     mockAccess.mockResolvedValue(undefined);
-    mockWriteFile.mockResolvedValue(undefined);
-    mockExecFileAsync.mockRejectedValue(new Error("babysitter not found"));
+    mockWriteFile.mockRejectedValue(new Error("EACCES: permission denied"));
 
     const result = await approveBreakpoint("run-001", "eff-001", "yes");
     expect(result.success).toBe(false);
-    expect(result.error).toContain("babysitter CLI failed");
-    expect(result.error).toContain("babysitter not found");
-
-    // output.json was still written
-    expect(mockWriteFile).toHaveBeenCalledTimes(1);
+    expect(result.error).toContain("EACCES");
   });
 });

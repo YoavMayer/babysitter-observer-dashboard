@@ -420,6 +420,12 @@ export async function parseRunDir(
     }
   }
 
+  // Detect orphaned runs: all tasks resolved but no terminal event
+  // (process likely crashed before writing RUN_COMPLETED)
+  if (status === "pending" && tasks.length > 0 && !tasks.some((t) => t.status === "requested")) {
+    isStale = true;
+  }
+
   return {
     runId: createdPayload.runId || path.basename(runPath),
     processId:
@@ -615,13 +621,17 @@ export async function getRunDigest(runPath: string): Promise<RunDigest> {
     if (!resolvedEffects.has(bpId)) pendingBreakpoints++;
   }
 
-  // Extract breakpoint question from pending breakpoint tasks — batch-read all at once
+  // Extract breakpoint question and effectId from pending breakpoint tasks — batch-read all at once
   let breakpointQuestion: string | undefined;
+  let breakpointEffectId: string | undefined;
   if (status === "waiting" && breakpointEffectIds.size > 0) {
     const pendingBpIds = [...breakpointEffectIds].filter(
       (id) => !resolvedEffects.has(id)
     );
     if (pendingBpIds.length > 0) {
+      // Store the first pending breakpoint effectId regardless of question
+      breakpointEffectId = pendingBpIds[0];
+
       const bpFactories = pendingBpIds.map(
         (effectId) => () =>
           readJsonSafe<Record<string, unknown>>(
@@ -639,6 +649,7 @@ export async function getRunDigest(runPath: string): Promise<RunDigest> {
           const inputs = taskDef.inputs as Record<string, unknown> | undefined;
           if (inputs && typeof inputs.question === "string") {
             breakpointQuestion = inputs.question;
+            breakpointEffectId = pendingBpIds[i];
             break;
           }
         }
@@ -671,6 +682,11 @@ export async function getRunDigest(runPath: string): Promise<RunDigest> {
     }
   }
 
+  // Detect orphaned runs: all effects resolved but no terminal event
+  if (status === "waiting" && taskCount > 0 && completedTasks >= taskCount) {
+    isStale = true;
+  }
+
   return {
     runId: path.basename(runPath),
     latestSeq,
@@ -680,6 +696,7 @@ export async function getRunDigest(runPath: string): Promise<RunDigest> {
     updatedAt,
     pendingBreakpoints,
     breakpointQuestion,
+    breakpointEffectId,
     isStale,
     waitingKind,
   };

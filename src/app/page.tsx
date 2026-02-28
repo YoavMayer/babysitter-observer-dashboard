@@ -71,7 +71,14 @@ export default function DashboardPage() {
 
         {/* Catch-up mode banner — shown when burst of SSE updates detected */}
         {catchUp.active && (
-          <CatchUpBanner catchUp={catchUp} />
+          <CatchUpBanner
+            catchUp={catchUp}
+            summary={{
+              failedRuns: summaryMetrics.failedRuns,
+              completedRuns: summaryMetrics.completedRuns,
+              pendingBreakpoints: summaryMetrics.pendingBreakpoints,
+            }}
+          />
         )}
 
         {/* Global Breakpoint Banner — pinned with sticky positioning */}

@@ -9,7 +9,7 @@ const pkg = JSON.parse(readFileSync('./package.json', 'utf-8'));
  */
 function detectVersion(command) {
   try {
-    const raw = execSync(command, { encoding: 'utf-8', timeout: 5000 }).trim();
+    const raw = execSync(command, { encoding: 'utf-8', timeout: 1000 }).trim();
     const match = raw.match(/(\d+\.\d+\.\d+)/);
     return match ? match[1] : raw || 'N/A';
   } catch {

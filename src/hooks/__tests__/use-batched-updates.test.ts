@@ -275,7 +275,7 @@ describe("useBatchedUpdates", () => {
     // Subscriber should be removed
     // Note: the exact count depends on how many hooks subscribe,
     // but after unmount the hook's subscriber should be gone
-    const countAfter = subscriberCallbacks.size;
+    const _countAfter = subscriberCallbacks.size;
     // Verify no errors when emitting after unmount
     act(() => {
       emitSSE({ type: "update" });

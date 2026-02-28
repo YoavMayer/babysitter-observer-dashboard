@@ -300,6 +300,7 @@ export function getProjectSummaries(): ProjectSummary[] {
       existing.pendingBreakpoints += entry.digest.pendingBreakpoints;
       existing.breakpointRuns.push({
         runId: entry.digest.runId,
+        effectId: entry.digest.breakpointEffectId || "",
         projectName,
         processId: entry.digest.processId || "unknown",
         breakpointQuestion: entry.digest.breakpointQuestion || "Approval required",

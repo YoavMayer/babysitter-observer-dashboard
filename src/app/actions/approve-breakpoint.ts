@@ -2,11 +2,7 @@
 
 import { promises as fs } from "fs";
 import path from "path";
-import { execFile } from "child_process";
-import { promisify } from "util";
 import { findRunDir } from "@/lib/path-resolver";
-
-const execFileAsync = promisify(execFile);
 
 export interface ApproveBreakpointResult {
   success: boolean;
@@ -14,12 +10,12 @@ export interface ApproveBreakpointResult {
 }
 
 /**
- * Server Action: approve a stale breakpoint by writing output.json and invoking
- * the babysitter CLI to post the task result.
+ * Server Action: approve a stale breakpoint by writing result.json directly
+ * to the task directory. No CLI calls, no POST endpoints.
  *
- * This is a Next.js Server Action (form action) — NOT a REST endpoint.
- * After the file is written, the existing fs.watch -> SSE -> client flow
- * will detect the change and update the UI automatically.
+ * For stale/abandoned breakpoints the orchestration session is gone,
+ * so we write the SDK-compatible result.json ourselves. The existing
+ * fs.watch -> SSE -> client flow detects the new file and updates the UI.
  */
 export async function approveBreakpoint(
   runId: string,
@@ -59,39 +55,20 @@ export async function approveBreakpoint(
       return { success: false, error: `Task directory not found: ${effectId}` };
     }
 
-    // --- Write output.json ---
-    const outputPayload = {
-      answer: answer.trim(),
-      approvedAt: new Date().toISOString(),
-      approvedBy: "observer-dashboard",
+    // --- Write result.json directly (SDK-compatible format) ---
+    const now = new Date().toISOString();
+    const resultPayload = {
+      status: "ok",
+      value: {
+        answer: answer.trim(),
+        approvedAt: now,
+        approvedBy: "observer-dashboard",
+      },
+      startedAt: now,
+      finishedAt: now,
     };
-    const outputPath = path.join(taskDir, "output.json");
-    await fs.writeFile(outputPath, JSON.stringify(outputPayload, null, 2), "utf-8");
-
-    // --- Invoke babysitter CLI to post the result ---
-    const valueRelPath = path.join("tasks", effectId, "output.json");
-    try {
-      await execFileAsync("babysitter", [
-        "task:post",
-        runDir,
-        effectId,
-        "--status",
-        "ok",
-        "--value",
-        valueRelPath,
-      ], {
-        timeout: 30000,
-        cwd: runDir,
-      });
-    } catch (cliError: unknown) {
-      const msg = cliError instanceof Error ? cliError.message : String(cliError);
-      // The output.json was already written; the CLI failure is non-fatal
-      // because the watcher will still detect the file change. But we report it.
-      return {
-        success: false,
-        error: `output.json written but babysitter CLI failed: ${msg}`,
-      };
-    }
+    const resultPath = path.join(taskDir, "result.json");
+    await fs.writeFile(resultPath, JSON.stringify(resultPayload, null, 2), "utf-8");
 
     return { success: true };
   } catch (err: unknown) {

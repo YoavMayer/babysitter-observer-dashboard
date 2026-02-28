@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 
 const NAMESPACE = "observer:";
 
@@ -8,31 +8,25 @@ const NAMESPACE = "observer:";
  * Values are serialized with JSON.stringify/parse and namespaced
  * under the "observer:" prefix to avoid collisions.
  *
- * Hydration-safe: always renders defaultValue on the first paint
- * (matching SSR), then syncs from localStorage after hydration.
+ * Reads localStorage synchronously via a lazy initializer so the
+ * first render already reflects the persisted value (no flash).
  */
 export function usePersistedState<T>(
   key: string,
   defaultValue: T
 ): [T, (value: T | ((prev: T) => T)) => void] {
   const prefixedKey = key.startsWith(NAMESPACE) ? key : `${NAMESPACE}${key}`;
-  const hydrated = useRef(false);
 
-  const [state, setState] = useState<T>(defaultValue);
-
-  // Sync from localStorage after hydration (client only)
-  useEffect(() => {
-    if (hydrated.current) return;
-    hydrated.current = true;
+  const [state, setState] = useState<T>(() => {
+    if (typeof window === "undefined") return defaultValue;
     try {
       const stored = window.localStorage.getItem(prefixedKey);
-      if (stored !== null) {
-        setState(JSON.parse(stored) as T);
-      }
+      if (stored !== null) return JSON.parse(stored) as T;
     } catch {
       // localStorage unavailable — keep default
     }
-  }, [prefixedKey]);
+    return defaultValue;
+  });
 
   const setPersistedState = useCallback(
     (value: T | ((prev: T) => T)) => {

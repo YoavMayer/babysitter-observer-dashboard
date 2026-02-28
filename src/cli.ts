@@ -280,7 +280,6 @@ function main(): void {
 
   // Determine the Next.js command — use local binary for global installs
   const port = opts.port || process.env.OBSERVER_PORT || "3000";
-  const projectRoot = resolve(__dirname, "..");
   const nextBin = findNextBin();
   const nextCmd = opts.dev
     ? `"${nextBin}" dev --port ${port}`

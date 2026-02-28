@@ -68,4 +68,74 @@ describe("CatchUpBanner", () => {
 
     expect(screen.getByText("42")).toBeInTheDocument();
   });
+
+  it("shows summary context when summary prop is provided", () => {
+    const catchUp: CatchUpState = {
+      active: true,
+      bufferedCount: 15,
+      flush: vi.fn(),
+    };
+
+    render(
+      <CatchUpBanner
+        catchUp={catchUp}
+        summary={{ failedRuns: 2, completedRuns: 10, pendingBreakpoints: 1 }}
+      />
+    );
+
+    const summaryEl = screen.getByTestId("catch-up-summary");
+    expect(summaryEl).toBeInTheDocument();
+    expect(summaryEl).toHaveTextContent("2 failed");
+    expect(summaryEl).toHaveTextContent("1 awaiting input");
+    expect(summaryEl).toHaveTextContent("10 completed");
+  });
+
+  it("omits summary line when all summary counts are zero", () => {
+    const catchUp: CatchUpState = {
+      active: true,
+      bufferedCount: 5,
+      flush: vi.fn(),
+    };
+
+    render(
+      <CatchUpBanner
+        catchUp={catchUp}
+        summary={{ failedRuns: 0, completedRuns: 0, pendingBreakpoints: 0 }}
+      />
+    );
+
+    expect(screen.queryByTestId("catch-up-summary")).not.toBeInTheDocument();
+  });
+
+  it("omits summary line when summary prop is not provided", () => {
+    const catchUp: CatchUpState = {
+      active: true,
+      bufferedCount: 5,
+      flush: vi.fn(),
+    };
+
+    render(<CatchUpBanner catchUp={catchUp} />);
+
+    expect(screen.queryByTestId("catch-up-summary")).not.toBeInTheDocument();
+  });
+
+  it("shows only failed runs in summary when others are zero", () => {
+    const catchUp: CatchUpState = {
+      active: true,
+      bufferedCount: 3,
+      flush: vi.fn(),
+    };
+
+    render(
+      <CatchUpBanner
+        catchUp={catchUp}
+        summary={{ failedRuns: 4, completedRuns: 0, pendingBreakpoints: 0 }}
+      />
+    );
+
+    const summaryEl = screen.getByTestId("catch-up-summary");
+    expect(summaryEl).toHaveTextContent("4 failed");
+    expect(summaryEl).not.toHaveTextContent("completed");
+    expect(summaryEl).not.toHaveTextContent("awaiting");
+  });
 });
