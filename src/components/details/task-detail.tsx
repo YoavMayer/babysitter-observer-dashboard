@@ -1,13 +1,53 @@
 "use client";
+import dynamic from "next/dynamic";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { AgentPanel } from "./agent-panel";
-import { TimingPanel } from "./timing-panel";
-import { LogViewer } from "./log-viewer";
-import { JsonTree } from "./json-tree";
-import { BreakpointPanel } from "@/components/breakpoint/breakpoint-panel";
 import { useTaskDetail } from "@/hooks/use-run-detail";
 import { Loader2, Hand } from "lucide-react";
 import { Kbd } from "@/components/shared/kbd";
+
+/* -------------------------------------------------------------------------- */
+/*  Loading skeletons for lazy-loaded tab panels                              */
+/* -------------------------------------------------------------------------- */
+
+function PanelSkeleton() {
+  return (
+    <div className="p-4 space-y-3 animate-pulse">
+      <div className="h-4 w-48 rounded bg-foreground-muted/10" />
+      <div className="h-3 w-full rounded bg-foreground-muted/10" />
+      <div className="h-3 w-3/4 rounded bg-foreground-muted/10" />
+      <div className="h-3 w-1/2 rounded bg-foreground-muted/10" />
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Lazy-loaded heavy components (code-split per tab)                         */
+/* -------------------------------------------------------------------------- */
+
+const AgentPanel = dynamic(
+  () => import("./agent-panel").then((mod) => ({ default: mod.AgentPanel })),
+  { ssr: false, loading: PanelSkeleton }
+);
+
+const TimingPanel = dynamic(
+  () => import("./timing-panel").then((mod) => ({ default: mod.TimingPanel })),
+  { ssr: false, loading: PanelSkeleton }
+);
+
+const LogViewer = dynamic(
+  () => import("./log-viewer").then((mod) => ({ default: mod.LogViewer })),
+  { ssr: false, loading: PanelSkeleton }
+);
+
+const JsonTree = dynamic(
+  () => import("./json-tree").then((mod) => ({ default: mod.JsonTree })),
+  { ssr: false, loading: PanelSkeleton }
+);
+
+const BreakpointPanel = dynamic(
+  () => import("@/components/breakpoint/breakpoint-panel").then((mod) => ({ default: mod.BreakpointPanel })),
+  { ssr: false, loading: PanelSkeleton }
+);
 
 interface TaskDetailPanelProps {
   runId: string;

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, startTransition } from "react";
 import { subscribe, StreamEvent } from "./use-event-stream";
 import { resilientFetch } from "@/lib/fetcher";
 
@@ -7,13 +7,15 @@ interface UseSmartPollingOptions {
   interval?: number;
   sseFilter?: (event: StreamEvent) => boolean;
   enabled?: boolean;
+  /** When true, suppress SSE-triggered refetches (used during catch-up mode). */
+  suppressSseRefetch?: boolean;
 }
 
 export function useSmartPolling<T>(
   url: string,
   options: UseSmartPollingOptions = {}
 ) {
-  const { interval = 5000, sseFilter, enabled = true } = options;
+  const { interval = 5000, sseFilter, enabled = true, suppressSseRefetch = false } = options;
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(enabled && !!url);
   const [error, setError] = useState<string | null>(null);
@@ -23,6 +25,9 @@ export function useSmartPolling<T>(
   const sseConnected = useRef(false);
   const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const suppressSseRefetchRef = useRef(suppressSseRefetch);
+  suppressSseRefetchRef.current = suppressSseRefetch;
 
   const fetchData = useCallback(async () => {
     if (!url || !enabled) return;
@@ -41,7 +46,12 @@ export function useSmartPolling<T>(
       // Skip state update on 304 Not Modified — data is identical to
       // what we already have, so avoid triggering a re-render cascade.
       if (result.status !== 304) {
-        setData(result.data);
+        // Use startTransition so SSE-triggered data updates are treated as
+        // non-urgent. This keeps the UI responsive during rapid bursts —
+        // React can batch and defer these renders without blocking user input.
+        startTransition(() => {
+          setData(result.data);
+        });
       }
       setError(null);
       setLoading(false);
@@ -95,8 +105,8 @@ export function useSmartPolling<T>(
         return;
       }
 
-      // On SSE disconnect (error event or timeout), reset to normal polling
-      if (event.type === "error") {
+      // On SSE disconnect or error, reset to normal polling (no immediate fetch)
+      if (event.type === "disconnect" || event.type === "error") {
         if (sseConnected.current) {
           sseConnected.current = false;
           if (pollTimerRef.current) clearInterval(pollTimerRef.current);
@@ -105,15 +115,28 @@ export function useSmartPolling<T>(
         return;
       }
 
-      // Apply filter and trigger immediate refresh
+      // Apply filter and trigger debounced refresh to coalesce rapid events.
+      // Uses a 1500ms trailing-edge debounce (up from 150ms) to batch burst
+      // updates that arrive in quick succession (e.g. after overnight runs).
+      // When catch-up mode is active, SSE-triggered refetches are suppressed
+      // entirely — the catch-up flush will trigger a single refresh instead.
       if (sseFilterRef.current?.(event)) {
-        fetchData();
+        if (suppressSseRefetchRef.current) return;
+        if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = setTimeout(() => {
+          debounceTimerRef.current = null;
+          fetchData();
+        }, 1500);
       }
     });
 
     return () => {
       unsubscribe();
       sseConnected.current = false;
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+      }
     };
   }, [enabled, fetchData, interval]);
 

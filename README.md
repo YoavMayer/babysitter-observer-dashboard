@@ -41,6 +41,12 @@ Babysitter Observer Dashboard is a real-time browser-based monitoring UI for [ba
 - **Sort and filter tabs** -- filter by All, Active, Completed, or Failed runs; sort by most recent activity
 - **Project visibility** -- hide/show projects from the settings panel without removing watch sources
 - **WCAG AA accessibility** -- minimum 12px text sizes, 4.5:1+ contrast ratios in both light and dark themes
+- **Inline breakpoint approval** -- approve breakpoints directly from the dashboard banner without switching to the CLI; writes `result.json` via server action (no POST endpoint needed)
+- **Stale breakpoint dismiss** -- dismiss breakpoints that have been waiting too long with a single click; persisted in localStorage
+- **Catch-up banner** -- overnight summary showing failed/completed/pending counts when revisiting after extended absence
+- **Orphaned run detection** -- automatically detects runs where all tasks completed but the process crashed before writing `RUN_COMPLETED`; shows "Interrupted" badge
+- **Hydration-safe persistence** -- persisted UI state (collapse/expand, sort, filters) survives page navigation with zero flash using `useLayoutEffect`
+- **Batched updates** -- 1500ms debounce prevents UI thrash from rapid SSE events during active orchestration
 
 ## Quick Start
 

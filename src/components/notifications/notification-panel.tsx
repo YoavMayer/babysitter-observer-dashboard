@@ -55,6 +55,7 @@ export function NotificationPanel({ open, notifications, onDismiss, onClose }: N
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm" />
         <Dialog.Content
+          data-testid="notification-panel"
           className="fixed right-4 top-4 z-50 rounded-lg border border-[var(--glass-border)] bg-[var(--glass-bg)] backdrop-blur-xl shadow-glass w-full max-w-md max-h-[80vh] flex flex-col"
         >
           <div className="flex items-center justify-between p-4 border-b border-[var(--glass-border-subtle)]">
@@ -84,6 +85,7 @@ export function NotificationPanel({ open, notifications, onDismiss, onClose }: N
                 {notifications.map((notif) => (
                   <div
                     key={notif.id}
+                    data-testid={`notification-item-${notif.id}`}
                     className={cn(
                       "rounded-lg border border-[var(--glass-border-faint)] bg-[var(--glass-card-bg)] p-3 border-l-2",
                       "transition-colors duration-150",

@@ -82,6 +82,7 @@ export function AppHeader() {
           <div className="ml-auto flex items-center gap-1.5">
             {/* SSE connection status chip */}
             <span
+              data-testid="sse-status"
               role="status"
               aria-live="polite"
               className={cn(
@@ -101,6 +102,7 @@ export function AppHeader() {
             </span>
             {/* Notification bell */}
             <button
+              data-testid="notification-bell"
               onClick={toggleNotificationPanel}
               className="relative rounded-md p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary transition-colors"
               title="Notifications"
@@ -108,7 +110,7 @@ export function AppHeader() {
             >
               <Bell className="h-4 w-4" />
               {notifications.length > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground tabular-nums">
+                <span data-testid="notification-badge" className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground tabular-nums">
                   {notifications.length > 9 ? "9+" : notifications.length}
                 </span>
               )}
@@ -131,6 +133,7 @@ export function AppHeader() {
               <Settings className="h-4 w-4" />
             </button>
             <button
+              data-testid="theme-toggle"
               onClick={toggleTheme}
               className="rounded-md p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary transition-colors"
               title={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}

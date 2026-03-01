@@ -161,7 +161,7 @@ export function FilePreview({ files, runId, effectId }: FilePreviewProps) {
   if (!files.length) return null;
 
   return (
-    <div className="space-y-1">
+    <div data-testid="file-preview" className="space-y-1">
       <h4 className="text-xs font-medium text-foreground-muted uppercase tracking-wider mb-2 pl-2 border-l-2 border-primary">
         Attached Files
       </h4>

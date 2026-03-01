@@ -88,6 +88,9 @@ export function StatusBadge({ status, className, waitingKind, isStale }: StatusB
     config = statusConfig[subKey] || config;
   }
 
+  // Detect orphaned/interrupted runs: stale with no pending work remaining
+  const isInterrupted = isStale && (status === "pending" || (status === "waiting" && !waitingKind));
+
   return (
     <Badge
       data-testid={`status-badge-${status}`}
@@ -101,7 +104,7 @@ export function StatusBadge({ status, className, waitingKind, isStale }: StatusB
       )}
     >
       {config.icon}
-      {config.label}
+      {isInterrupted ? "Interrupted" : config.label}
     </Badge>
   );
 }

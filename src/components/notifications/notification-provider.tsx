@@ -124,16 +124,11 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         );
       }
 
-      // Tasks completed — only notify when count exceeds watermark
+      // Track completed-task watermark (no per-task notification — the
+      // terminal "Run Completed" notification already covers this, and
+      // per-task notifications flood the panel when many runs are active).
       if (run.completedTasks > wm.completedTasks) {
-        const diff = run.completedTasks - wm.completedTasks;
         wm.completedTasks = run.completedTasks;
-        notify(
-          "Tasks Completed",
-          `${diff} task${diff > 1 ? "s" : ""} completed in ${formatShortId(run.runId, 4)}`,
-          "info",
-          { href: `/runs/${run.runId}` },
-        );
       }
 
       // Run transitioned to waiting (breakpoint) — only notify once per waiting episode

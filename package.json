@@ -1,6 +1,6 @@
 {
   "name": "@yoavmayer/babysitter-observer-dashboard",
-  "version": "0.11.3",
+  "version": "0.12.0",
   "description": "Real-time observability dashboard for babysitter orchestration runs",
   "private": false,
   "publishConfig": {
@@ -29,7 +29,7 @@
     "real-time"
   ],
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   },
   "files": [
     "dist",
@@ -68,13 +68,16 @@
     "@radix-ui/react-slot": "^1.0.2",
     "@radix-ui/react-tabs": "^1.0.4",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@rollup/rollup-linux-x64-gnu": "^4.59.0",
+    "@tanstack/react-virtual": "^3.13.19",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "lucide-react": "^0.344.0",
     "next": "14.2.35",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "tailwind-merge": "^2.2.0"
+    "tailwind-merge": "^2.2.0",
+    "ulid": "^3.0.2"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",

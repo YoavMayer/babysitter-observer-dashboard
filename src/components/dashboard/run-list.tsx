@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { RunCard } from "./run-card";
+import { VirtualizedRunList } from "./virtualized-run-list";
 import { ProjectSection } from "./project-section";
 import { EmptyState } from "@/components/shared/empty-state";
 import type { Run } from "@/types";
@@ -49,16 +50,20 @@ export function RunList({ runs, selectedIndex, groupByProject = false }: RunList
     );
   }
 
-  // Flat list with pagination
+  // Flat list with pagination + virtualization
   const _totalPages = Math.ceil(runs.length / pageSize);
   const displayedRuns = runs.slice(0, (currentPage + 1) * pageSize);
   const hasMore = displayedRuns.length < runs.length;
 
   return (
     <div className="flex flex-col gap-2">
-      {displayedRuns.map((run, i) => (
-        <RunCard key={run.runId} run={run} selected={i === selectedIndex} />
-      ))}
+      <VirtualizedRunList
+        runs={displayedRuns}
+        maxHeight={800}
+        renderItem={(run, i) => (
+          <RunCard run={run} selected={i === selectedIndex} />
+        )}
+      />
       {hasMore && (
         <button
           onClick={() => setCurrentPage(currentPage + 1)}

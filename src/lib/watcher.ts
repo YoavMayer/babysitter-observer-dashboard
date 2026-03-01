@@ -2,19 +2,13 @@ import { watch, type FSWatcher } from "fs";
 import { promises as fs } from "fs";
 import path from "path";
 import { EventEmitter } from "events";
-import { discoverAllRunDirs, invalidateDiscoveryCache, discoverAllRunsParentDirs } from "./config";
+import { discoverAllRunDirs, invalidateDiscoveryCache, discoverAllRunsParentDirs } from "./source-discovery";
 import { invalidateRun, requestDiscovery } from "./run-cache";
+import { getGlobal } from "./global-registry";
 
-// Persist event emitter across HMR reloads
-const WATCHER_EVENTS_KEY = '__observer_watcher_events__';
+// Persist event emitter across HMR reloads via typed global registry
 function getWatcherEvents(): EventEmitter {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (!(globalThis as any)[WATCHER_EVENTS_KEY]) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (globalThis as any)[WATCHER_EVENTS_KEY] = new EventEmitter();
-  }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (globalThis as any)[WATCHER_EVENTS_KEY];
+  return getGlobal('__observer_watcher_events__', () => new EventEmitter());
 }
 
 export const watcherEvents = getWatcherEvents();
@@ -28,9 +22,7 @@ export interface WatcherEvent {
   error?: Error;
 }
 
-// Persist watcher state across HMR reloads via globalThis
-const WATCHER_KEY = '__observer_watchers__';
-
+// Persist watcher state across HMR reloads via typed global registry
 interface WatcherState {
   activeWatchers: Map<string, FSWatcher>;
   debounceTimers: Map<string, NodeJS.Timeout>;
@@ -38,17 +30,11 @@ interface WatcherState {
 }
 
 function getWatcherState(): WatcherState {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (!(globalThis as any)[WATCHER_KEY]) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (globalThis as any)[WATCHER_KEY] = {
-      activeWatchers: new Map<string, FSWatcher>(),
-      debounceTimers: new Map<string, NodeJS.Timeout>(),
-      rescanTimer: null,
-    };
-  }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (globalThis as any)[WATCHER_KEY];
+  return getGlobal('__observer_watchers__', () => ({
+    activeWatchers: new Map<string, FSWatcher>(),
+    debounceTimers: new Map<string, NodeJS.Timeout>(),
+    rescanTimer: null,
+  }));
 }
 
 // WSL-optimized constants

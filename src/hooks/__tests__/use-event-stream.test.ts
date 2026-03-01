@@ -113,7 +113,7 @@ describe('use-event-stream', () => {
       // Do not add to activeUnsubscribers since we already cleaned up
     });
 
-    it('notifies subscribers of errors', () => {
+    it('notifies subscribers with disconnect event on SSE error', () => {
       const callback = vi.fn();
       const unsub = subscribe(callback);
       activeUnsubscribers.push(unsub);
@@ -122,7 +122,7 @@ describe('use-event-stream', () => {
 
       instance.onerror!(new Event('error'));
 
-      expect(callback).toHaveBeenCalledWith({ type: 'error' });
+      expect(callback).toHaveBeenCalledWith({ type: 'disconnect' });
     });
 
     it('attempts reconnect with backoff on error', async () => {
@@ -169,6 +169,46 @@ describe('use-event-stream', () => {
 
       expect(result.current.lastEvent).toEqual(eventData);
       expect(result.current.connected).toBe(true);
+    });
+
+    it('does not set connected=true for disconnect events', () => {
+      const { result } = renderHook(() => useEventStream());
+
+      const instance = mockEventSourceInstances[0];
+
+      // First send a real event to set connected=true
+      act(() => {
+        instance.onmessage!(
+          new MessageEvent('message', { data: JSON.stringify({ type: 'update', runId: 'r1' }) })
+        );
+      });
+      expect(result.current.connected).toBe(true);
+
+      // Now trigger SSE error which emits disconnect
+      act(() => {
+        instance.onerror!(new Event('error'));
+      });
+
+      // connected should not have been set to true by the disconnect event
+      // (the interval checker will eventually update it, but the event itself should not)
+      expect(result.current.lastEvent).toEqual({ type: 'disconnect' });
+    });
+
+    it('does not set connected=true for error events', () => {
+      const { result } = renderHook(() => useEventStream());
+
+      const instance = mockEventSourceInstances[0];
+
+      // Send a server-side error event (type: 'error')
+      act(() => {
+        instance.onmessage!(
+          new MessageEvent('message', { data: JSON.stringify({ type: 'error', error: 'test' }) })
+        );
+      });
+
+      // lastEvent should be set but connected should remain false
+      expect(result.current.lastEvent).toEqual({ type: 'error', error: 'test' });
+      expect(result.current.connected).toBe(false);
     });
 
     it('cleans up on unmount', () => {

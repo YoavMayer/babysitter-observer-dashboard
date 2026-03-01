@@ -1,8 +1,18 @@
 import { getRunDigest, parseRunDir } from "./parser";
-import { discoverAllRunDirs, type WatchSource, type DiscoveredRun } from "./config";
+import type { ParseRunResult } from "./parser";
+import { discoverAllRunDirs, type DiscoveredRun } from "./source-discovery";
+import type { WatchSource } from "./config-loader";
 import type { RunDigest, Run, ProjectSummary } from "@/types";
 import { promises as fs } from "fs";
 import path from "path";
+import { getGlobal } from "./global-registry";
+
+/** Return true when err represents a "file/directory not found" filesystem error. */
+function isNotFoundError(err: unknown): boolean {
+  if (!(err instanceof Error)) return false;
+  const code = (err as NodeJS.ErrnoException).code;
+  return code === "ENOENT" || code === "ENOTDIR" || err.message.includes("ENOENT");
+}
 
 // Extended RunDigest with cache metadata
 export interface CachedRunDigest extends RunDigest {
@@ -16,19 +26,13 @@ interface CacheEntry {
   cachedAt: number;
   runDir: string;
   fullRun?: Run;
+  /** Number of journal files parsed in the last full-run read — used for incremental parsing. */
+  journalFileCount?: number;
 }
 
-// Persist cache across HMR reloads via globalThis
-const CACHE_KEY = '__observer_run_cache__';
-
+// Persist cache across HMR reloads via typed global registry
 function getCache(): Map<string, CacheEntry> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (!(globalThis as any)[CACHE_KEY]) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (globalThis as any)[CACHE_KEY] = new Map<string, CacheEntry>();
-  }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (globalThis as any)[CACHE_KEY];
+  return getGlobal('__observer_run_cache__', () => new Map<string, CacheEntry>()) as Map<string, CacheEntry>;
 }
 
 // Cache size limit to prevent unbounded memory growth
@@ -85,7 +89,11 @@ async function getRunJsonMeta(runDir: string): Promise<{ processId: string; proj
       processId: json.processId || "unknown",
       projectName: json.projectName || undefined,
     };
-  } catch {
+  } catch (err) {
+    // ENOENT is expected for runs that haven't written run.json yet; warn on corruption or permission errors
+    if (!isNotFoundError(err)) {
+      console.warn(`[run-cache] Failed to read run.json metadata from ${runDir}:`, err);
+    }
     return { processId: "unknown" };
   }
 }
@@ -123,6 +131,7 @@ export async function getDigestCached(
     cachedAt: Date.now(),
     runDir,
     fullRun: entry?.fullRun, // Preserve full run if present
+    journalFileCount: entry?.journalFileCount, // Preserve for incremental parsing
   });
 
   evictIfNeeded();
@@ -143,8 +152,22 @@ export async function getRunCached(
     return entry.fullRun;
   }
 
-  // Fetch full run
-  const run = await parseRunDir(runDir);
+  // Build incremental options from previous cache entry (if available).
+  // This avoids re-parsing all journal files when only new events have
+  // been appended since the last read.
+  const incremental =
+    entry?.fullRun && entry.journalFileCount !== undefined
+      ? {
+          previousEvents: entry.fullRun.events,
+          previousFileCount: entry.journalFileCount,
+        }
+      : undefined;
+
+  // Fetch full run (incrementally when possible)
+  const run = await parseRunDir(runDir, incremental) as ParseRunResult;
+
+  // Extract the journal file count before stripping it from the Run object
+  const journalFileCount = run._journalFileCount;
 
   // Read run.json meta for accurate projectName
   const meta = await getRunJsonMeta(runDir);
@@ -156,6 +179,8 @@ export async function getRunCached(
     sourceLabel: source.label,
     projectName: effectiveProjectName,
   };
+  // Remove internal field from the exposed Run object
+  delete (enrichedRun as unknown as Record<string, unknown>)._journalFileCount;
 
   // Update cache with full run
   const digest = await getDigestCached(runDir, source, projectName);
@@ -164,6 +189,7 @@ export async function getRunCached(
     cachedAt: Date.now(),
     runDir,
     fullRun: enrichedRun,
+    journalFileCount,
   });
 
   evictIfNeeded();
@@ -274,6 +300,7 @@ export function getProjectSummaries(): ProjectSummary[] {
       existing.pendingBreakpoints += entry.digest.pendingBreakpoints;
       existing.breakpointRuns.push({
         runId: entry.digest.runId,
+        effectId: entry.digest.breakpointEffectId || "",
         projectName,
         processId: entry.digest.processId || "unknown",
         breakpointQuestion: entry.digest.breakpointQuestion || "Approval required",

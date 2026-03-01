@@ -2,6 +2,7 @@
 import { cn } from "@/lib/cn";
 import { Badge } from "@/components/ui/badge";
 import { FilePreview } from "./file-preview";
+import { BreakpointApproval } from "./breakpoint-approval";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Hand, CheckCircle2 } from "lucide-react";
 import { TruncatedId } from "@/components/shared/truncated-id";
@@ -21,7 +22,7 @@ export function BreakpointPanel({ task, runId }: BreakpointPanelProps) {
 
   return (
     <ScrollArea className="h-full">
-      <div className="space-y-5 p-4">
+      <div data-testid="breakpoint-panel" className="space-y-5 p-4">
         {/* Header */}
         <div className="space-y-2">
           <div className="flex items-center gap-2">
@@ -55,12 +56,17 @@ export function BreakpointPanel({ task, runId }: BreakpointPanelProps) {
               )}>
                 {isWaiting ? "Awaiting decision" : "Decision made"}
               </h4>
-              <p className="text-base text-foreground font-medium leading-relaxed whitespace-pre-wrap break-words">
+              <p data-testid="breakpoint-question" className="text-base text-foreground font-medium leading-relaxed whitespace-pre-wrap break-words">
                 {question}
               </p>
             </div>
           </div>
         </div>
+
+        {/* Local approval form — only for pending breakpoints */}
+        {isWaiting && (
+          <BreakpointApproval task={task} runId={runId} />
+        )}
 
         {/* Attached files */}
         {files.length > 0 && (

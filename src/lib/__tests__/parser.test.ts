@@ -3,11 +3,13 @@ import path from 'path';
 import { promises as fs } from 'fs';
 import {
   parseJournalDir,
+  parseJournalDirIncremental,
   parseRunDir,
   parseTaskDetail,
   getRunDigest,
   getRunIds,
 } from '../parser';
+import type { JournalEvent } from '@/types';
 
 // Use vi.spyOn to replace methods on the actual promises object
 // This ensures both the test file and parser module share the same reference
@@ -1198,6 +1200,218 @@ describe('parser', () => {
       const ids = await getRunIds('/runs');
 
       expect(ids).toEqual(['run-001']);
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // parseJournalDirIncremental
+  // -----------------------------------------------------------------------
+  describe('parseJournalDirIncremental', () => {
+    it('returns all events and fileCount on first call (no previous state)', async () => {
+      mockAccess.mockResolvedValue(undefined);
+      mockReaddir.mockResolvedValue([
+        '000001.ULID1.json',
+        '000002.ULID2.json',
+      ] as any);
+
+      mockReadFile.mockImplementation(async (filePath: any) => {
+        const p = filePath.toString();
+        if (p.includes('000001')) {
+          return JSON.stringify(
+            makeRunCreatedRaw('run-1', 'process-1', '2024-01-15T10:00:00Z'),
+          );
+        }
+        if (p.includes('000002')) {
+          return JSON.stringify(
+            makeEffectRequestedRaw('eff-1', 'node', 'step', '2024-01-15T10:00:01Z'),
+          );
+        }
+        return '{}';
+      });
+
+      const result = await parseJournalDirIncremental('/run/journal');
+
+      expect(result.events).toHaveLength(2);
+      expect(result.fileCount).toBe(2);
+      expect(result.events[0].type).toBe('RUN_CREATED');
+      expect(result.events[1].type).toBe('EFFECT_REQUESTED');
+    });
+
+    it('incrementally reads only new files when previous state is provided', async () => {
+      mockAccess.mockResolvedValue(undefined);
+
+      // Simulate: 3 files now exist, but 2 were already parsed
+      mockReaddir.mockResolvedValue([
+        '000001.ULID1.json',
+        '000002.ULID2.json',
+        '000003.ULID3.json',
+      ] as any);
+
+      const readFileCalls: string[] = [];
+      mockReadFile.mockImplementation(async (filePath: any) => {
+        const p = filePath.toString();
+        readFileCalls.push(p);
+        if (p.includes('000003')) {
+          return JSON.stringify(
+            makeRunCompletedRaw('2024-01-15T10:00:05Z'),
+          );
+        }
+        // These should NOT be called during incremental reads
+        if (p.includes('000001')) {
+          return JSON.stringify(
+            makeRunCreatedRaw('run-1', 'proc', '2024-01-15T10:00:00Z'),
+          );
+        }
+        if (p.includes('000002')) {
+          return JSON.stringify(
+            makeEffectRequestedRaw('eff-1', 'node', 'step', '2024-01-15T10:00:01Z'),
+          );
+        }
+        return '{}';
+      });
+
+      const previousEvents: JournalEvent[] = [
+        { seq: 1, id: 'ULID1', ts: '2024-01-15T10:00:00Z', type: 'RUN_CREATED', payload: { runId: 'run-1' } },
+        { seq: 2, id: 'ULID2', ts: '2024-01-15T10:00:01Z', type: 'EFFECT_REQUESTED', payload: { effectId: 'eff-1' } },
+      ];
+
+      const result = await parseJournalDirIncremental('/run/journal', previousEvents, 2);
+
+      // Should have all 3 events merged
+      expect(result.events).toHaveLength(3);
+      expect(result.fileCount).toBe(3);
+      expect(result.events[2].type).toBe('RUN_COMPLETED');
+
+      // Only file 000003 should have been read (not 000001 or 000002)
+      const journalReads = readFileCalls.filter(
+        (p) => p.includes('000001') || p.includes('000002'),
+      );
+      expect(journalReads).toHaveLength(0);
+    });
+
+    it('resets and re-reads from beginning when journal is truncated (fewer files than offset)', async () => {
+      mockAccess.mockResolvedValue(undefined);
+
+      // Simulate: journal was truncated — only 1 file exists now, but we had 3
+      mockReaddir.mockResolvedValue([
+        '000001.NEW1.json',
+      ] as any);
+
+      mockReadFile.mockImplementation(async (filePath: any) => {
+        const p = filePath.toString();
+        if (p.includes('000001')) {
+          return JSON.stringify(
+            makeRunCreatedRaw('run-new', 'proc', '2024-02-01T12:00:00Z'),
+          );
+        }
+        return '{}';
+      });
+
+      const previousEvents: JournalEvent[] = [
+        { seq: 1, id: 'OLD1', ts: '2024-01-15T10:00:00Z', type: 'RUN_CREATED', payload: {} },
+        { seq: 2, id: 'OLD2', ts: '2024-01-15T10:00:01Z', type: 'EFFECT_REQUESTED', payload: {} },
+        { seq: 3, id: 'OLD3', ts: '2024-01-15T10:00:02Z', type: 'RUN_COMPLETED', payload: {} },
+      ];
+
+      const result = await parseJournalDirIncremental('/run/journal', previousEvents, 3);
+
+      // Should have done a full re-read — only 1 event from the new file
+      expect(result.events).toHaveLength(1);
+      expect(result.fileCount).toBe(1);
+      expect(result.events[0].payload).toEqual({ runId: 'run-new', processId: 'proc' });
+    });
+
+    it('returns previous events unchanged when no new files are appended (empty append)', async () => {
+      mockAccess.mockResolvedValue(undefined);
+
+      // Same number of files as before
+      mockReaddir.mockResolvedValue([
+        '000001.ULID1.json',
+        '000002.ULID2.json',
+      ] as any);
+
+      // readFile should NOT be called at all for incremental empty-append case
+      const readFileCalls: string[] = [];
+      mockReadFile.mockImplementation(async (filePath: any) => {
+        readFileCalls.push(filePath.toString());
+        return '{}';
+      });
+
+      const previousEvents: JournalEvent[] = [
+        { seq: 1, id: 'ULID1', ts: '2024-01-15T10:00:00Z', type: 'RUN_CREATED', payload: {} },
+        { seq: 2, id: 'ULID2', ts: '2024-01-15T10:00:01Z', type: 'EFFECT_REQUESTED', payload: {} },
+      ];
+
+      const result = await parseJournalDirIncremental('/run/journal', previousEvents, 2);
+
+      expect(result.events).toHaveLength(2);
+      expect(result.fileCount).toBe(2);
+      // The events should be the exact same references
+      expect(result.events).toBe(previousEvents);
+      // No files should have been read
+      expect(readFileCalls).toHaveLength(0);
+    });
+
+    it('handles concurrent incremental reads producing consistent results', async () => {
+      mockAccess.mockResolvedValue(undefined);
+
+      mockReaddir.mockResolvedValue([
+        '000001.ULID1.json',
+        '000002.ULID2.json',
+        '000003.ULID3.json',
+      ] as any);
+
+      mockReadFile.mockImplementation(async (filePath: any) => {
+        const p = filePath.toString();
+        if (p.includes('000003')) {
+          return JSON.stringify(
+            makeEffectResolvedRaw('eff-1', 'ok', '2024-01-15T10:00:05Z'),
+          );
+        }
+        if (p.includes('000001')) {
+          return JSON.stringify(
+            makeRunCreatedRaw('run-1', 'proc', '2024-01-15T10:00:00Z'),
+          );
+        }
+        if (p.includes('000002')) {
+          return JSON.stringify(
+            makeEffectRequestedRaw('eff-1', 'node', 'step', '2024-01-15T10:00:01Z'),
+          );
+        }
+        return '{}';
+      });
+
+      const previousEvents: JournalEvent[] = [
+        { seq: 1, id: 'ULID1', ts: '2024-01-15T10:00:00Z', type: 'RUN_CREATED', payload: { runId: 'run-1' } },
+        { seq: 2, id: 'ULID2', ts: '2024-01-15T10:00:01Z', type: 'EFFECT_REQUESTED', payload: { effectId: 'eff-1' } },
+      ];
+
+      // Launch two concurrent incremental reads with the same state
+      const [result1, result2] = await Promise.all([
+        parseJournalDirIncremental('/run/journal', previousEvents, 2),
+        parseJournalDirIncremental('/run/journal', previousEvents, 2),
+      ]);
+
+      // Both should produce identical results
+      expect(result1.events).toHaveLength(3);
+      expect(result2.events).toHaveLength(3);
+      expect(result1.fileCount).toBe(3);
+      expect(result2.fileCount).toBe(3);
+
+      // Both should have the same event types in the same order
+      expect(result1.events.map((e) => e.type)).toEqual(result2.events.map((e) => e.type));
+
+      // Neither should have corrupted the original previousEvents array
+      expect(previousEvents).toHaveLength(2);
+    });
+
+    it('returns empty events and fileCount=0 when journal directory does not exist', async () => {
+      mockAccess.mockRejectedValue(new Error('ENOENT'));
+
+      const result = await parseJournalDirIncremental('/nonexistent/journal');
+
+      expect(result.events).toEqual([]);
+      expect(result.fileCount).toBe(0);
     });
   });
 });

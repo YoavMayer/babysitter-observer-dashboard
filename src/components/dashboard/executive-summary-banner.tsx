@@ -121,8 +121,6 @@ export function ExecutiveSummaryBanner({
 
   if (dismissed) return null;
 
-  const isClickable = summary.severity !== "healthy" && !!onFilterChange;
-
   return (
     <div
       role="status"

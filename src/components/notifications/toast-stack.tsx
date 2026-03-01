@@ -34,10 +34,11 @@ export function ToastStack({ notifications, onDismiss }: ToastStackProps) {
   };
 
   return (
-    <div role="log" aria-live="assertive" aria-label="Notifications" className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm">
+    <div role="log" aria-live="assertive" aria-label="Notifications" data-testid="toast-stack" className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm">
       {notifications.map((notif) => (
         <div
           key={notif.id}
+          data-testid={`toast-item-${notif.id}`}
           className={cn(
             "rounded-lg border border-[var(--glass-border-subtle)] bg-[var(--glass-bg-heavy)] backdrop-blur-sm p-3 shadow-lg border-l-2",
             "animate-slide-in-right",

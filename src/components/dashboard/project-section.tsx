@@ -2,6 +2,7 @@
 import { useState, useCallback } from "react";
 import { Loader2 } from "lucide-react";
 import { RunCard } from "./run-card";
+import { VirtualizedRunList } from "./virtualized-run-list";
 import { PaginationControls } from "./pagination-controls";
 import { ProjectSearchInput } from "./project-search-input";
 import { useProjectRuns } from "@/hooks/use-project-runs";
@@ -68,11 +69,13 @@ export function ProjectSection({
           No runs found
         </div>
       ) : (
-        <div className="flex flex-col gap-2">
-          {displayRuns.map((run, i) => (
-            <RunCard key={run.runId} run={run} selected={i === selectedIndex} />
-          ))}
-        </div>
+        <VirtualizedRunList
+          runs={displayRuns}
+          maxHeight={600}
+          renderItem={(run, i) => (
+            <RunCard run={run} selected={i === selectedIndex} />
+          )}
+        />
       )}
       <PaginationControls
         currentPage={page}

@@ -9,6 +9,7 @@ export interface BreakpointFile {
 export interface BreakpointPayload {
   question: string;
   title: string;
+  options?: string[];
   context?: {
     files?: BreakpointFile[];
   };

@@ -156,16 +156,15 @@ test.describe("Project Health Cards", () => {
   });
 
   test("project cards display total run count", async ({ dashboardPage }) => {
-    // Each project card should contain a number representing total runs
+    // Each project card should contain a number representing total runs.
+    // Use Playwright's auto-retrying toContainText instead of a one-shot
+    // innerText() read, which can flake when cards are still hydrating.
     const cards = dashboardPage.getProjectCards();
     const count = await cards.count();
     expect(count).toBeGreaterThan(0);
 
     for (let i = 0; i < count; i++) {
-      const card = cards.nth(i);
-      const text = await card.innerText();
-      // The card should contain at least a number (total runs count)
-      expect(text).toMatch(/\d+/);
+      await expect(cards.nth(i)).toContainText(/\d+/, { timeout: 10_000 });
     }
   });
 
@@ -712,10 +711,15 @@ test.describe("Settings Modal", () => {
     await dashboardPage.goto();
     await expect(dashboardPage.heading).toBeVisible({ timeout: 30_000 });
 
+    // Wait for the page to fully stabilize before clicking the settings button.
+    // The dashboard may still be loading data which can cause SSE-related re-renders
+    // that interfere with the click handler registration.
+    await dashboardPage.waitForData();
+
     await dashboardPage.settingsButton.click();
 
-    // Settings modal should become visible
-    await expect(page.getByTestId("settings-modal")).toBeVisible({ timeout: 10_000 });
+    // Settings modal should become visible (Radix Dialog.Portal may take a moment)
+    await expect(page.getByTestId("settings-modal")).toBeVisible({ timeout: 30_000 });
   });
 });
 

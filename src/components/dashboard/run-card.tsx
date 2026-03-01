@@ -1,4 +1,5 @@
 "use client";
+import { memo } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { Card } from "@/components/ui/card";
@@ -42,7 +43,31 @@ function formatStaleTime(updatedAt: string): string {
   return relative ? `Stale (${relative})` : "Stale";
 }
 
-export function RunCard({ run, selected }: RunCardProps) {
+/**
+ * Shallow comparison of Run props to prevent unnecessary re-renders.
+ * Checks key fields that affect visual output rather than deep-comparing
+ * the entire run object (which includes tasks[] and events[]).
+ */
+function runCardPropsAreEqual(prev: RunCardProps, next: RunCardProps): boolean {
+  if (prev.selected !== next.selected) return false;
+  const a = prev.run;
+  const b = next.run;
+  return (
+    a.runId === b.runId &&
+    a.status === b.status &&
+    a.updatedAt === b.updatedAt &&
+    a.completedTasks === b.completedTasks &&
+    a.totalTasks === b.totalTasks &&
+    a.duration === b.duration &&
+    a.isStale === b.isStale &&
+    a.waitingKind === b.waitingKind &&
+    a.breakpointQuestion === b.breakpointQuestion &&
+    a.failedStep === b.failedStep &&
+    a.failureMessage === b.failureMessage
+  );
+}
+
+export const RunCard = memo(function RunCard({ run, selected }: RunCardProps) {
   const progress = displayProgress(run);
   const isActive = run.status === "waiting" || run.status === "pending";
   const isStale = run.isStale === true;
@@ -190,4 +215,4 @@ export function RunCard({ run, selected }: RunCardProps) {
       </Card>
     </Link>
   );
-}
+}, runCardPropsAreEqual);
