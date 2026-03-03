@@ -1,7 +1,29 @@
 "use client";
+import { useState, useEffect } from "react";
 import { Eye, Github, ExternalLink } from "lucide-react";
 
 export function AppFooter() {
+  const [versions, setVersions] = useState({
+    app: process.env.NEXT_PUBLIC_APP_VERSION || "…",
+    babysitter: process.env.NEXT_PUBLIC_BABYSITTER_VERSION || "…",
+  });
+
+  useEffect(() => {
+    fetch("/api/version")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.app || data.babysitter) {
+          setVersions((prev) => ({
+            app: data.app || prev.app,
+            babysitter: data.babysitter || prev.babysitter,
+          }));
+        }
+      })
+      .catch(() => {
+        // Keep build-time fallback values
+      });
+  }, []);
+
   return (
     <footer className="border-t border-border bg-background/80 backdrop-blur-sm">
       <div className="mx-auto max-w-[1600px] px-6 py-3 flex flex-wrap items-center justify-between gap-3 text-xs text-foreground-muted">
@@ -10,7 +32,7 @@ export function AppFooter() {
           <span className="font-medium">
             Babysitter Observer{" "}
             <span className="rounded-full bg-primary/10 border border-primary/20 px-1.5 py-px text-[10px] font-medium text-primary tabular-nums">
-              v{process.env.NEXT_PUBLIC_APP_VERSION}
+              v{versions.app}
             </span>
           </span>
 
@@ -19,7 +41,7 @@ export function AppFooter() {
           <span className="text-xs font-normal text-foreground-muted">
             Babysitter{" "}
             <span className="rounded-full bg-muted/50 border border-border px-1.5 py-px text-[10px] font-normal text-foreground-muted tabular-nums">
-              v{process.env.NEXT_PUBLIC_BABYSITTER_VERSION}
+              v{versions.babysitter}
             </span>
           </span>
         </div>

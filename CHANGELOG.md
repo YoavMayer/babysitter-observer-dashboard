@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.2] - 2026-03-03
+### Fixed
+- **Babysitter version showing N/A** — babysitter SDK version was detected at build time in CI (where the CLI isn't installed), baking "N/A" into the published bundle; now detected at runtime via `/api/version` endpoint so it reflects the actual version on the user's machine
+- **Stale version after npx install** — all README install commands now include `@latest` suffix to prevent npm/npx from serving cached old versions
+
+### Changed
+- **Runtime version detection** — footer version badges now fetch from `/api/version` at runtime instead of relying solely on build-time `NEXT_PUBLIC_*` env vars; build-time values used as fallback for initial render
+- **Simplified next.config.mjs** — removed `execSync('babysitter --version')` build-time detection since version is now resolved at runtime
+
 ## [0.12.0] - 2026-03-01
 ### Added
 - **Catch-up banner** — overnight summary context showing failed/completed/pending counts when revisiting after extended absence

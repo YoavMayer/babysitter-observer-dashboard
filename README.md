@@ -53,13 +53,13 @@ Babysitter Observer Dashboard is a real-time browser-based monitoring UI for [ba
 ### Option 1: Run directly with npx
 
 ```bash
-npx -y @yoavmayer/babysitter-observer-dashboard
+npx -y @yoavmayer/babysitter-observer-dashboard@latest
 ```
 
 ### Option 2: Install globally
 
 ```bash
-npm install -g @yoavmayer/babysitter-observer-dashboard
+npm install -g @yoavmayer/babysitter-observer-dashboard@latest
 babysitter-observer-dashboard
 ```
 
@@ -396,7 +396,7 @@ On macOS/Linux, global npm installs may require elevated permissions. If you see
 **Recommended: use npx instead (no global install needed):**
 
 ```bash
-npx -y @yoavmayer/babysitter-observer-dashboard
+npx -y @yoavmayer/babysitter-observer-dashboard@latest
 ```
 
 **Alternative: configure npm to use a user-writable directory:**
@@ -410,13 +410,13 @@ export PATH=~/.npm-global/bin:$PATH
 Then retry the global install:
 
 ```bash
-npm install -g @yoavmayer/babysitter-observer-dashboard
+npm install -g @yoavmayer/babysitter-observer-dashboard@latest
 ```
 
 **Alternative: use sudo (not recommended):**
 
 ```bash
-sudo npm install -g @yoavmayer/babysitter-observer-dashboard
+sudo npm install -g @yoavmayer/babysitter-observer-dashboard@latest
 ```
 
 ### No runs appearing in the dashboard
@@ -457,7 +457,7 @@ mkdir -p ~/.a5c
 
 ### Safe Chain blocks newly published versions
 
-If you have [Aikido Safe Chain](https://www.aikido.dev/) installed, you may see the following error when running `npx -y @yoavmayer/babysitter-observer-dashboard`:
+If you have [Aikido Safe Chain](https://www.aikido.dev/) installed, you may see the following error when running `npx -y @yoavmayer/babysitter-observer-dashboard@latest`:
 
 ```
 npm error code ENOVERSIONS
@@ -475,7 +475,7 @@ This happens because Safe Chain suppresses npm package versions that were publis
 **Workaround:** Add the `--safe-chain-skip-minimum-package-age` flag to bypass the age check:
 
 ```bash
-npx -y @yoavmayer/babysitter-observer-dashboard --safe-chain-skip-minimum-package-age
+npx -y @yoavmayer/babysitter-observer-dashboard@latest --safe-chain-skip-minimum-package-age
 ```
 
 This only affects recently published versions. After 24 hours from publication, the package version will pass Safe Chain's age requirement and the standard command will work without the extra flag.
