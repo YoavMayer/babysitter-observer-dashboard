@@ -231,7 +231,6 @@ export function invalidateAll(): void {
 
 export function getProjectSummaries(): ProjectSummary[] {
   const cache = getCache();
-  const now = Date.now();
 
   // Build project summaries from cache entries.
   // Breakpoint entries are only included when isCacheValid() passes (TTL_ACTIVE = 5s),
