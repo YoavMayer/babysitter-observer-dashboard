@@ -62,7 +62,7 @@ describe('config-loader', () => {
       const config = await getConfig();
 
       expect(config).toBeDefined();
-      expect(config.port).toBe(3000);
+      expect(config.port).toBe(4800);
       expect(config.pollInterval).toBe(2000);
       expect(config.theme).toBe('dark');
       expect(config.sources.length).toBeGreaterThan(0);

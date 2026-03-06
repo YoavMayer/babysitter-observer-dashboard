@@ -72,7 +72,7 @@ export const handlers = [
   http.get('/api/config', () => {
     return HttpResponse.json({
       sources: [{ path: '/tmp/test-project', depth: 2, label: 'test' }],
-      port: 3000,
+      port: 4800,
       pollInterval: 2000,
       theme: 'dark',
       staleThresholdMs: 3600000,
@@ -84,7 +84,7 @@ export const handlers = [
     const body = (await request.json()) as Record<string, unknown>;
     return HttpResponse.json({
       sources: body.sources ?? [],
-      port: 3000,
+      port: 4800,
       pollInterval: (body.pollInterval as number) ?? 2000,
       theme: (body.theme as string) ?? 'dark',
       staleThresholdMs: (body.staleThresholdMs as number) ?? 3600000,

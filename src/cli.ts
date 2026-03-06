@@ -7,8 +7,8 @@
  * then execs into `next dev` or `next start`.
  *
  * Usage:
- *   npx ts-node src/cli.ts --port 3002 --watch-dir /tmp/runs --poll-interval 5000 --theme light
- *   npx ts-node src/cli.ts --production --port 3000
+ *   npx ts-node src/cli.ts --port 4800 --watch-dir /tmp/runs --poll-interval 5000 --theme light
+ *   npx ts-node src/cli.ts --production --port 4800
  */
 
 import { execSync } from "child_process";
@@ -51,7 +51,7 @@ Usage:
   observer [options]
 
 Options:
-  --port <number>           Port to listen on (default: 3000)
+  --port <number>           Port to listen on (default: 4800)
   --watch-dir <path>        Directory to watch for .a5c/runs (default: cwd)
   --poll-interval <ms>      Polling interval in milliseconds (default: 2000)
   --theme <dark|light>      Default UI theme (default: dark)
@@ -279,7 +279,7 @@ function main(): void {
   }
 
   // Determine the Next.js command — use local binary for global installs
-  const port = opts.port || process.env.OBSERVER_PORT || "3000";
+  const port = opts.port || process.env.OBSERVER_PORT || "4800";
   const nextBin = findNextBin();
   const nextCmd = opts.dev
     ? `"${nextBin}" dev --port ${port}`

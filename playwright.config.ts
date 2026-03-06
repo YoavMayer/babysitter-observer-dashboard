@@ -13,7 +13,7 @@ import path from "path";
 const fixtureRunsDir = path.resolve(__dirname, "e2e/fixtures/runs");
 
 // Use a dedicated test port to avoid collisions with a running dev server.
-// The dev server on port 3000 uses real data; the E2E server on 3099 uses fixtures.
+// The dev server on port 4800 uses real data; the E2E server on 4173 uses fixtures.
 const testPort = parseInt(process.env.OBSERVER_PORT || "4173", 10);
 
 export default defineConfig({

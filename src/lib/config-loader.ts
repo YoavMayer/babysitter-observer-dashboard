@@ -181,7 +181,7 @@ export async function getConfig(): Promise<ObserverConfig> {
 
   cachedConfig = {
     sources,
-    port: parseInt(process.env.OBSERVER_PORT || process.env.PORT || "3000", 10),
+    port: parseInt(process.env.OBSERVER_PORT || process.env.PORT || "4800", 10),
     pollInterval: registry.pollInterval ?? (envPollInterval ? parseInt(envPollInterval, 10) : 2000),
     theme: registry.theme ?? ((envTheme === "dark" || envTheme === "light" ? envTheme : "dark") as "dark" | "light"),
     staleThresholdMs: registry.staleThresholdMs ?? (envStaleThreshold ? parseInt(envStaleThreshold, 10) : 3600000),

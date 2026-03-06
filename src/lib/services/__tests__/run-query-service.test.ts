@@ -54,7 +54,7 @@ function makeDiscoveredRun(
 function makeConfig(overrides: Partial<ObserverConfig> = {}): ObserverConfig {
   return {
     sources: [defaultSource],
-    port: 3000,
+    port: 4800,
     pollInterval: 2000,
     theme: "dark",
     staleThresholdMs: 3600000,

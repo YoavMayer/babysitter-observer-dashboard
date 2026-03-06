@@ -36,7 +36,7 @@ describe('source-discovery', () => {
     it('forces re-discovery on next call', async () => {
       mockGetConfig.mockResolvedValue({
         sources: [{ path: '/projects/my-app', depth: 2 }],
-        port: 3000,
+        port: 4800,
         pollInterval: 2000,
         theme: 'dark',
         staleThresholdMs: 3600000,
@@ -83,7 +83,7 @@ describe('source-discovery', () => {
     it('returns empty array when source directory does not exist', async () => {
       mockGetConfig.mockResolvedValue({
         sources: [{ path: '/nonexistent', depth: 2 }],
-        port: 3000,
+        port: 4800,
         pollInterval: 2000,
         theme: 'dark',
         staleThresholdMs: 3600000,
@@ -102,7 +102,7 @@ describe('source-discovery', () => {
     it('discovers run directories within .a5c/runs at source root', async () => {
       mockGetConfig.mockResolvedValue({
         sources: [{ path: '/projects/my-project', depth: 2 }],
-        port: 3000,
+        port: 4800,
         pollInterval: 2000,
         theme: 'dark',
         staleThresholdMs: 3600000,
@@ -144,7 +144,7 @@ describe('source-discovery', () => {
     it('handles depth=0 sources (direct runs directory)', async () => {
       mockGetConfig.mockResolvedValue({
         sources: [{ path: '/direct/runs', depth: 0, label: 'direct' }],
-        port: 3000,
+        port: 4800,
         pollInterval: 2000,
         theme: 'dark',
         staleThresholdMs: 3600000,
@@ -176,7 +176,7 @@ describe('source-discovery', () => {
     it('skips node_modules and hidden directories during scanning', async () => {
       mockGetConfig.mockResolvedValue({
         sources: [{ path: '/workspace', depth: 1 }],
-        port: 3000,
+        port: 4800,
         pollInterval: 2000,
         theme: 'dark',
         staleThresholdMs: 3600000,
@@ -208,7 +208,7 @@ describe('source-discovery', () => {
     it('returns accessible source paths for depth=0 sources', async () => {
       mockGetConfig.mockResolvedValue({
         sources: [{ path: '/direct/runs', depth: 0 }],
-        port: 3000,
+        port: 4800,
         pollInterval: 2000,
         theme: 'dark',
         staleThresholdMs: 3600000,
@@ -226,7 +226,7 @@ describe('source-discovery', () => {
     it('returns empty for inaccessible depth=0 sources', async () => {
       mockGetConfig.mockResolvedValue({
         sources: [{ path: '/nonexistent', depth: 0 }],
-        port: 3000,
+        port: 4800,
         pollInterval: 2000,
         theme: 'dark',
         staleThresholdMs: 3600000,
