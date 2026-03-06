@@ -85,7 +85,7 @@ Or run it directly with npx without adding a script:
 npx babysitter-observer-dashboard --watch-dir .
 ```
 
-The dashboard opens at [http://localhost:3000](http://localhost:3000) by default.
+The dashboard opens at [http://localhost:4800](http://localhost:4800) by default.
 
 ### Updating
 
@@ -110,7 +110,7 @@ babysitter-observer-dashboard [options]
 
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
-| `--port <number>` | number | `3000` | Port the dashboard listens on |
+| `--port <number>` | number | `4800` | Port the dashboard listens on |
 | `--watch-dir <path>` | string | current working directory | Directory to watch for `.a5c/runs/` subdirectories |
 | `--poll-interval <ms>` | number | `2000` | Polling interval in milliseconds |
 | `--theme <dark\|light>` | string | `dark` | Default UI color theme |
@@ -196,7 +196,7 @@ cp .env.example .env
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `PORT` | `3000` | Port the dashboard listens on |
+| `PORT` | `4800` | Port the dashboard listens on |
 | `WATCH_DIR` | (current working directory) | Single directory to watch for `.a5c/runs/` |
 | `WATCH_DIRS` | -- | Comma-separated list of directories to watch |
 | `POLL_INTERVAL` | `2000` | Polling interval in milliseconds for run updates |
@@ -278,7 +278,7 @@ npm install
 npm run dev
 ```
 
-The dashboard starts at [http://localhost:3000](http://localhost:3000).
+The dashboard starts at [http://localhost:4800](http://localhost:4800).
 
 To point at a specific watch directory:
 
@@ -383,10 +383,10 @@ The Playwright configuration (`playwright.config.ts`) automatically starts a dev
 
 ### Port already in use
 
-If you see `Error: listen EADDRINUSE :::3000`, another process is using the default port. Either stop the other process or start the observer on a different port:
+If you see `Error: listen EADDRINUSE :::4800`, another process is using the default port. Either stop the other process or start the observer on a different port:
 
 ```bash
-babysitter-observer-dashboard --port 3001
+babysitter-observer-dashboard --port 4801
 ```
 
 ### Permission errors on global install
