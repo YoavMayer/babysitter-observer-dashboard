@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { ensureInitialized } from "@/lib/server-init";
-import { getAllCachedDigests } from "@/lib/run-cache";
+import { getAllCachedDigests, discoverAndCacheAll } from "@/lib/run-cache";
 import { normalizeError } from "@/lib/error-handler";
 
 export const dynamic = "force-dynamic";
@@ -17,8 +17,10 @@ export async function GET() {
       );
     }
 
-    // Pure cache read — no filesystem scanning.
-    // Cache is populated by server-init and kept fresh by the watcher + periodic discovery.
+    // Ensure cache is populated — discoverAndCacheAll() is debounced internally
+    // (10s) so repeated calls are cheap. This guarantees runs invalidated by the
+    // watcher are re-populated before we read the cache.
+    await discoverAndCacheAll();
     const runs = getAllCachedDigests();
 
     // Sort by updatedAt descending (most recent first), with runId tiebreaker

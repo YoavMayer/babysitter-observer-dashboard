@@ -61,6 +61,7 @@ function handleJournalChange(journalDir: string) {
 
   debounceChange(runDir, () => {
     invalidateRun(runDir);
+    requestDiscovery(); // Ensure discoverAndCacheAll() re-populates the entry
     watcherEvents.emit("change", {
       type: "run-changed",
       runDir,
@@ -73,6 +74,7 @@ function handleTasksChange(tasksDir: string) {
 
   debounceChange(runDir, () => {
     invalidateRun(runDir);
+    requestDiscovery(); // Ensure discoverAndCacheAll() re-populates the entry
     watcherEvents.emit("change", {
       type: "run-changed",
       runDir,
