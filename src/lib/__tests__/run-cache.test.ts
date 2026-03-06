@@ -461,64 +461,71 @@ describe('run-cache', () => {
   });
 
   // -----------------------------------------------------------------------
-  // Breakpoint TTL eviction via getProjectSummaries
+  // Breakpoint cache behavior (v0.12.3 fix: no destructive eviction)
   // -----------------------------------------------------------------------
-  describe('breakpoint TTL eviction', () => {
-    it('evicts breakpoint entries past TTL_BREAKPOINT (3s) when getProjectSummaries is called', async () => {
+  describe('breakpoint cache behavior', () => {
+    it('does NOT destructively delete breakpoint entries from cache (v0.12.3 anti-flicker)', async () => {
       mockReadFile.mockResolvedValue(JSON.stringify({ processId: 'proc' }));
 
       // Cache a breakpoint entry
       mockGetRunDigest.mockResolvedValue(
         makeDigest({
-          runId: 'bp-ttl',
+          runId: 'bp-stable',
           status: 'waiting',
           pendingBreakpoints: 1,
           waitingKind: 'breakpoint',
           breakpointQuestion: 'Deploy?',
         })
       );
-      await getDigestCached('/runs/bp-ttl', defaultSource, 'proj');
+      await getDigestCached('/runs/bp-stable', defaultSource, 'proj');
 
       // Immediately, breakpoints should be counted
       const before = getProjectSummaries();
       expect(before).toHaveLength(1);
       expect(before[0].pendingBreakpoints).toBe(1);
 
-      // Advance past TTL_BREAKPOINT (3s)
+      // Advance past old TTL_BREAKPOINT (3s) but within TTL_ACTIVE (5s)
       vi.advanceTimersByTime(3500);
 
-      // After TTL, getProjectSummaries should evict the stale breakpoint entry
+      // Breakpoint should STILL be visible (not evicted)
       const after = getProjectSummaries();
-      // The entry itself is evicted from cache, so the project summary
-      // either has no entries or pendingBreakpoints is 0
-      if (after.length > 0) {
-        expect(after[0].pendingBreakpoints).toBe(0);
-      }
+      expect(after).toHaveLength(1);
+      expect(after[0].pendingBreakpoints).toBe(1);
+      expect(after[0].breakpointRuns).toHaveLength(1);
     });
 
-    it('does not evict breakpoint entries before TTL_BREAKPOINT expires', async () => {
+    it('keeps counting breakpoints even after TTL_ACTIVE expires (no flickering)', async () => {
       mockReadFile.mockResolvedValue(JSON.stringify({ processId: 'proc' }));
 
       mockGetRunDigest.mockResolvedValue(
         makeDigest({
-          runId: 'bp-fresh',
+          runId: 'bp-persistent',
           status: 'waiting',
           pendingBreakpoints: 2,
           waitingKind: 'breakpoint',
           breakpointQuestion: 'Approve?',
         })
       );
-      await getDigestCached('/runs/bp-fresh', defaultSource, 'proj');
+      await getDigestCached('/runs/bp-persistent', defaultSource, 'proj');
 
-      // Advance only 2s (within 3s TTL_BREAKPOINT)
-      vi.advanceTimersByTime(2000);
+      // Within TTL_ACTIVE (5s) — should be counted
+      vi.advanceTimersByTime(4000);
+      const fresh = getProjectSummaries();
+      expect(fresh).toHaveLength(1);
+      expect(fresh[0].pendingBreakpoints).toBe(2);
 
-      const summaries = getProjectSummaries();
-      expect(summaries).toHaveLength(1);
-      expect(summaries[0].pendingBreakpoints).toBe(2);
+      // Past TTL_ACTIVE (5s) — breakpoints STILL counted (v0.12.3 fix).
+      // Breakpoint state only changes on explicit approval (invalidateRun),
+      // not on cache TTL expiry. This prevents banner flickering.
+      vi.advanceTimersByTime(2000); // now at 6s
+      const afterTtl = getProjectSummaries();
+      expect(afterTtl).toHaveLength(1);
+      expect(afterTtl[0].pendingBreakpoints).toBe(2);
+      expect(afterTtl[0].breakpointRuns).toHaveLength(1);
+      expect(afterTtl[0].totalRuns).toBe(1);
     });
 
-    it('leaves non-breakpoint entries unaffected by breakpoint TTL eviction', async () => {
+    it('preserves both breakpoint and non-breakpoint entries regardless of TTL', async () => {
       mockReadFile.mockResolvedValue(JSON.stringify({ processId: 'proc' }));
 
       // Breakpoint entry
@@ -538,15 +545,15 @@ describe('run-cache', () => {
       );
       await getDigestCached('/runs/normal', defaultSource, 'proj');
 
-      // Advance past breakpoint TTL but within completed TTL (30s)
-      vi.advanceTimersByTime(4000);
+      // Advance past TTL_ACTIVE but within completed TTL (30s)
+      vi.advanceTimersByTime(6000);
 
       const summaries = getProjectSummaries();
       expect(summaries).toHaveLength(1);
-      // The breakpoint entry was evicted but the completed entry remains
-      expect(summaries[0].totalRuns).toBe(1);
+      // Both entries still in cache, breakpoint still counted (v0.12.3)
+      expect(summaries[0].totalRuns).toBe(2);
       expect(summaries[0].completedRuns).toBe(1);
-      expect(summaries[0].pendingBreakpoints).toBe(0);
+      expect(summaries[0].pendingBreakpoints).toBe(1);
     });
   });
 

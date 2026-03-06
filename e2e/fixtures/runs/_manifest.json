@@ -1,10 +1,10 @@
 {
   "generatedAt": "2026-02-17T06:03:05.367Z",
-  "runCount": 50,
-  "totalTasks": 584,
+  "runCount": 51,
+  "totalTasks": 586,
   "statusCounts": {
     "failed": 8,
-    "waiting": 10,
+    "waiting": 11,
     "completed": 28,
     "pending": 4
   },
@@ -12,7 +12,8 @@
     "podcast-intel": 13,
     "hockey-7-shifts": 14,
     "content-scheduler": 13,
-    "sales-pipeline": 10
+    "sales-pipeline": 10,
+    "test-breakpoint-project": 1
   },
   "runs": [
     {
@@ -414,6 +415,14 @@
       "status": "waiting",
       "taskCount": 12,
       "createdAt": "2026-02-17T11:41:37.145Z"
+    },
+    {
+      "runId": "01KTESTPENDINGBPFIXTURE0",
+      "processId": "test/pending-breakpoint",
+      "projectName": "test-breakpoint-project",
+      "status": "waiting",
+      "taskCount": 2,
+      "createdAt": "2026-02-17T10:00:00.000Z"
     }
   ]
 }

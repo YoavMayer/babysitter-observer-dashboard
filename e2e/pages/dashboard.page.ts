@@ -91,7 +91,7 @@ export class DashboardPage {
    * expanded ProjectHealthCard.
    */
   getRunCards(): Locator {
-    return this.page.locator('a[href^="/runs/"]');
+    return this.page.locator('[data-testid^="project-card-"] a[href^="/runs/"]');
   }
 
   /**

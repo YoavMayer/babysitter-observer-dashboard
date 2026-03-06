@@ -11,11 +11,10 @@ vi.mock('../watcher', () => {
 
 vi.mock('../run-cache', () => ({
   discoverAndCacheAll: vi.fn(),
-  forceRefreshBreakpointRuns: vi.fn(),
 }));
 
 import { initWatcher, watcherEvents } from '../watcher';
-import { discoverAndCacheAll, forceRefreshBreakpointRuns } from '../run-cache';
+import { discoverAndCacheAll } from '../run-cache';
 import {
   ensureInitialized,
   shutdownServer,
@@ -29,7 +28,6 @@ import {
 
 const mockInitWatcher = vi.mocked(initWatcher);
 const mockDiscoverAndCacheAll = vi.mocked(discoverAndCacheAll);
-const mockForceRefreshBreakpointRuns = vi.mocked(forceRefreshBreakpointRuns);
 
 describe('server-init', () => {
   beforeEach(async () => {
@@ -129,32 +127,26 @@ describe('server-init', () => {
       });
     });
 
-    it('calls forceRefreshBreakpointRuns on run-changed events to clear stale breakpoint cache', async () => {
+    it('does not globally invalidate breakpoint cache on run-changed (v0.12.3 fix)', async () => {
+      // Previously, enqueueRunChanged() called forceRefreshBreakpointRuns()
+      // on every watcher event, which deleted ALL breakpoint cache entries
+      // and caused banner flickering. Now only the specific run is invalidated
+      // by the watcher handler (invalidateRun), not all breakpoint entries.
       const cleanupMock = vi.fn();
       mockInitWatcher.mockResolvedValue(cleanupMock);
       mockDiscoverAndCacheAll.mockResolvedValue(undefined);
 
       await ensureInitialized();
+
+      const handler = vi.fn();
+      serverEvents.on('run-changed', handler);
 
       watcherEvents.emit('change', { type: 'run-changed', runDir: '/runs/r1' });
 
-      expect(mockForceRefreshBreakpointRuns).toHaveBeenCalledTimes(1);
-    });
+      // The event should still be forwarded
+      expect(handler).toHaveBeenCalledTimes(1);
 
-    it('does not call forceRefreshBreakpointRuns on new-run or error events', async () => {
-      const cleanupMock = vi.fn();
-      mockInitWatcher.mockResolvedValue(cleanupMock);
-      mockDiscoverAndCacheAll.mockResolvedValue(undefined);
-
-      await ensureInitialized();
-
-      // Add watcher-error listener to prevent Node.js from throwing
-      serverEvents.on('watcher-error', () => {});
-
-      watcherEvents.emit('change', { type: 'new-run', runDir: '/runs' });
-      watcherEvents.emit('change', { type: 'error', runDir: '/runs', error: new Error('test') });
-
-      expect(mockForceRefreshBreakpointRuns).not.toHaveBeenCalled();
+      serverEvents.off('run-changed', handler);
     });
 
     it('forwards new-run events from watcher to server events', async () => {
@@ -330,14 +322,6 @@ describe('server-init', () => {
       expect(handler).toHaveBeenCalledTimes(2); // no trailing (no pending)
 
       serverEvents.off('run-changed', handler);
-    });
-
-    it('calls forceRefreshBreakpointRuns for every enqueued event', () => {
-      enqueueRunChanged({ type: 'run-changed', runDir: '/runs/r1' });
-      enqueueRunChanged({ type: 'run-changed', runDir: '/runs/r2' });
-      enqueueRunChanged({ type: 'run-changed', runDir: '/runs/r3' });
-
-      expect(mockForceRefreshBreakpointRuns).toHaveBeenCalledTimes(3);
     });
 
     it('extends the window when new events arrive (timer reset)', () => {

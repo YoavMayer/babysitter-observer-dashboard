@@ -42,6 +42,21 @@ function pickRun(status: ManifestRun["status"]): ManifestRun {
 const BREAKPOINT_RUN_ID = "01KH47FK2MGMMB37B17PE3Z91Z";
 const BREAKPOINT_EFFECT_ID = "01KH47YK0HJ1CY5FYT4X1XZ5YZ";
 
+/**
+ * Fixture run with a PENDING (unresolved) breakpoint task.
+ *
+ * Run 01KTESTPENDINGBPFIXTURE0 (test-breakpoint-project) has:
+ * - 1 completed agent task
+ * - 1 pending breakpoint task "Approve deployment to staging?"
+ *   at effectId 01KTEST_BP_EFFECT_001 (no result.json)
+ *
+ * This fixture was created to close a gap in E2E coverage: prior to v0.12.3,
+ * all fixture breakpoint tasks were resolved, so the breakpoint banner and
+ * approval form were never tested in E2E.
+ */
+const PENDING_BP_RUN_ID = "01KTESTPENDINGBPFIXTURE0";
+const PENDING_BP_EFFECT_ID = "01KTEST_BP_EFFECT_001";
+
 // ---------------------------------------------------------------------------
 // Breakpoint Banner on Dashboard
 // ---------------------------------------------------------------------------
@@ -54,45 +69,78 @@ test.describe("Breakpoint Banner", () => {
     await dashboardPage.goto();
     await dashboardPage.waitForData();
 
-    // The fixture data has waiting runs, but all breakpoint tasks within them
-    // have been resolved. The BreakpointBanner only renders when
-    // allBreakpointRuns.length > 0, which requires pendingBreakpoints > 0
-    // and waitingKind === "breakpoint" in the run digest.
-    //
-    // Since all breakpoints in the fixture data are resolved, the banner
-    // element should either be absent from the DOM or have no content.
-    // This validates the conditional rendering: banner appears ONLY when
-    // there are actual pending breakpoints, not just waiting runs.
+    // The fixture now includes 01KTESTPENDINGBPFIXTURE0 which has an
+    // unresolved breakpoint task. The banner should appear.
     const banner = page.getByTestId("breakpoint-banner");
-    await expect(banner).not.toBeVisible({ timeout: 10_000 });
+    await expect(banner).toBeVisible({ timeout: 15_000 });
+
+    // Verify it shows "Approval Needed"
+    await expect(banner).toContainText("Approval Needed");
+
+    // Verify it shows the breakpoint question
+    await expect(banner).toContainText("Approve deployment to staging?");
+
+    // Verify it shows the project name
+    await expect(banner).toContainText("test-breakpoint-project");
   });
 
-  test("breakpoint banner shows relevant info when breakpoints are pending", async ({
+  test("breakpoint banner remains stable during polling cycles (no flickering)", async ({
     dashboardPage,
     page,
   }) => {
     await dashboardPage.goto();
     await dashboardPage.waitForData();
 
-    // Verify the dashboard loads with the correct number of waiting runs
-    const waitingRunIds = await getRunIdsByStatus("waiting");
-    expect(waitingRunIds.length).toBeGreaterThan(0);
+    const banner = page.getByTestId("breakpoint-banner");
+    await expect(banner).toBeVisible({ timeout: 15_000 });
 
-    // The breakpoint banner data-testid is placed on the wrapper div.
-    // When no breakpointRuns exist, the component returns null.
-    // We verify the banner is not rendered — confirming that the component
-    // correctly distinguishes between "waiting" runs and "breakpoint-pending" runs.
-    const bannerCount = await page.locator("[data-testid='breakpoint-banner']").count();
-    expect(bannerCount).toBe(0);
+    // Verify the banner stays visible across multiple polling cycles.
+    // The poll interval in test config is 2000ms. We check every second
+    // for 8 seconds to ensure the banner doesn't flicker.
+    for (let i = 0; i < 8; i++) {
+      await page.waitForTimeout(1000);
+      await expect(banner).toBeVisible({ timeout: 2_000 });
+    }
+  });
 
-    // However, the dashboard still shows In Progress runs correctly
+  test("breakpoint banner shows correct metrics alongside active runs", async ({
+    dashboardPage,
+    page,
+  }) => {
+    await dashboardPage.goto();
+    await dashboardPage.waitForData();
+
+    // Verify the banner is showing the pending breakpoint
+    const banner = page.getByTestId("breakpoint-banner");
+    await expect(banner).toBeVisible({ timeout: 15_000 });
+
+    // The dashboard still shows In Progress runs correctly
     const activeTile = dashboardPage.getMetricTile("active");
     await expect(activeTile).toBeVisible();
 
-    // Active count includes waiting + pending runs
+    // Active count includes waiting + pending runs (including the new fixture)
     const activeCount =
       (manifest.statusCounts.waiting || 0) + (manifest.statusCounts.pending || 0);
     await expect(activeTile).toContainText(String(activeCount));
+  });
+
+  test("breakpoint banner links to the correct run detail page", async ({
+    dashboardPage,
+    page,
+  }) => {
+    await dashboardPage.goto();
+    await dashboardPage.waitForData();
+
+    const banner = page.getByTestId("breakpoint-banner");
+    await expect(banner).toBeVisible({ timeout: 15_000 });
+
+    // Click on the banner link (the main area, not the approve button)
+    const bannerLink = banner.locator(`a[href="/runs/${PENDING_BP_RUN_ID}"]`);
+    await expect(bannerLink).toBeVisible();
+    await bannerLink.click();
+
+    // Should navigate to the run detail page
+    await page.waitForURL(`**/runs/${PENDING_BP_RUN_ID}`, { timeout: 10_000 });
   });
 });
 
@@ -214,6 +262,65 @@ test.describe("Breakpoint Panel", () => {
     await expect(
       runDetailPage.page.getByTestId("breakpoint-panel").getByText("Breakpoint", { exact: true })
     ).toBeVisible();
+  });
+
+  test("pending breakpoint shows approval form with 'Awaiting decision' state", async ({
+    runDetailPage,
+  }) => {
+    await runDetailPage.goto(PENDING_BP_RUN_ID);
+    await runDetailPage.waitForData();
+
+    // Click the breakpoint step card
+    const breakpointStep = runDetailPage.getStepCard(PENDING_BP_EFFECT_ID);
+    await expect(breakpointStep).toBeVisible({ timeout: 10_000 });
+    await breakpointStep.locator("button").first().click();
+
+    // The task detail panel should appear
+    await expect(runDetailPage.taskDetailHeader).toBeVisible({ timeout: 10_000 });
+
+    // The Approval tab should be active by default
+    const approvalTab = runDetailPage.getTabTrigger("Approval");
+    await expect(approvalTab).toBeVisible({ timeout: 10_000 });
+    await expect(approvalTab).toHaveAttribute("data-state", "active");
+
+    // The breakpoint panel should show "Awaiting decision" (not "Decision made")
+    const breakpointPanel = runDetailPage.page.getByTestId("breakpoint-panel");
+    await expect(breakpointPanel).toBeVisible({ timeout: 10_000 });
+    await expect(breakpointPanel).toContainText("Awaiting decision");
+
+    // The question text should be visible
+    const questionEl = runDetailPage.page.getByTestId("breakpoint-question");
+    await expect(questionEl).toContainText("Approve deployment to staging?");
+
+    // The approval form should be visible (only for pending breakpoints)
+    const approvalForm = runDetailPage.page.getByTestId("breakpoint-approval");
+    await expect(approvalForm).toBeVisible();
+
+    // The custom answer input should be available
+    const customInput = runDetailPage.page.getByTestId("custom-answer-input");
+    await expect(customInput).toBeVisible();
+  });
+
+  test("pending breakpoint panel remains stable during polling (no flickering)", async ({
+    runDetailPage,
+  }) => {
+    await runDetailPage.goto(PENDING_BP_RUN_ID);
+    await runDetailPage.waitForData();
+
+    // Click the breakpoint step card
+    const breakpointStep = runDetailPage.getStepCard(PENDING_BP_EFFECT_ID);
+    await expect(breakpointStep).toBeVisible({ timeout: 10_000 });
+    await breakpointStep.locator("button").first().click();
+
+    const breakpointPanel = runDetailPage.page.getByTestId("breakpoint-panel");
+    await expect(breakpointPanel).toBeVisible({ timeout: 10_000 });
+
+    // Verify stability over multiple polling cycles (3s poll interval for active runs)
+    for (let i = 0; i < 6; i++) {
+      await runDetailPage.page.waitForTimeout(1000);
+      await expect(breakpointPanel).toBeVisible({ timeout: 2_000 });
+      await expect(breakpointPanel).toContainText("Awaiting decision");
+    }
   });
 
   test("completed runs do not show breakpoint or Approval tab", async ({

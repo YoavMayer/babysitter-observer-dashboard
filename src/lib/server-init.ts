@@ -1,7 +1,7 @@
 import path from "path";
 import { EventEmitter } from "events";
 import { initWatcher, watcherEvents, type WatcherEvent } from "./watcher";
-import { discoverAndCacheAll, forceRefreshBreakpointRuns } from "./run-cache";
+import { discoverAndCacheAll } from "./run-cache";
 import { getGlobal } from "./global-registry";
 
 // Shared event bus for SSE endpoints — persist across HMR via typed global registry
@@ -81,8 +81,11 @@ function flushBatch(): void {
 export function enqueueRunChanged(event: WatcherEvent): void {
   const ds = getDebounceState();
 
-  // Always invalidate breakpoint cache eagerly (cheap, idempotent)
-  forceRefreshBreakpointRuns();
+  // Note: forceRefreshBreakpointRuns() was previously called here on every
+  // watcher event, but it deleted ALL breakpoint cache entries globally —
+  // causing banner flickering during active orchestration. The specific run
+  // is already invalidated by invalidateRun(runDir) in the watcher handlers,
+  // so broad cache clearing is unnecessary. (v0.12.3 fix)
 
   if (!ds.windowOpen) {
     // --- Leading edge: fire immediately for this single runDir ---

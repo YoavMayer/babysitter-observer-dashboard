@@ -41,8 +41,10 @@ const MAX_CACHE_SIZE = 1000;
 // TTL constants
 const TTL_COMPLETED = 30000; // 30s for completed runs
 const TTL_ACTIVE = 5000; // 5s for active runs (waiting/pending)
-const TTL_BREAKPOINT = 3000; // 3s for breakpoint entries — half the active TTL to ensure
-                              // resolved breakpoints are refreshed more aggressively
+// Note: TTL_BREAKPOINT was removed in v0.12.3 — the aggressive 3s eviction
+// in getProjectSummaries() caused breakpoint banner flickering during active
+// orchestration (race condition with forceRefreshBreakpointRuns + discovery
+// debounce). The normal TTL_ACTIVE (5s) is sufficient for timely updates.
 
 function getTTL(status: RunDigest["status"]): number {
   return status === "waiting" || status === "pending" ? TTL_ACTIVE : TTL_COMPLETED;
@@ -231,24 +233,10 @@ export function getProjectSummaries(): ProjectSummary[] {
   const cache = getCache();
   const now = Date.now();
 
-  // First pass: invalidate stale breakpoint cache entries so the next poll
-  // fetches fresh journal data. Collect keys to invalidate separately to avoid
-  // mutating the cache while iterating.
-  const staleBreakpointKeys: string[] = [];
-  for (const [runDir, entry] of cache) {
-    if (entry.digest.pendingBreakpoints && entry.digest.pendingBreakpoints > 0 &&
-        entry.digest.waitingKind === "breakpoint") {
-      const breakpointAge = now - entry.cachedAt;
-      if (breakpointAge > TTL_BREAKPOINT) {
-        staleBreakpointKeys.push(runDir);
-      }
-    }
-  }
-  for (const runDir of staleBreakpointKeys) {
-    invalidateRun(runDir);
-  }
-
-  // Second pass: build project summaries from remaining (fresh) cache entries
+  // Build project summaries from cache entries.
+  // Breakpoint entries are only included when isCacheValid() passes (TTL_ACTIVE = 5s),
+  // which ensures stale breakpoint data is not displayed without destructively
+  // deleting cache entries (which caused flickering — see v0.12.3 fix).
   const projectMap = new Map<string, {
     totalRuns: number;
     activeRuns: number;
@@ -293,10 +281,13 @@ export function getProjectSummaries(): ProjectSummary[] {
       existing.staleRuns++;
     }
 
-    // Track pending breakpoints — only count from cache entries that are still
-    // within the stricter breakpoint TTL (stale ones were already evicted above)
+    // Track pending breakpoints. Breakpoint state only changes when explicitly
+    // approved (which calls invalidateRun), so we always count cached breakpoints
+    // regardless of cache TTL — the TTL controls when to re-fetch data from disk,
+    // not whether the data is valid for display. Removing the isCacheValid check
+    // prevents breakpoint banner flickering when discovery is debounced. (v0.12.3)
     if (entry.digest.pendingBreakpoints && entry.digest.pendingBreakpoints > 0 &&
-        entry.digest.waitingKind === "breakpoint" && isCacheValid(entry)) {
+        entry.digest.waitingKind === "breakpoint") {
       existing.pendingBreakpoints += entry.digest.pendingBreakpoints;
       existing.breakpointRuns.push({
         runId: entry.digest.runId,
