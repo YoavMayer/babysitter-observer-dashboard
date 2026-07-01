@@ -255,18 +255,21 @@ describe('config', () => {
       expect(config1).toBe(config2); // same object reference
     });
 
-    it('registry sources take priority over env defaults', async () => {
+    it('explicit --watch-dir / env overrides registry sources', async () => {
+      // An explicit OBSERVER_WATCH_DIR (CLI --watch-dir) must win over the
+      // persisted registry — see config-loader source precedence.
       mockReadFile.mockResolvedValue(
         JSON.stringify({
           sources: [{ path: '/registry/path', depth: 1 }],
         }),
       );
       process.env.OBSERVER_WATCH_DIR = '/env/path';
+      invalidateConfigCache();
 
       const config = await getConfig();
 
       expect(config.sources).toHaveLength(1);
-      expect(config.sources[0].path).toBe('/registry/path');
+      expect(config.sources[0].path).toBe('/env/path');
     });
 
     it('falls back to defaults when registry has empty sources array', async () => {

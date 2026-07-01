@@ -89,6 +89,23 @@ describe('config-loader', () => {
       expect(config.sources[0].label).toBe('cli');
     });
 
+    it('explicit OBSERVER_WATCH_DIR overrides a non-empty registry', async () => {
+      // Registry lists sources, but an explicit --watch-dir must still win.
+      mockReadFile.mockResolvedValue(
+        JSON.stringify({
+          sources: [{ path: '/registered/path', depth: 3, label: 'registry' }],
+        }),
+      );
+      process.env.OBSERVER_WATCH_DIR = '/explicit/watch/dir';
+      invalidateConfigCache();
+
+      const config = await getConfig();
+
+      expect(config.sources).toHaveLength(1);
+      expect(config.sources[0].path).toBe('/explicit/watch/dir');
+      expect(config.sources[0].label).toBe('cli');
+    });
+
     it('reads sources from registry file', async () => {
       mockReadFile.mockResolvedValue(
         JSON.stringify({
