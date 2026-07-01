@@ -121,6 +121,10 @@ export async function approveBreakpoint(
     const resultPayload = {
       status: "ok",
       value: {
+        // `approved` is the field the babysitter runtime reads to distinguish an
+        // approval from a rejection. Omitting it made the run treat the resolution
+        // as a rejection (D1). Explicitly mark the survey/breakpoint as approved.
+        approved: true,
         answer: answer.trim(),
         approvedAt: now,
         approvedBy: "observer-dashboard",
