@@ -164,12 +164,20 @@ export async function getConfig(): Promise<ObserverConfig> {
   // the persisted registry, which in turn wins over the parent-of-cwd fallback.
   // (Previously a non-empty registry silently overrode an explicit --watch-dir.)
   // Deduplicate sources by normalized path to prevent duplicate discovery.
-  const rawSources =
+  const chosen =
     explicitEnvSources.length > 0
       ? explicitEnvSources
       : registry.sources.length > 0
         ? registry.sources
         : getFallbackSources();
+
+  // Always also watch the agent-default runs dir (~/.a5c/runs). Runs are created
+  // in EITHER ~/.a5c/runs (agent default) OR <project>/.a5c/runs; watching only
+  // one hid the user's current work. depth:0 => treat it as a direct runs dir.
+  const rawSources: WatchSource[] = [
+    ...chosen,
+    { path: path.join(os.homedir(), ".a5c", "runs"), depth: 0, label: "home" },
+  ];
   const seen = new Set<string>();
   const sources = rawSources.filter((s) => {
     const normalized = path.resolve(s.path);

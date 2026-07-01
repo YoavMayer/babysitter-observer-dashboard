@@ -101,7 +101,7 @@ describe('config-loader', () => {
 
       const config = await getConfig();
 
-      expect(config.sources).toHaveLength(1);
+      expect(config.sources.filter((s) => s.label !== 'home')).toHaveLength(1);
       expect(config.sources[0].path).toBe('/explicit/watch/dir');
       expect(config.sources[0].label).toBe('cli');
     });
@@ -117,7 +117,7 @@ describe('config-loader', () => {
 
       const config = await getConfig();
 
-      expect(config.sources).toHaveLength(1);
+      expect(config.sources.filter((s) => s.label !== 'home')).toHaveLength(1);
       expect(config.sources[0].path).toBe('/registered/path');
       expect(config.sources[0].depth).toBe(3);
       expect(config.sources[0].label).toBe('registry');

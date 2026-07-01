@@ -123,7 +123,7 @@ describe('config', () => {
 
       const config = await getConfig();
 
-      expect(config.sources).toHaveLength(3);
+      expect(config.sources.filter((s) => s.label !== 'home')).toHaveLength(3);
       expect(config.sources[0].path).toBe('/dir/a');
       expect(config.sources[1].path).toBe('/dir/b');
       expect(config.sources[2].path).toBe('/dir/c');
@@ -136,7 +136,7 @@ describe('config', () => {
 
       const config = await getConfig();
 
-      expect(config.sources).toHaveLength(2);
+      expect(config.sources.filter((s) => s.label !== 'home')).toHaveLength(2);
     });
 
     it('reads sources from registry file', async () => {
@@ -150,7 +150,7 @@ describe('config', () => {
 
       const config = await getConfig();
 
-      expect(config.sources).toHaveLength(1);
+      expect(config.sources.filter((s) => s.label !== 'home')).toHaveLength(1);
       expect(config.sources[0].path).toBe('/registered/path');
       expect(config.sources[0].depth).toBe(3);
       expect(config.sources[0].label).toBe('registry');
@@ -268,7 +268,7 @@ describe('config', () => {
 
       const config = await getConfig();
 
-      expect(config.sources).toHaveLength(1);
+      expect(config.sources.filter((s) => s.label !== 'home')).toHaveLength(1);
       expect(config.sources[0].path).toBe('/env/path');
     });
 
