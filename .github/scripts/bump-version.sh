@@ -120,10 +120,12 @@ fi
 
 # Insert into CHANGELOG.md after the header line
 if [ -f "CHANGELOG.md" ]; then
-  node -e "
+  CHANGELOG_ENTRY="$CHANGELOG_ENTRY" node -e "
     const fs = require('fs');
     let cl = fs.readFileSync('CHANGELOG.md', 'utf8');
-    const entry = \`${CHANGELOG_ENTRY}\`;
+    // Read via env, not shell interpolation, so backticks/quotes/\$ in commit
+    // messages can't break the JS (a commit like 'write \`approved: true\`' did).
+    const entry = process.env.CHANGELOG_ENTRY;
     const marker = 'All notable changes to this project will be documented in this file.';
     const idx = cl.indexOf(marker);
     if (idx !== -1) {
