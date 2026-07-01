@@ -294,6 +294,7 @@ export function getProjectSummaries(): ProjectSummary[] {
         projectName,
         processId: entry.digest.processId || "unknown",
         breakpointQuestion: entry.digest.breakpointQuestion || "Approval required",
+        driver: entry.digest.driver,
       });
     }
 

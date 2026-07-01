@@ -1,5 +1,6 @@
 import { promises as fs } from "fs";
 import path from "path";
+import { getDriverLiveness } from "./liveness";
 
 /** Return true when err represents a "file/directory not found" filesystem error. */
 function isNotFoundError(err: unknown): boolean {
@@ -448,6 +449,7 @@ export async function parseRunDir(
     breakpointQuestion,
     isStale,
     waitingKind,
+    driver: await getDriverLiveness(runPath),
     _journalFileCount: journalResult.fileCount,
   };
 }
@@ -720,6 +722,7 @@ export async function getRunDigest(runPath: string): Promise<RunDigest> {
     breakpointEffectId,
     isStale,
     waitingKind,
+    driver: await getDriverLiveness(runPath),
   };
 }
 

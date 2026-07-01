@@ -128,6 +128,8 @@ export interface Run {
   projectName?: string;
   isStale?: boolean;
   waitingKind?: 'breakpoint' | 'task';
+  /** Orchestrator attachment (read from run.lock + pid liveness). */
+  driver?: 'live' | 'orphaned' | 'none';
 }
 
 // Lightweight digest for polling
@@ -145,6 +147,8 @@ export interface RunDigest {
   projectName?: string;
   isStale?: boolean;
   waitingKind?: 'breakpoint' | 'task';
+  /** Orchestrator attachment (read from run.lock + pid liveness). */
+  driver?: 'live' | 'orphaned' | 'none';
 }
 
 // Project grouping for dashboard
@@ -165,6 +169,8 @@ export interface BreakpointRunInfo {
   projectName: string;
   processId: string;
   breakpointQuestion: string;
+  /** Orchestrator attachment — whether an answer can actually be applied now. */
+  driver?: 'live' | 'orphaned' | 'none';
 }
 
 // Project summary (lightweight, no run payloads)
