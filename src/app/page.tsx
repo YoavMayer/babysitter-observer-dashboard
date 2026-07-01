@@ -84,7 +84,12 @@ export default function DashboardPage() {
         {/* Global Breakpoint Banner — pinned with sticky positioning */}
         {!loading && !error && allBreakpointRuns.length > 0 && (
           <ErrorBoundary section="Breakpoint Banner">
-            <div className="sticky top-0 z-40">
+            {/* D2: keep ONLY the header sticky. Both being `sticky top-0` made the banner
+                cover the header on scroll; a fixed `top-N` offset is fragile (the header is
+                ~69px and varies). Rendering the banner as a normal block at the top of the
+                scroll area makes overlap impossible regardless of header height. Pending
+                breakpoints remain surfaced via the sticky header's summary metrics. */}
+            <div className="z-20">
               <BreakpointBanner breakpointRuns={allBreakpointRuns} />
             </div>
           </ErrorBoundary>
