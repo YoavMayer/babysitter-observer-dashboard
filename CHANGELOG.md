@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.4] - 2026-07-01
+### Fixed
+- fix(ci): repair bump-version.sh so auto-version + publish run
+- fix(config): explicit --watch-dir overrides the persisted registry sources
+- fix(notifications): cap + dedupe toasts to stop pileup (D3)
+- fix(layout): stop header/breakpoint-banner overlap by de-stickying the banner (D2)
+- fix(approve): write `approved: true` so the 6.0.0 runtime treats resolution as approval (D1)
+### Changed
+- chore: remove unused `now` variable in getProjectSummaries
+### Other
+- Merge pull request #5 from YoavMayer/release/observer-r1-bugfixes
+- test(e2e): allow system Chrome via PLAYWRIGHT_CHROME_CHANNEL / OBSERVER_CHROMIUM_PATH
+
 ## [0.12.2] - 2026-03-03
 ### Fixed
 - **Babysitter version showing N/A** — babysitter SDK version was detected at build time in CI (where the CLI isn't installed), baking "N/A" into the published bundle; now detected at runtime via `/api/version` endpoint so it reflects the actual version on the user's machine
