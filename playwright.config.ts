@@ -16,6 +16,14 @@ const fixtureRunsDir = path.resolve(__dirname, "e2e/fixtures/runs");
 // The dev server on port 4800 uses real data; the E2E server on 4173 uses fixtures.
 const testPort = parseInt(process.env.OBSERVER_PORT || "4173", 10);
 
+// Browser resolution overrides (opt-in; defaults keep Playwright's bundled chromium
+// so CI is unchanged). On hosts where the bundled browser can't be installed
+// (e.g. newer distros), point the run at an installed browser:
+//   PLAYWRIGHT_CHROME_CHANNEL=chrome   npm run test:e2e   # use system Google Chrome
+//   OBSERVER_CHROMIUM_PATH=/path/chrome npm run test:e2e   # use an explicit binary
+const chromeChannel = process.env.PLAYWRIGHT_CHROME_CHANNEL;
+const chromeExecutable = process.env.OBSERVER_CHROMIUM_PATH;
+
 export default defineConfig({
   testDir: "e2e/tests",
   fullyParallel: true,
@@ -37,7 +45,13 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: {
+        ...devices["Desktop Chrome"],
+        ...(chromeChannel ? { channel: chromeChannel } : {}),
+        ...(chromeExecutable
+          ? { launchOptions: { executablePath: chromeExecutable } }
+          : {}),
+      },
     },
   ],
 

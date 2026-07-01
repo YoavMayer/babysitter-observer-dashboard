@@ -140,6 +140,8 @@ describe("approveBreakpoint", () => {
 
     const parsed = JSON.parse(resultContent as string);
     expect(parsed.status).toBe("ok");
+    // D1: the runtime reads `approved` to tell an approval from a rejection.
+    expect(parsed.value.approved).toBe(true);
     expect(parsed.value.answer).toBe("Deploy approved");
     expect(parsed.value.approvedBy).toBe("observer-dashboard");
     expect(parsed.value.approvedAt).toBeDefined();

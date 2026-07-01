@@ -118,10 +118,13 @@ async function loadRegistry(): Promise<RegistryData> {
   }
 }
 
-function getDefaultSources(): WatchSource[] {
+// Explicit watch-dir sources requested at invocation time: the CLI flag
+// (OBSERVER_WATCH_DIR, set by src/cli.ts) or the WATCH_DIR / WATCH_DIRS envs.
+// These express explicit user intent and take precedence over the persisted registry.
+function getExplicitEnvSources(): WatchSource[] {
   const sources: WatchSource[] = [];
 
-  // CLI flag via OBSERVER_WATCH_DIR (set by src/cli.ts — defaults to user's cwd)
+  // CLI flag via OBSERVER_WATCH_DIR (set by src/cli.ts --watch-dir)
   if (process.env.OBSERVER_WATCH_DIR) {
     sources.push({ path: process.env.OBSERVER_WATCH_DIR, depth: 3, label: "cli" });
   }
@@ -139,17 +142,13 @@ function getDefaultSources(): WatchSource[] {
     }
   }
 
-  // Default: parent of cwd — users typically run from inside a project dir
-  // but want to observe ALL sibling projects in the parent folder
-  if (sources.length === 0) {
-    sources.push({
-      path: path.resolve(process.cwd(), ".."),
-      depth: 3,
-      label: "parent",
-    });
-  }
-
   return sources;
+}
+
+// Last-resort fallback when neither an explicit flag/env nor the registry
+// supplies sources: parent of cwd (observe sibling projects).
+function getFallbackSources(): WatchSource[] {
+  return [{ path: path.resolve(process.cwd(), ".."), depth: 3, label: "parent" }];
 }
 
 export async function getConfig(): Promise<ObserverConfig> {
@@ -159,11 +158,18 @@ export async function getConfig(): Promise<ObserverConfig> {
   }
 
   const registry = await loadRegistry();
-  const defaultSources = getDefaultSources();
+  const explicitEnvSources = getExplicitEnvSources();
 
-  // Merge: registry sources take priority, defaults as fallback
-  // Deduplicate sources by normalized path to prevent duplicate discovery
-  const rawSources = registry.sources.length > 0 ? registry.sources : defaultSources;
+  // Precedence: an explicit --watch-dir / WATCH_DIR(S) at invocation time wins over
+  // the persisted registry, which in turn wins over the parent-of-cwd fallback.
+  // (Previously a non-empty registry silently overrode an explicit --watch-dir.)
+  // Deduplicate sources by normalized path to prevent duplicate discovery.
+  const rawSources =
+    explicitEnvSources.length > 0
+      ? explicitEnvSources
+      : registry.sources.length > 0
+        ? registry.sources
+        : getFallbackSources();
   const seen = new Set<string>();
   const sources = rawSources.filter((s) => {
     const normalized = path.resolve(s.path);
