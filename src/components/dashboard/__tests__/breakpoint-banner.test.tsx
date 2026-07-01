@@ -55,9 +55,9 @@ describe('BreakpointBanner', () => {
     expect(screen.getByText('proj-b')).toBeInTheDocument();
   });
 
-  it('renders "Approval Needed" label for each breakpoint', () => {
+  it('renders "Needs You" label for each breakpoint', () => {
     render(<BreakpointBanner breakpointRuns={[makeBp()]} />);
-    expect(screen.getByText('Approval Needed')).toBeInTheDocument();
+    expect(screen.getByText('Needs You')).toBeInTheDocument();
   });
 
   it('renders truncated run ID', () => {

@@ -1,9 +1,8 @@
 "use client";
-import { useState, useEffect, useLayoutEffect, useRef, useCallback, useTransition } from "react";
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
-import { Hand, AlertTriangle, CheckCircle2, Check, X } from "lucide-react";
-import { approveBreakpoint } from "@/app/actions/approve-breakpoint";
+import { Hand, AlertTriangle, CheckCircle2, X, Terminal, Copy } from "lucide-react";
 import type { BreakpointRunInfo } from "@/types";
 
 interface ResolvedEntry {
@@ -18,29 +17,24 @@ const DISMISSED_KEY = "observer:dismissed-breakpoints";
 
 /** Inline approve button for a single breakpoint in the dashboard banner. */
 function BreakpointBannerItem({ bp, stale, onDismiss }: { bp: BreakpointRunInfo; stale: boolean; onDismiss?: () => void }) {
-  const [isPending, startTransition] = useTransition();
-  const [result, setResult] = useState<{ ok: boolean; msg?: string } | null>(null);
+  // Read-only "inform, don't rule": the observer surfaces that a decision is
+  // waiting + how to answer it, but never writes the approval itself (that would
+  // sit inert if no orchestrator is attached). The answer happens in the terminal
+  // driving the run. `driver` (from run.lock) tells us if that's even possible now.
+  const [copied, setCopied] = useState(false);
+  const orphaned = bp.driver === "orphaned" || bp.driver === "none";
 
-  const handleApprove = (e: React.MouseEvent) => {
-    e.preventDefault(); // Don't navigate via the Link
+  const copyRunId = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
-    startTransition(async () => {
-      const res = await approveBreakpoint(bp.runId, bp.effectId, "Approved from dashboard");
-      setResult(res.success ? { ok: true } : { ok: false, msg: res.error });
-    });
+    try {
+      navigator.clipboard?.writeText(bp.runId);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // clipboard may be unavailable (non-secure context) — non-fatal
+    }
   };
-
-  if (result?.ok) {
-    return (
-      <div className={cn(
-        "group relative flex items-center gap-3 px-4 py-3 rounded-lg",
-        "bg-success-muted border border-success/30",
-      )}>
-        <CheckCircle2 className="h-5 w-5 text-success shrink-0" />
-        <span className="text-sm text-success font-medium">Approved — {bp.projectName}</span>
-      </div>
-    );
-  }
 
   return (
     <div className={cn(
@@ -58,7 +52,7 @@ function BreakpointBannerItem({ bp, stale, onDismiss }: { bp: BreakpointRunInfo;
           <div className="flex items-center gap-2 mb-0.5">
             <AlertTriangle className="h-3 w-3 text-warning shrink-0" />
             <span className="text-xs font-bold text-warning uppercase tracking-wider">
-              Approval Needed
+              Needs You
             </span>
             {stale && (
               <span className="text-xs text-foreground-muted italic" data-testid="staleness-indicator">
@@ -77,21 +71,31 @@ function BreakpointBannerItem({ bp, stale, onDismiss }: { bp: BreakpointRunInfo;
           </p>
         </div>
       </Link>
-      <button
-        onClick={handleApprove}
-        disabled={isPending || !bp.effectId}
-        className={cn(
-          "shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold",
-          "bg-success/20 text-success border border-success/30",
-          "hover:bg-success/30 hover:border-success/50",
-          "disabled:opacity-50 disabled:cursor-not-allowed",
-          "transition-colors"
+      {/* Inform + point to the terminal — never write the approval from here. */}
+      <div className="shrink-0 flex flex-col items-end gap-1" data-testid="breakpoint-action-hint">
+        {orphaned ? (
+          <span
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-error/15 text-error border border-error/30"
+            title="No live orchestrator is attached — an answer won't be applied until the run is resumed (babysitter run:iterate)"
+          >
+            <AlertTriangle className="h-3.5 w-3.5" /> No live driver — resume to answer
+          </span>
+        ) : (
+          <span
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-warning/15 text-warning border border-warning/30"
+            title="Answer this in the terminal that is driving this run"
+          >
+            <Terminal className="h-3.5 w-3.5" /> Answer in terminal
+          </span>
         )}
-        title="Approve this breakpoint"
-      >
-        <Check className="h-3.5 w-3.5" />
-        {isPending ? "Approving..." : "Approve"}
-      </button>
+        <button
+          onClick={copyRunId}
+          className="flex items-center gap-1 text-[10px] text-foreground-muted hover:text-foreground transition-colors"
+          title="Copy run id (resolve it with: babysitter run:iterate <run>)"
+        >
+          <Copy className="h-3 w-3" /> {copied ? "copied" : "copy run id"}
+        </button>
+      </div>
       {stale && onDismiss && (
         <button
           onClick={(e) => {
@@ -109,9 +113,6 @@ function BreakpointBannerItem({ bp, stale, onDismiss }: { bp: BreakpointRunInfo;
         >
           <X className="h-3.5 w-3.5" />
         </button>
-      )}
-      {result && !result.ok && (
-        <span className="text-xs text-error ml-2">{result.msg}</span>
       )}
     </div>
   );
