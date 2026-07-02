@@ -376,6 +376,11 @@ describe('config', () => {
   // discoverAllRunDirs
   // -----------------------------------------------------------------------
   describe('discoverAllRunDirs', () => {
+    // Discovery now requires run.json/journal; make mocked run dirs look real.
+    beforeEach(() => {
+      mockAccess.mockResolvedValue(undefined);
+    });
+
     it('returns empty array when source directory does not exist', async () => {
       // Config with a non-existent source
       mockReadFile.mockResolvedValue(
@@ -507,6 +512,12 @@ describe('config', () => {
   // findRunDir
   // -----------------------------------------------------------------------
   describe('findRunDir', () => {
+    // Discovery now requires a run to have run.json/journal; make the mocked run
+    // dirs look real (isRunDir is the only consumer of fs.access).
+    beforeEach(() => {
+      mockAccess.mockResolvedValue(undefined);
+    });
+
     it('returns null when no matching runId is found', async () => {
       mockReadFile.mockResolvedValue(
         JSON.stringify({

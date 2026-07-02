@@ -10,6 +10,22 @@ export interface DiscoveredRun {
 }
 
 // Discover all .a5c/runs/ directories within a source
+/** A directory is a real run only if it has run.json (written at creation) or a journal/. */
+async function isRunDir(dir: string): Promise<boolean> {
+  try {
+    await fs.access(path.join(dir, "run.json"));
+    return true;
+  } catch {
+    // fall through to journal check
+  }
+  try {
+    const s = await fs.stat(path.join(dir, "journal"));
+    return s.isDirectory();
+  } catch {
+    return false;
+  }
+}
+
 async function discoverRunsInSource(source: WatchSource): Promise<string[]> {
   const results: string[] = [];
 
@@ -145,14 +161,14 @@ export async function discoverAllRunDirs(): Promise<DiscoveredRun[]> {
         try {
           const entries = await fs.readdir(runsDir, { withFileTypes: true });
           for (const entry of entries) {
-            if (entry.isDirectory()) {
-              allRuns.push({
-                runDir: path.join(runsDir, entry.name),
-                source,
-                projectName,
-                projectPath,
-              });
-            }
+            if (!entry.isDirectory()) continue;
+            const runDir = path.join(runsDir, entry.name);
+            // Only real runs — a run always has run.json (written at creation) or a
+            // journal/. Stray output/scratch folders that agents drop into .a5c/runs
+            // (e.g. report dirs) otherwise render as ghost "Unknown / 0-task" runs and
+            // inflate every count. This filter cannot hide a real run.
+            if (!(await isRunDir(runDir))) continue;
+            allRuns.push({ runDir, source, projectName, projectPath });
           }
         } catch (err) {
           console.warn(`[config] Cannot read runs directory ${runsDir}:`, err);

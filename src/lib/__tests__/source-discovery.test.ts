@@ -29,7 +29,10 @@ describe('source-discovery', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     invalidateDiscoveryCache();
-    mockAccess.mockRejectedValue(new Error('ENOENT'));
+    // Default: run dirs look real (have run.json) so discovery includes them.
+    // isRunDir() is the only consumer of fs.access; individual tests override to
+    // exercise the "non-run dir is skipped" behavior.
+    mockAccess.mockResolvedValue(undefined);
   });
 
   describe('invalidateDiscoveryCache', () => {
