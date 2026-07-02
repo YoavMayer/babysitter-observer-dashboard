@@ -23,6 +23,8 @@ npm-debug.log*
 
 # local tooling / build artifacts
 .a5c/
+.claude/
+/artifacts/
 dist/
 nul
 
