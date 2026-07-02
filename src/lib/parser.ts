@@ -396,6 +396,29 @@ export async function parseRunDir(
     }
   }
 
+  // Count pending breakpoints (requested but not yet resolved). Mirror the
+  // digest logic (parseRunDigest): also check result.json because the dashboard
+  // writes it on approve but cannot append journal events, so the journal alone
+  // may lag behind an already-answered breakpoint.
+  let pendingBreakpoints = 0;
+  const requestedBreakpointIds = tasks
+    .filter((t) => t.kind === "breakpoint" && t.status === "requested")
+    .map((t) => t.effectId);
+  if (requestedBreakpointIds.length > 0) {
+    const resultChecks = await Promise.all(
+      requestedBreakpointIds.map((id) =>
+        readJsonSafe<Record<string, unknown>>(
+          path.join(runPath, "tasks", id, "result.json"),
+          null
+        )
+      )
+    );
+    for (let i = 0; i < requestedBreakpointIds.length; i++) {
+      const r = resultChecks[i];
+      if (!(r && r.status === "ok")) pendingBreakpoints++;
+    }
+  }
+
   const createdAt = runCreated?.ts || "";
   const lastEvent = events[events.length - 1];
 
@@ -447,6 +470,7 @@ export async function parseRunDir(
     failureError,
     failureMessage,
     breakpointQuestion,
+    pendingBreakpoints,
     isStale,
     waitingKind,
     driver: await getDriverLiveness(runPath),

@@ -130,6 +130,7 @@ export interface CreateMockRunOptions {
   projectName?: string;
   isStale?: boolean;
   waitingKind?: 'breakpoint' | 'task';
+  driver?: 'live' | 'orphaned' | 'none';
 }
 
 export function createMockRun(overrides: CreateMockRunOptions = {}): Run {
@@ -168,6 +169,7 @@ export function createMockRun(overrides: CreateMockRunOptions = {}): Run {
     projectName: overrides.projectName ?? 'my-project',
     isStale: overrides.isStale,
     waitingKind: overrides.waitingKind,
+    driver: overrides.driver,
   };
 }
 
@@ -212,6 +214,8 @@ export interface CreateMockProjectSummaryOptions {
   totalTasks?: number;
   completedTasksAggregate?: number;
   latestUpdate?: string;
+  pendingBreakpoints?: number;
+  orphanedRuns?: number;
 }
 
 export function createMockProjectSummary(
@@ -227,7 +231,8 @@ export function createMockProjectSummary(
     totalTasks: overrides.totalTasks ?? 50,
     completedTasksAggregate: overrides.completedTasksAggregate ?? 45,
     latestUpdate: overrides.latestUpdate ?? isoNow(),
-    pendingBreakpoints: 0,
+    pendingBreakpoints: overrides.pendingBreakpoints ?? 0,
+    orphanedRuns: overrides.orphanedRuns ?? 0,
     breakpointRuns: [],
   };
 }

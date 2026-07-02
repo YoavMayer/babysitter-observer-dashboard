@@ -124,6 +124,22 @@ export function filterByStatus(runs: Run[], status: string): Run[] {
   if (!status) return runs;
   return runs.filter((r) => {
     if (status === "waiting") return r.status === "waiting" || r.status === "pending";
+    // Paused at an actual unresolved, answerable breakpoint ("you can act now").
+    // Align the list to the badge/banner definition (pendingBreakpoints > 0) so
+    // badge === list === banner. Fall back to the waiting-at-a-breakpoint
+    // heuristic only for older cached run shapes that predate pendingBreakpoints.
+    if (status === "needsyou") {
+      if (r.pendingBreakpoints !== undefined) return r.pendingBreakpoints > 0;
+      const waiting = r.status === "waiting" || r.status === "pending";
+      return waiting && r.waitingKind === "breakpoint";
+    }
+    // No live orchestrator attached (run.lock pid dead). Liveness is only
+    // meaningful for in-progress runs, so terminal (completed/failed) runs
+    // are never "orphaned" even when they report driver === "orphaned".
+    if (status === "orphaned")
+      return r.driver === "orphaned" && (r.status === "waiting" || r.status === "pending");
+    // Runs the staleness detector has flagged as inactive.
+    if (status === "stale") return r.isStale === true;
     return r.status === status;
   });
 }
@@ -262,7 +278,7 @@ export class RunQueryService {
    * Default mode -- return all runs with totalCount.
    */
   async listAllRuns(params: RunQueryParams): Promise<RunsListResponse> {
-    const { sort, search, limit, offset } = params;
+    const { sort, status, search, limit, offset } = params;
     const allRuns = await this.deps.discoverAllRunDirs();
 
     const runs = await Promise.all(
@@ -271,9 +287,10 @@ export class RunQueryService {
       })
     );
 
-    // Sort, search, paginate (no retention filter on "all runs" -- matches original)
+    // Sort, status filter, search, paginate (no retention filter on "all runs" -- matches original)
     sortRuns(runs, sort);
-    let filtered = filterBySearch(runs, search);
+    let filtered = filterByStatus(runs, status);
+    filtered = filterBySearch(filtered, search);
 
     const totalCount = filtered.length;
     filtered = paginate(filtered, offset, limit);

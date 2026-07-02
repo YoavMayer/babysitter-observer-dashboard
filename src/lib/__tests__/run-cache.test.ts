@@ -327,6 +327,39 @@ describe('run-cache', () => {
       expect(summaries).toHaveLength(1);
     });
 
+    it('counts orphanedRuns: only non-terminal runs with a dead driver', async () => {
+      mockReadFile.mockResolvedValue(JSON.stringify({ processId: 'proc' }));
+
+      // Non-terminal + orphaned → counts (a waiting task-wait orphan).
+      mockGetRunDigest.mockResolvedValue(
+        makeDigest({ status: 'waiting', driver: 'orphaned', waitingKind: 'task', updatedAt: '2024-01-15T10:00:00Z' })
+      );
+      await getDigestCached('/runs/proj/orphan-1', defaultSource, 'proj');
+
+      // Pending + orphaned → counts.
+      mockGetRunDigest.mockResolvedValue(
+        makeDigest({ status: 'pending', driver: 'orphaned', updatedAt: '2024-01-15T10:01:00Z' })
+      );
+      await getDigestCached('/runs/proj/orphan-2', defaultSource, 'proj');
+
+      // Terminal + orphaned → must NOT count (liveness is meaningless).
+      mockGetRunDigest.mockResolvedValue(
+        makeDigest({ status: 'completed', driver: 'orphaned', updatedAt: '2024-01-15T10:02:00Z' })
+      );
+      await getDigestCached('/runs/proj/done-orphan', defaultSource, 'proj');
+
+      // Non-terminal + live → must NOT count.
+      mockGetRunDigest.mockResolvedValue(
+        makeDigest({ status: 'waiting', driver: 'live', updatedAt: '2024-01-15T10:03:00Z' })
+      );
+      await getDigestCached('/runs/proj/live-1', defaultSource, 'proj');
+
+      const summaries = getProjectSummaries();
+      const proj = summaries.find((s) => s.projectName === 'proj');
+      expect(proj).toBeDefined();
+      expect(proj!.orphanedRuns).toBe(2);
+    });
+
     it('tracks latest update across all runs in a project', async () => {
       mockReadFile.mockResolvedValue(JSON.stringify({ processId: 'proc' }));
 

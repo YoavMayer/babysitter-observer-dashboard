@@ -77,6 +77,7 @@ function makeSummary(overrides: Partial<ProjectSummary> = {}): ProjectSummary {
     completedTasksAggregate: 18,
     latestUpdate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
     pendingBreakpoints: 0,
+    orphanedRuns: 0,
     breakpointRuns: [],
     ...overrides,
   };
@@ -331,6 +332,55 @@ describe("filterByStatus", () => {
     const result = filterByStatus(runs, "waiting");
     expect(result).toHaveLength(2);
     expect(result.map((r) => r.runId)).toEqual(["a", "b"]);
+  });
+
+  it("filters 'needsyou' by pendingBreakpoints count (matches the badge)", () => {
+    const runs = [
+      makeRun({ runId: "answerable", status: "waiting", waitingKind: "breakpoint", pendingBreakpoints: 1 }),
+      // Parked at a breakpoint but already answered (count 0) — must NOT match.
+      makeRun({ runId: "answered", status: "waiting", waitingKind: "breakpoint", pendingBreakpoints: 0 }),
+      makeRun({ runId: "task", status: "waiting", waitingKind: "task", pendingBreakpoints: 0 }),
+      makeRun({ runId: "done", status: "completed", pendingBreakpoints: 0 }),
+    ];
+    const result = filterByStatus(runs, "needsyou");
+    expect(result).toHaveLength(1);
+    expect(result[0].runId).toBe("answerable");
+  });
+
+  it("filters 'needsyou' via waitingKind fallback when pendingBreakpoints is undefined", () => {
+    // Older cached run shapes predate pendingBreakpoints.
+    const runs = [
+      makeRun({ runId: "bp", status: "waiting", waitingKind: "breakpoint" }),
+      makeRun({ runId: "task", status: "waiting", waitingKind: "task" }),
+      makeRun({ runId: "done", status: "completed" }),
+    ];
+    const result = filterByStatus(runs, "needsyou");
+    expect(result).toHaveLength(1);
+    expect(result[0].runId).toBe("bp");
+  });
+
+  it("filters 'orphaned' to non-terminal runs with no live driver", () => {
+    const runs = [
+      makeRun({ runId: "orphan", status: "waiting", driver: "orphaned" }),
+      makeRun({ runId: "live", status: "waiting", driver: "live" }),
+      makeRun({ runId: "none", status: "waiting", driver: "none" }),
+      // Terminal run with a dead driver must NOT read as orphaned.
+      makeRun({ runId: "done-orphan", status: "completed", driver: "orphaned" }),
+    ];
+    const result = filterByStatus(runs, "orphaned");
+    expect(result).toHaveLength(1);
+    expect(result[0].runId).toBe("orphan");
+  });
+
+  it("filters 'stale' to runs flagged as stale", () => {
+    const runs = [
+      makeRun({ runId: "stale", isStale: true }),
+      makeRun({ runId: "fresh", isStale: false }),
+      makeRun({ runId: "unset" }),
+    ];
+    const result = filterByStatus(runs, "stale");
+    expect(result).toHaveLength(1);
+    expect(result[0].runId).toBe("stale");
   });
 });
 
@@ -745,6 +795,27 @@ describe("RunQueryService", () => {
 
       expect(result.runs).toHaveLength(1);
       expect(result.runs[0].runId).toBe("test-002");
+    });
+
+    it("applies status filter (regression: listAllRuns must honor status)", async () => {
+      (deps.discoverAllRunDirs as ReturnType<typeof vi.fn>).mockResolvedValue([
+        makeDiscoveredRun("/runs/r1", "proj-a"),
+        makeDiscoveredRun("/runs/r2", "proj-b"),
+      ]);
+
+      (deps.getRunCached as ReturnType<typeof vi.fn>).mockImplementation(
+        async (runDir: string) => {
+          if (runDir === "/runs/r1") return makeRun({ runId: "r1", status: "completed" });
+          return makeRun({ runId: "r2", status: "failed" });
+        }
+      );
+
+      const result = await service.listAllRuns({
+        limit: 0, offset: 0, search: "", status: "failed", sort: "status",
+      });
+
+      expect(result.runs).toHaveLength(1);
+      expect(result.runs[0].runId).toBe("r2");
     });
 
     it("applies sort in activity mode", async () => {

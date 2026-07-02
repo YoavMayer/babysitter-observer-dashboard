@@ -522,6 +522,9 @@ describe('parser', () => {
 
       expect(run.status).toBe('waiting');
       expect(run.breakpointQuestion).toBe('Proceed with deployment?');
+      // The unresolved breakpoint (no result.json) is counted as pending, so the
+      // flat "needs you" list can align with the badge/banner.
+      expect(run.pendingBreakpoints).toBe(1);
     });
 
     it('falls back to path.basename for runId when no RUN_CREATED event', async () => {

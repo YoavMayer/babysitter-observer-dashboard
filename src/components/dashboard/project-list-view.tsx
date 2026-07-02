@@ -161,7 +161,7 @@ export function ProjectListView({
                 <Activity className="h-4 w-4 text-warning animate-pulse-dot" />
               )}
               <h2 className="text-sm font-semibold text-foreground">
-                {sortMode === "activity" ? "Recent Activity" : "In Progress"}
+                {sortMode === "activity" ? "Recent Activity" : "Active & Recent"}
               </h2>
               <span className={cn(
                 "rounded-full px-2 py-px text-xs font-semibold tabular-nums",

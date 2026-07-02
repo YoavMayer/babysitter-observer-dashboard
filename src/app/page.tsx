@@ -6,6 +6,7 @@ import { ExecutiveSummaryBanner } from "@/components/dashboard/executive-summary
 import { KpiGrid } from "@/components/dashboard/kpi-grid";
 import { RunFilterBar } from "@/components/dashboard/run-filter-bar";
 import { ProjectListView } from "@/components/dashboard/project-list-view";
+import { RunList } from "@/components/dashboard/run-list";
 import { ErrorBoundary } from "@/components/shared/error-boundary";
 import { GlobalSearch } from "@/components/dashboard/global-search";
 
@@ -105,20 +106,26 @@ export default function DashboardPage() {
           filteredProjectCount={filteredProjects.length}
         />
 
-        {/* Project cards content */}
-        <ProjectListView
-          loading={loading}
-          error={error}
-          filteredProjects={filteredProjects}
-          activeProjects={activeProjects}
-          historyProjects={historyProjects}
-          statusFilter={statusFilter}
-          sortMode={sortMode}
-          cardStatusFilter={cardStatusFilter}
-          historyCollapsed={historyCollapsed}
-          onHistoryCollapsedChange={setHistoryCollapsed}
-          onHideProject={handleHideProject}
-        />
+        {/* Content: project grid for "all", flat filtered run list otherwise */}
+        {statusFilter === "all" ? (
+          <ProjectListView
+            loading={loading}
+            error={error}
+            filteredProjects={filteredProjects}
+            activeProjects={activeProjects}
+            historyProjects={historyProjects}
+            statusFilter={statusFilter}
+            sortMode={sortMode}
+            cardStatusFilter={cardStatusFilter}
+            historyCollapsed={historyCollapsed}
+            onHistoryCollapsedChange={setHistoryCollapsed}
+            onHideProject={handleHideProject}
+          />
+        ) : (
+          <ErrorBoundary section="Run List">
+            <RunList status={statusFilter} />
+          </ErrorBoundary>
+        )}
       </div>
     </div>
   );

@@ -2,7 +2,13 @@ import { render, screen } from '@/test/test-utils';
 import { vi } from 'vitest';
 import { RunList } from '../run-list';
 import { createMockRun, resetIdCounter } from '@/test/fixtures';
-import userEvent from '@testing-library/user-event';
+import type { LightRun, RunsListResponse } from '@/lib/services/run-query-service';
+
+// Mock the polling hook so we can drive the component with static data.
+const mockUseSmartPolling = vi.fn();
+vi.mock('@/hooks/use-smart-polling', () => ({
+  useSmartPolling: (...args: unknown[]) => mockUseSmartPolling(...args),
+}));
 
 // Mock next/link
 vi.mock('next/link', () => ({
@@ -14,110 +20,134 @@ vi.mock('next/link', () => ({
   ),
 }));
 
-// Mock ProjectSection to avoid hook side effects
-vi.mock('../project-section', () => ({
-  ProjectSection: ({ projectName }: { projectName: string }) => (
-    <div data-testid={`project-section-${projectName}`}>{projectName}</div>
-  ),
-}));
-
 beforeEach(() => {
   resetIdCounter();
+  vi.clearAllMocks();
 });
 
-describe('RunList', () => {
+/** Build a LightRun from the shared Run fixture (events stripped). */
+function lightRun(overrides: Parameters<typeof createMockRun>[0] = {}): LightRun {
+  const run = createMockRun(overrides);
+  return { ...run, events: [], totalEvents: 0 } as LightRun;
+}
+
+function setupPolling(
+  data: RunsListResponse | null,
+  { loading = false, error = null }: { loading?: boolean; error?: string | null } = {}
+) {
+  mockUseSmartPolling.mockReturnValue({ data, loading, error, refresh: vi.fn() });
+}
+
+describe('RunList (flat filtered list)', () => {
   it('renders an empty state when there are no runs', () => {
-    render(<RunList runs={[]} />);
+    setupPolling({ runs: [], totalCount: 0 });
+    render(<RunList status="waiting" />);
     expect(screen.getByText('No runs found')).toBeInTheDocument();
   });
 
-  it('renders a list of RunCards for each run', () => {
+  it('renders one row per run with process label and short id', () => {
     const runs = [
-      createMockRun({ runId: 'run-1', processId: 'process-alpha' }),
-      createMockRun({ runId: 'run-2', processId: 'process-beta' }),
+      lightRun({ runId: 'aaaaaaaa-1', processId: 'process-alpha' }),
+      lightRun({ runId: 'bbbbbbbb-2', processId: 'process-beta' }),
     ];
-    render(<RunList runs={runs} />);
+    setupPolling({ runs, totalCount: 2 });
+    render(<RunList status="waiting" />);
+
+    expect(screen.getAllByTestId('next-link')).toHaveLength(2);
     expect(screen.getByText('Process Alpha')).toBeInTheDocument();
     expect(screen.getByText('Process Beta')).toBeInTheDocument();
+    expect(screen.getByText('aaaaaaaa')).toBeInTheDocument();
   });
 
-  it('marks the selected run card', () => {
+  it('shows the resume hint for an orphaned breakpoint run', () => {
     const runs = [
-      createMockRun({ runId: 'run-1' }),
-      createMockRun({ runId: 'run-2' }),
+      lightRun({
+        runId: 'orphan-1',
+        status: 'waiting',
+        waitingKind: 'breakpoint',
+        driver: 'orphaned',
+      }),
     ];
-    const { container } = render(<RunList runs={runs} selectedIndex={0} />);
-    // The first card should have a ring-1 class (selected)
-    const cards = container.querySelectorAll('.ring-1');
-    expect(cards.length).toBeGreaterThanOrEqual(1);
+    setupPolling({ runs, totalCount: 1 });
+    render(<RunList status="orphaned" />);
+
+    expect(screen.getByText('No live driver — resume to answer')).toBeInTheDocument();
   });
 
-  it('paginates runs and shows "Show more" button', () => {
-    // Create 12 runs (default page size is 10)
-    const runs = Array.from({ length: 12 }, (_, i) =>
-      createMockRun({ runId: `run-${i}`, processId: `process-${i}` })
-    );
-    render(<RunList runs={runs} />);
-    // First page shows 10 items
-    const links = screen.getAllByTestId('next-link');
-    expect(links).toHaveLength(10);
-    // "Show more" button exists with remaining count
-    expect(screen.getByText(/Show more \(2 remaining\)/)).toBeInTheDocument();
+  it('shows no orphaned chip or resume hint for a terminal run', () => {
+    // A completed run reports no attached orchestrator (driver: 'orphaned'),
+    // but liveness is meaningless for terminal runs — no alarm should show.
+    const runs = [
+      lightRun({
+        runId: 'done-1',
+        status: 'completed',
+        driver: 'orphaned',
+      }),
+    ];
+    setupPolling({ runs, totalCount: 1 });
+    render(<RunList status="completed" />);
+
+    expect(screen.queryByText('orphaned')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('No live driver — resume to answer')
+    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId('run-action-hint')).not.toBeInTheDocument();
+    // A neutral, status-appropriate label is shown instead.
+    expect(screen.getByText('completed')).toBeInTheDocument();
   });
 
-  it('loads more runs when "Show more" is clicked', async () => {
-    const user = userEvent.setup();
-    const runs = Array.from({ length: 12 }, (_, i) =>
-      createMockRun({ runId: `run-${i}`, processId: `process-${i}` })
-    );
-    render(<RunList runs={runs} />);
+  it('shows the orphaned chip and resume hint for a waiting orphaned run', () => {
+    const runs = [
+      lightRun({
+        runId: 'orphan-2',
+        status: 'waiting',
+        waitingKind: 'breakpoint',
+        driver: 'orphaned',
+      }),
+    ];
+    setupPolling({ runs, totalCount: 1 });
+    render(<RunList status="orphaned" />);
 
-    const showMoreBtn = screen.getByText(/Show more/);
-    await user.click(showMoreBtn);
-
-    // After clicking, all 12 runs should be visible
-    const links = screen.getAllByTestId('next-link');
-    expect(links).toHaveLength(12);
+    expect(screen.getByText('orphaned')).toBeInTheDocument();
+    expect(
+      screen.getByText('No live driver — resume to answer')
+    ).toBeInTheDocument();
   });
 
-  it('does not show "Show more" when all runs fit on one page', () => {
-    const runs = Array.from({ length: 5 }, (_, i) =>
-      createMockRun({ runId: `run-${i}` })
-    );
-    render(<RunList runs={runs} />);
-    expect(screen.queryByText(/Show more/)).not.toBeInTheDocument();
+  it('shows the terminal hint for a live breakpoint run', () => {
+    const runs = [
+      lightRun({
+        runId: 'live-1',
+        status: 'waiting',
+        waitingKind: 'breakpoint',
+        driver: 'live',
+      }),
+    ];
+    setupPolling({ runs, totalCount: 1 });
+    render(<RunList status="needsyou" />);
+
+    expect(screen.getByText('Answer in terminal')).toBeInTheDocument();
   });
 
-  describe('groupByProject mode', () => {
-    it('renders ProjectSection components grouped by project name', () => {
-      const runs = [
-        createMockRun({ runId: 'run-1', projectName: 'alpha-project' }),
-        createMockRun({ runId: 'run-2', projectName: 'beta-project' }),
-        createMockRun({ runId: 'run-3', projectName: 'alpha-project' }),
-      ];
-      render(<RunList runs={runs} groupByProject />);
-      expect(screen.getByTestId('project-section-alpha-project')).toBeInTheDocument();
-      expect(screen.getByTestId('project-section-beta-project')).toBeInTheDocument();
-    });
+  it('shows "Load more" when fetched runs are fewer than totalCount', () => {
+    const runs = [lightRun({ runId: 'r-1' }), lightRun({ runId: 'r-2' })];
+    setupPolling({ runs, totalCount: 10 });
+    render(<RunList status="completed" />);
 
-    it('groups runs without a project under "Unknown Project"', () => {
-      // createMockRun defaults projectName to 'my-project', so we must explicitly set it empty
-      const run = createMockRun({ runId: 'run-1' });
-      // Override projectName to undefined after creation
-      (run as any).projectName = undefined;
-      render(<RunList runs={[run]} groupByProject />);
-      expect(screen.getByTestId('project-section-Unknown Project')).toBeInTheDocument();
-    });
+    expect(screen.getByText(/Load more \(8 remaining\)/)).toBeInTheDocument();
+  });
 
-    it('sorts project groups alphabetically', () => {
-      const runs = [
-        createMockRun({ runId: 'run-1', projectName: 'zebra' }),
-        createMockRun({ runId: 'run-2', projectName: 'alpha' }),
-      ];
-      render(<RunList runs={runs} groupByProject />);
-      const sections = screen.getAllByTestId(/project-section-/);
-      expect(sections[0]).toHaveTextContent('alpha');
-      expect(sections[1]).toHaveTextContent('zebra');
-    });
+  it('does not show "Load more" when all runs are loaded', () => {
+    const runs = [lightRun({ runId: 'r-1' }), lightRun({ runId: 'r-2' })];
+    setupPolling({ runs, totalCount: 2 });
+    render(<RunList status="completed" />);
+
+    expect(screen.queryByText(/Load more/)).not.toBeInTheDocument();
+  });
+
+  it('renders an error state when the fetch fails', () => {
+    setupPolling(null, { error: 'boom' });
+    render(<RunList status="failed" />);
+    expect(screen.getByTestId('run-list-error')).toBeInTheDocument();
   });
 });

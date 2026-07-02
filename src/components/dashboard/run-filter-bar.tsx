@@ -7,6 +7,7 @@ const filters: { label: string; value: DashboardStatusFilter }[] = [
   { label: "All", value: "all" },
   { label: "Needs you", value: "needsyou" },
   { label: "Waiting", value: "waiting" },
+  { label: "Orphaned", value: "orphaned" },
   { label: "Stale", value: "stale" },
   { label: "Completed", value: "completed" },
   { label: "Failed", value: "failed" },
@@ -34,8 +35,8 @@ export function RunFilterBar({
       <div data-testid="filter-bar" className="flex items-center gap-1">
         {filters.map((f) => {
           const count = filterCounts[f.value] ?? 0;
-          // Hide Stale filter pill when there are no stale runs
-          if (f.value === "stale" && count === 0) return null;
+          // Hide Stale / Orphaned filter pills when there are no matching runs
+          if ((f.value === "stale" || f.value === "orphaned") && count === 0) return null;
           return (
             <button
               key={f.value}

@@ -18,7 +18,7 @@ export interface DashboardMetrics {
 }
 
 export type DashboardSortMode = "status" | "activity";
-export type DashboardStatusFilter = RunStatus | "all" | "stale" | "needsyou";
+export type DashboardStatusFilter = RunStatus | "all" | "stale" | "needsyou" | "orphaned";
 
 export interface UseRunDashboardReturn {
   // Data
@@ -131,6 +131,11 @@ export function useRunDashboard(): UseRunDashboardReturn {
       pending: 0,
       // Runs paused at a breakpoint waiting for a human decision.
       needsyou: projects.reduce((s, p) => s + (p.pendingBreakpoints ?? 0), 0),
+      // Non-terminal runs whose orchestrator is no longer attached. Uses the
+      // per-project orphanedRuns aggregate so the badge equals the flat orphaned
+      // LIST length (filterByStatus "orphaned"), including task-wait orphans that
+      // breakpointRuns would miss.
+      orphaned: projects.reduce((s, p) => s + (p.orphanedRuns ?? 0), 0),
     } as Record<DashboardStatusFilter, number>;
   }, [metrics, projects]);
 
@@ -139,6 +144,8 @@ export function useRunDashboard(): UseRunDashboardReturn {
     if (statusFilter === "all") return projects;
     if (statusFilter === "stale") return projects.filter((p) => p.staleRuns > 0);
     if (statusFilter === "needsyou") return projects.filter((p) => (p.pendingBreakpoints ?? 0) > 0);
+    if (statusFilter === "orphaned")
+      return projects.filter((p) => (p.orphanedRuns ?? 0) > 0);
     return projects.filter((project) => {
       if (statusFilter === "waiting") return project.activeRuns > 0;
       if (statusFilter === "completed") return project.completedRuns > 0;
@@ -148,9 +155,11 @@ export function useRunDashboard(): UseRunDashboardReturn {
   }, [projects, statusFilter]);
 
   // Determine the status filter to pass to ProjectHealthCard.
-  // "stale"/"needsyou" are cross-status views → show all runs in the matching projects.
+  // "stale"/"needsyou"/"orphaned" are cross-status views → show all runs in the matching projects.
   const cardStatusFilter: RunStatus | "all" =
-    statusFilter === "stale" || statusFilter === "needsyou" ? "all" : statusFilter;
+    statusFilter === "stale" || statusFilter === "needsyou" || statusFilter === "orphaned"
+      ? "all"
+      : statusFilter;
 
   // Split filtered projects into sections based on sort mode
   const { activeProjects, historyProjects } = useMemo(() => {

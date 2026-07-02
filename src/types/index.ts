@@ -124,6 +124,8 @@ export interface Run {
   failureError?: string;
   failureMessage?: string;
   breakpointQuestion?: string;
+  /** Number of requested-but-unresolved breakpoints (answerable "needs you"). */
+  pendingBreakpoints?: number;
   sourceLabel?: string;
   projectName?: string;
   isStale?: boolean;
@@ -185,6 +187,8 @@ export interface ProjectSummary {
   completedTasksAggregate: number;
   latestUpdate: string;
   pendingBreakpoints: number;
+  /** Non-terminal runs (waiting/pending) whose orchestrator is not attached. */
+  orphanedRuns: number;
   breakpointRuns: BreakpointRunInfo[];
 }
 

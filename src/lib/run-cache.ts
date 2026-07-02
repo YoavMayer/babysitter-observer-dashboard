@@ -246,6 +246,7 @@ export function getProjectSummaries(): ProjectSummary[] {
     completedTasksAggregate: number;
     latestUpdate: string;
     pendingBreakpoints: number;
+    orphanedRuns: number;
     breakpointRuns: ProjectSummary["breakpointRuns"];
   }>();
 
@@ -261,6 +262,7 @@ export function getProjectSummaries(): ProjectSummary[] {
       completedTasksAggregate: 0,
       latestUpdate: "",
       pendingBreakpoints: 0,
+      orphanedRuns: 0,
       breakpointRuns: [],
     };
 
@@ -278,6 +280,17 @@ export function getProjectSummaries(): ProjectSummary[] {
 
     if (entry.digest.isStale) {
       existing.staleRuns++;
+    }
+
+    // Count orphaned runs: non-terminal (waiting/pending) with no live driver.
+    // This mirrors the flat orphaned LIST (filterByStatus "orphaned") so the
+    // "Orphaned" badge equals the list length. Unlike breakpointRuns, this also
+    // captures task-wait runs whose orchestrator has detached.
+    if (
+      (entry.digest.status === "waiting" || entry.digest.status === "pending") &&
+      entry.digest.driver === "orphaned"
+    ) {
+      existing.orphanedRuns++;
     }
 
     // Track pending breakpoints. Breakpoint state only changes when explicitly

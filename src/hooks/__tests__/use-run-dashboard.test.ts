@@ -149,6 +149,47 @@ describe('useRunDashboard', () => {
     expect(result.current.filterCounts.stale).toBe(1);
   });
 
+  it('sums orphaned filterCount from per-project orphanedRuns aggregate', () => {
+    mockedUseProjects.mockReturnValue({
+      projects: [
+        createMockProjectSummary({ projectName: 'a', orphanedRuns: 2 }),
+        createMockProjectSummary({ projectName: 'b', orphanedRuns: 3 }),
+        createMockProjectSummary({ projectName: 'c', orphanedRuns: 0 }),
+      ],
+      recentCompletionWindowMs: 14400000,
+      loading: false,
+      error: undefined,
+      refresh: mockRefresh,
+    });
+
+    const { result } = renderHook(() => useRunDashboard());
+
+    // Badge count must equal the orphaned LIST length (2 + 3 + 0 = 5).
+    expect(result.current.filterCounts.orphaned).toBe(5);
+  });
+
+  it('filters projects by orphaned using the orphanedRuns aggregate', () => {
+    mockedUseProjects.mockReturnValue({
+      projects: [
+        createMockProjectSummary({ projectName: 'has-orphan', orphanedRuns: 1 }),
+        createMockProjectSummary({ projectName: 'no-orphan', orphanedRuns: 0 }),
+      ],
+      recentCompletionWindowMs: 14400000,
+      loading: false,
+      error: undefined,
+      refresh: mockRefresh,
+    });
+
+    const { result } = renderHook(() => useRunDashboard());
+
+    act(() => {
+      result.current.setStatusFilter('orphaned');
+    });
+
+    expect(result.current.filteredProjects).toHaveLength(1);
+    expect(result.current.filteredProjects[0].projectName).toBe('has-orphan');
+  });
+
   it('computes bannerFingerprint from issue metrics', () => {
     mockedUseProjects.mockReturnValue({
       projects: [
