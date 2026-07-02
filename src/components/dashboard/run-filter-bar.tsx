@@ -85,10 +85,11 @@ export function RunFilterBar({
               : "Currently sorting by most recent activity (newest updates first). Click to switch to status-grouped view."
             }
           >
+            {/* a11y-icons-not-hidden: decorative sort icons hidden from AT. */}
             {sortMode === "status" ? (
-              <ArrowUpDown className="h-3 w-3 transition-transform duration-200" />
+              <ArrowUpDown className="h-3 w-3 transition-transform duration-200" aria-hidden="true" focusable="false" />
             ) : (
-              <Clock className="h-3 w-3 transition-transform duration-200" />
+              <Clock className="h-3 w-3 transition-transform duration-200" aria-hidden="true" focusable="false" />
             )}
             {sortMode === "status" ? "By Status" : "By Activity"}
           </button>

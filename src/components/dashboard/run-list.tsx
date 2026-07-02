@@ -48,20 +48,25 @@ function LivenessChip({ run }: { run: LightRun }) {
   if (!run.driver) return null;
   if (run.driver === "live") {
     return (
+      // a11y-status-chip-title-only: expose the tooltip meaning to AT via sr-only
+      // text (icon is decorative → a11y-icons-not-hidden).
       <span
         className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold bg-success/10 text-success"
         title="A live orchestrator is attached to this run"
       >
-        <Wifi className="h-3 w-3" /> live
+        <Wifi className="h-3 w-3" aria-hidden="true" focusable="false" /> live
+        <span className="sr-only">: a live orchestrator is attached to this run</span>
       </span>
     );
   }
   return (
+    // a11y-status-chip-title-only / a11y-icons-not-hidden
     <span
       className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold bg-error/15 text-error"
       title="No live orchestrator is attached — resume the run to continue it"
     >
-      <AlertTriangle className="h-3 w-3" /> orphaned
+      <AlertTriangle className="h-3 w-3" aria-hidden="true" focusable="false" /> orphaned
+      <span className="sr-only">: no live orchestrator is attached — resume the run to continue it</span>
     </span>
   );
 }
@@ -81,7 +86,9 @@ function StatusDot({ run }: { run: LightRun }) {
       )}
       title={`Run ${run.status}`}
     >
-      <span className={cn("h-2 w-2 rounded-full", failed ? "bg-error" : "bg-success")} />
+      <span className={cn("h-2 w-2 rounded-full", failed ? "bg-error" : "bg-success")} aria-hidden="true" />
+      {/* a11y-status-chip-title-only: prefix the status word for AT context. */}
+      <span className="sr-only">Run status: </span>
       {run.status}
     </span>
   );
@@ -105,29 +112,40 @@ function ActionHint({ run }: { run: LightRun }) {
   };
 
   return (
-    <div className="shrink-0 flex items-center gap-2" data-testid="run-action-hint">
+    // relative z-10 keeps this interactive cluster clickable above the row's
+    // stretched overlay link (see RunRow / a11y-nested-interactive-copy-btn).
+    <div className="relative z-10 shrink-0 flex items-center gap-2" data-testid="run-action-hint">
       {orphaned ? (
+        // a11y-status-chip-title-only / a11y-icons-not-hidden
         <span
           className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-error/15 text-error border border-error/30"
           title="No live orchestrator is attached — an answer won't be applied until the run is resumed (babysitter run:iterate)"
         >
-          <AlertTriangle className="h-3.5 w-3.5" /> No live driver — resume to answer
+          <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" focusable="false" /> No live driver — resume to answer
+          <span className="sr-only">: an answer won&apos;t be applied until the run is resumed (babysitter run:iterate)</span>
         </span>
       ) : (
+        // a11y-status-chip-title-only / a11y-icons-not-hidden
         <span
           className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-warning/15 text-warning border border-warning/30"
           title="Answer this in the terminal that is driving this run"
         >
-          <Terminal className="h-3.5 w-3.5" /> Answer in terminal
+          <Terminal className="h-3.5 w-3.5" aria-hidden="true" focusable="false" /> Answer in terminal
+          <span className="sr-only">: answer this in the terminal that is driving this run</span>
         </span>
       )}
       <button
         onClick={copyRunId}
         className="flex items-center gap-1 text-[10px] text-foreground-muted hover:text-foreground transition-colors"
+        aria-label="Copy run id (resolve it with: babysitter run:iterate <run>)"
         title="Copy run id (resolve it with: babysitter run:iterate <run>)"
       >
-        <Copy className="h-3 w-3" /> {copied ? "copied" : "copy run id"}
+        <Copy className="h-3 w-3" aria-hidden="true" focusable="false" /> {copied ? "copied" : "copy run id"}
       </button>
+      {/* a11y-copy-no-live-announcement: confirm copy success to screen readers. */}
+      <span role="status" aria-live="polite" className="sr-only">
+        {copied ? "Run id copied" : ""}
+      </span>
     </div>
   );
 }
@@ -137,21 +155,30 @@ function RunRow({ run }: { run: LightRun }) {
   // Liveness only applies to in-progress runs; terminal runs get a neutral dot.
   const nonTerminal = isNonTerminal(run);
   return (
-    <Link
-      href={`/runs/${run.runId}`}
-      data-testid="run-row"
+    // a11y-no-list-semantics: each row is a listitem.
+    // a11y-nested-interactive-copy-btn: the row is a non-anchor container with a
+    // single stretched overlay link; interactive controls (copy button) render as
+    // siblings outside the anchor, so there is no interactive-in-anchor nesting.
+    <div
+      role="listitem"
       className={cn(
-        "group flex items-center gap-3 px-3 py-2 rounded-md",
+        "group relative flex items-center gap-3 px-3 py-2 rounded-md",
         "border border-border bg-card hover:bg-background-secondary transition-colors"
       )}
     >
+      <Link
+        href={`/runs/${run.runId}`}
+        data-testid="run-row"
+        aria-label={`Open run ${friendlyProcessName(run.processId)} (${run.runId.slice(0, 8)})`}
+        className="absolute inset-0 z-0 rounded-md"
+      />
       {nonTerminal ? <LivenessChip run={run} /> : <StatusDot run={run} />}
       <span className="text-sm font-medium text-foreground truncate">
         {friendlyProcessName(run.processId)}
       </span>
       {run.projectName && (
         <span className="flex items-center gap-1 text-xs text-foreground-muted truncate">
-          <Tag className="h-3 w-3 shrink-0" />
+          <Tag className="h-3 w-3 shrink-0" aria-hidden="true" focusable="false" />
           {run.projectName}
         </span>
       )}
@@ -159,10 +186,10 @@ function RunRow({ run }: { run: LightRun }) {
       <span className="text-xs text-foreground-muted tabular-nums">
         {formatRelativeTime(run.updatedAt)}
       </span>
-      <div className="ml-auto flex items-center gap-2">
+      <div className="relative z-10 ml-auto flex items-center gap-2">
         {isBreakpoint(run) && <ActionHint run={run} />}
       </div>
-    </Link>
+    </div>
   );
 }
 
@@ -194,7 +221,11 @@ export function RunList({ status }: RunListProps) {
 
   if (loading && !data) {
     return (
-      <div className="flex flex-col gap-2" data-testid="run-list-loading">
+      // a11y-loading-not-announced: expose the fetching state to AT.
+      <div className="flex flex-col gap-2" data-testid="run-list-loading" aria-busy="true">
+        <span role="status" className="sr-only">
+          Loading runs
+        </span>
         {[1, 2, 3, 4, 5].map((i) => (
           <div key={i} className="h-11 rounded-md border border-border bg-card animate-pulse" />
         ))}
@@ -230,7 +261,8 @@ export function RunList({ status }: RunListProps) {
   const hasMore = runs.length < totalCount;
 
   return (
-    <div className="flex flex-col gap-2" data-testid="run-list">
+    // a11y-no-list-semantics: give the flat list list/listitem semantics.
+    <div className="flex flex-col gap-2" data-testid="run-list" role="list">
       {sorted.map((run) => (
         <RunRow key={run.runId} run={run} />
       ))}

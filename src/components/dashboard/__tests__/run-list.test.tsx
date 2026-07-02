@@ -1,4 +1,4 @@
-import { render, screen } from '@/test/test-utils';
+import { render, screen, setupUser } from '@/test/test-utils';
 import { vi } from 'vitest';
 import { RunList } from '../run-list';
 import { createMockRun, resetIdCounter } from '@/test/fixtures';
@@ -149,5 +149,80 @@ describe('RunList (flat filtered list)', () => {
     setupPolling(null, { error: 'boom' });
     render(<RunList status="failed" />);
     expect(screen.getByTestId('run-list-error')).toBeInTheDocument();
+  });
+});
+
+describe('RunList accessibility', () => {
+  it('a11y-no-list-semantics: exposes list + listitem roles', () => {
+    const runs = [
+      lightRun({ runId: 'aaaaaaaa-1', processId: 'process-alpha' }),
+      lightRun({ runId: 'bbbbbbbb-2', processId: 'process-beta' }),
+    ];
+    setupPolling({ runs, totalCount: 2 });
+    render(<RunList status="waiting" />);
+
+    expect(screen.getByRole('list')).toBeInTheDocument();
+    expect(screen.getAllByRole('listitem')).toHaveLength(2);
+  });
+
+  it('a11y-nested-interactive-copy-btn: copy button is not nested inside the row anchor', () => {
+    const runs = [
+      lightRun({
+        runId: 'orphan-1',
+        status: 'waiting',
+        waitingKind: 'breakpoint',
+        driver: 'orphaned',
+      }),
+    ];
+    setupPolling({ runs, totalCount: 1 });
+    render(<RunList status="orphaned" />);
+
+    const anchor = screen.getByTestId('next-link');
+    const copyBtn = screen.getByRole('button', { name: /copy run id/i });
+    expect(anchor.contains(copyBtn)).toBe(false);
+  });
+
+  it('a11y-loading-not-announced: loading skeleton is announced with aria-busy', () => {
+    setupPolling(null, { loading: true });
+    render(<RunList status="waiting" />);
+
+    const skeleton = screen.getByTestId('run-list-loading');
+    expect(skeleton).toHaveAttribute('aria-busy', 'true');
+    expect(screen.getByText('Loading runs')).toBeInTheDocument();
+  });
+
+  it('a11y-status-chip-title-only: liveness chip exposes its meaning via sr-only text', () => {
+    const runs = [
+      lightRun({
+        runId: 'orphan-3',
+        status: 'waiting',
+        waitingKind: 'breakpoint',
+        driver: 'orphaned',
+      }),
+    ];
+    setupPolling({ runs, totalCount: 1 });
+    render(<RunList status="orphaned" />);
+
+    expect(
+      screen.getByText(/no live orchestrator is attached — resume the run to continue it/i)
+    ).toBeInTheDocument();
+  });
+
+  it('a11y-copy-no-live-announcement: announces "Run id copied" after copying', async () => {
+    const user = setupUser();
+    const runs = [
+      lightRun({
+        runId: 'orphan-4',
+        status: 'waiting',
+        waitingKind: 'breakpoint',
+        driver: 'orphaned',
+      }),
+    ];
+    setupPolling({ runs, totalCount: 1 });
+    render(<RunList status="orphaned" />);
+
+    expect(screen.queryByText('Run id copied')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /copy run id/i }));
+    expect(screen.getByText('Run id copied')).toBeInTheDocument();
   });
 });
