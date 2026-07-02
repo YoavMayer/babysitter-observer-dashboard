@@ -47,7 +47,11 @@ function showsActionHint(run: LightRun): boolean {
  */
 function rank(run: LightRun): number {
   if (isBreakpoint(run)) return 0;
-  if (run.driver === "orphaned") return 1;
+  // DC-3: the orphaned tier uses the same canonical predicate as the filter and
+  // badge — a NON-terminal run with no live driver (driver "orphaned" OR "none",
+  // via isOrphaned). The non-terminal guard keeps terminal driverless runs (most
+  // completed runs report driver "none") out of the orphaned tier.
+  if (isNonTerminal(run) && isOrphaned(run)) return 1;
   // sort-stale-tier-unreachable: test isStale BEFORE the waiting/pending branch.
   // Stale runs are themselves waiting/pending, so checking waiting first would
   // always score them as tier 2 and the 'stale' tier would be unreachable.

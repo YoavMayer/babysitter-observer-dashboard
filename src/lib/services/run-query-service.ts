@@ -123,21 +123,35 @@ export function filterBySearch(runs: Run[], search: string): Run[] {
 export function filterByStatus(runs: Run[], status: string): Run[] {
   if (!status) return runs;
   return runs.filter((r) => {
-    if (status === "waiting") return r.status === "waiting" || r.status === "pending";
+    // waiting-badge-vs-list-mismatch: exclude stale runs so this list equals the
+    // "Waiting" badge (metrics.activeRuns = non-stale waiting/pending). Stale runs
+    // live under the "stale" filter instead, so they are not double-counted.
+    if (status === "waiting")
+      return (r.status === "waiting" || r.status === "pending") && r.isStale !== true;
     // Paused at an actual unresolved, answerable breakpoint ("you can act now").
-    // Align the list to the badge/banner definition (pendingBreakpoints > 0) so
-    // badge === list === banner. Fall back to the waiting-at-a-breakpoint
-    // heuristic only for older cached run shapes that predate pendingBreakpoints.
+    // Canonical "needs you" predicate: NON-terminal AND pendingBreakpoints > 0.
+    // This matches the badge (run-cache counts one run per pendingBreakpoints > 0)
+    // and the approval banner (breakpointRuns), so badge === list === banner.
+    // DC-4: the non-terminal guard (mirroring the orphaned branch) prevents
+    // terminal runs with residual pendingBreakpoints from leaking into the list.
     if (status === "needsyou") {
+      const nonTerminal = r.status === "waiting" || r.status === "pending";
+      if (!nonTerminal) return false;
       if (r.pendingBreakpoints !== undefined) return r.pendingBreakpoints > 0;
-      const waiting = r.status === "waiting" || r.status === "pending";
-      return waiting && r.waitingKind === "breakpoint";
+      // Fall back to the waiting-at-a-breakpoint heuristic only for older cached
+      // run shapes that predate pendingBreakpoints.
+      return r.waitingKind === "breakpoint";
     }
-    // No live orchestrator attached (run.lock pid dead). Liveness is only
-    // meaningful for in-progress runs, so terminal (completed/failed) runs
-    // are never "orphaned" even when they report driver === "orphaned".
+    // No live orchestrator attached: run.lock pid dead ("orphaned") OR no lock at
+    // all ("none"). Both render as the "orphaned" liveness chip in the UI, so the
+    // filter, badge, and run-list isOrphaned()/rank() must all include both (DC-3).
+    // Liveness is only meaningful for in-progress runs, so terminal
+    // (completed/failed) runs are never "orphaned".
     if (status === "orphaned")
-      return r.driver === "orphaned" && (r.status === "waiting" || r.status === "pending");
+      return (
+        (r.driver === "orphaned" || r.driver === "none") &&
+        (r.status === "waiting" || r.status === "pending")
+      );
     // Runs the staleness detector has flagged as inactive.
     if (status === "stale") return r.isStale === true;
     return r.status === status;

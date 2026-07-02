@@ -359,17 +359,52 @@ describe("filterByStatus", () => {
     expect(result[0].runId).toBe("bp");
   });
 
-  it("filters 'orphaned' to non-terminal runs with no live driver", () => {
+  it("filters 'orphaned' to non-terminal runs with no live driver (driver 'orphaned' OR 'none')", () => {
+    // DC-3: the canonical orphaned predicate is (driver 'orphaned' || 'none') &&
+    // non-terminal. Both driver states render as the "orphaned" chip in the UI,
+    // so a driverless ('none') waiting run must read as orphaned here too — this
+    // deliberately replaces the earlier definition that excluded 'none'.
     const runs = [
       makeRun({ runId: "orphan", status: "waiting", driver: "orphaned" }),
       makeRun({ runId: "live", status: "waiting", driver: "live" }),
       makeRun({ runId: "none", status: "waiting", driver: "none" }),
       // Terminal run with a dead driver must NOT read as orphaned.
       makeRun({ runId: "done-orphan", status: "completed", driver: "orphaned" }),
+      // Terminal run with no lock ('none') must NOT read as orphaned either.
+      makeRun({ runId: "done-none", status: "completed", driver: "none" }),
     ];
     const result = filterByStatus(runs, "orphaned");
+    expect(result).toHaveLength(2);
+    expect(result.map((r) => r.runId).sort()).toEqual(["none", "orphan"]);
+  });
+
+  it("DC-4: excludes terminal runs with residual pendingBreakpoints from 'needsyou'", () => {
+    // The non-terminal guard prevents a completed/failed run that still reports
+    // pendingBreakpoints > 0 (stale residual) from leaking into the needs-you list.
+    const runs = [
+      makeRun({ runId: "waiting-bp", status: "waiting", pendingBreakpoints: 1 }),
+      makeRun({ runId: "done-bp", status: "completed", pendingBreakpoints: 1 }),
+      makeRun({ runId: "failed-bp", status: "failed", pendingBreakpoints: 2 }),
+    ];
+    const result = filterByStatus(runs, "needsyou");
     expect(result).toHaveLength(1);
-    expect(result[0].runId).toBe("orphan");
+    expect(result[0].runId).toBe("waiting-bp");
+  });
+
+  it("waiting-badge-vs-list-mismatch: 'waiting' filter excludes stale runs", () => {
+    // The Waiting badge counts non-stale active runs (metrics.activeRuns); stale
+    // runs live under the 'stale' filter. The list must agree, so stale runs are
+    // excluded here even though they are waiting/pending.
+    const runs = [
+      makeRun({ runId: "active", status: "waiting", isStale: false }),
+      makeRun({ runId: "pending", status: "pending" }),
+      makeRun({ runId: "stale", status: "waiting", isStale: true }),
+    ];
+    const waiting = filterByStatus(runs, "waiting");
+    expect(waiting.map((r) => r.runId).sort()).toEqual(["active", "pending"]);
+    // The stale run is still reachable under the 'stale' filter (no run is lost).
+    const stale = filterByStatus(runs, "stale");
+    expect(stale.map((r) => r.runId)).toEqual(["stale"]);
   });
 
   it("filters 'stale' to runs flagged as stale", () => {
