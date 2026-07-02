@@ -18,7 +18,7 @@ export interface DashboardMetrics {
 }
 
 export type DashboardSortMode = "status" | "activity";
-export type DashboardStatusFilter = RunStatus | "all" | "stale";
+export type DashboardStatusFilter = RunStatus | "all" | "stale" | "needsyou";
 
 export interface UseRunDashboardReturn {
   // Data
@@ -129,13 +129,16 @@ export function useRunDashboard(): UseRunDashboardReturn {
       completed: metrics.completedRuns,
       failed: metrics.failedRuns,
       pending: 0,
+      // Runs paused at a breakpoint waiting for a human decision.
+      needsyou: projects.reduce((s, p) => s + (p.pendingBreakpoints ?? 0), 0),
     } as Record<DashboardStatusFilter, number>;
-  }, [metrics]);
+  }, [metrics, projects]);
 
   // Filter projects by status counts
   const filteredProjects = useMemo(() => {
     if (statusFilter === "all") return projects;
     if (statusFilter === "stale") return projects.filter((p) => p.staleRuns > 0);
+    if (statusFilter === "needsyou") return projects.filter((p) => (p.pendingBreakpoints ?? 0) > 0);
     return projects.filter((project) => {
       if (statusFilter === "waiting") return project.activeRuns > 0;
       if (statusFilter === "completed") return project.completedRuns > 0;
@@ -144,8 +147,10 @@ export function useRunDashboard(): UseRunDashboardReturn {
     });
   }, [projects, statusFilter]);
 
-  // Determine the status filter to pass to ProjectHealthCard
-  const cardStatusFilter: RunStatus | "all" = statusFilter === "stale" ? "all" : statusFilter;
+  // Determine the status filter to pass to ProjectHealthCard.
+  // "stale"/"needsyou" are cross-status views → show all runs in the matching projects.
+  const cardStatusFilter: RunStatus | "all" =
+    statusFilter === "stale" || statusFilter === "needsyou" ? "all" : statusFilter;
 
   // Split filtered projects into sections based on sort mode
   const { activeProjects, historyProjects } = useMemo(() => {

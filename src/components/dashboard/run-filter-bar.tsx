@@ -5,7 +5,8 @@ import type { DashboardSortMode, DashboardStatusFilter } from "@/hooks/use-run-d
 
 const filters: { label: string; value: DashboardStatusFilter }[] = [
   { label: "All", value: "all" },
-  { label: "Running", value: "waiting" },
+  { label: "Needs you", value: "needsyou" },
+  { label: "Waiting", value: "waiting" },
   { label: "Stale", value: "stale" },
   { label: "Completed", value: "completed" },
   { label: "Failed", value: "failed" },
