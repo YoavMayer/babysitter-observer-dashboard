@@ -114,6 +114,56 @@ describe('RunList (flat filtered list)', () => {
     ).toBeInTheDocument();
   });
 
+  it('action-hint-gated-to-breakpoints: shows the resume affordance for an orphaned non-terminal task-wait row', () => {
+    // Orphaned + waiting but NOT at a breakpoint (waitingKind: 'task'). This row
+    // still has no live driver, so it must surface the resume hint and copy-id.
+    const runs = [
+      lightRun({
+        runId: 'orphan-task-1',
+        status: 'waiting',
+        waitingKind: 'task',
+        driver: 'orphaned',
+      }),
+    ];
+    setupPolling({ runs, totalCount: 1 });
+    render(<RunList status="orphaned" />);
+
+    expect(screen.getByTestId('run-action-hint')).toBeInTheDocument();
+    expect(
+      screen.getByText('No live driver — resume to answer')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /copy run id/i })
+    ).toBeInTheDocument();
+  });
+
+  it('sort-stale-tier-unreachable: a stale run ranks in the stale tier, below active waiting runs', () => {
+    // Both are waiting with a live driver; only ranking differs. The stale run
+    // must sink below the non-stale waiting run (tier 3 vs tier 2). Input order
+    // is deliberately stale-first so the assertion proves the sort reorders.
+    const runs = [
+      lightRun({
+        runId: 'stale-run',
+        status: 'waiting',
+        driver: 'live',
+        isStale: true,
+      }),
+      lightRun({
+        runId: 'waiting-run',
+        status: 'waiting',
+        driver: 'live',
+        isStale: false,
+      }),
+    ];
+    setupPolling({ runs, totalCount: 2 });
+    render(<RunList status="waiting" />);
+
+    const hrefs = screen
+      .getAllByTestId('next-link')
+      .map((el) => el.getAttribute('href'));
+    expect(hrefs).toEqual(['/runs/waiting-run', '/runs/stale-run']);
+  });
+
   it('shows the terminal hint for a live breakpoint run', () => {
     const runs = [
       lightRun({

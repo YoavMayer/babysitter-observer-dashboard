@@ -31,6 +31,16 @@ function isOrphaned(run: LightRun): boolean {
 }
 
 /**
+ * action-hint-gated-to-breakpoints: which rows get the ActionHint (resume/answer
+ * guidance + copy-id). Breakpoint rows always do. Orphaned non-terminal rows do
+ * too — an orphaned waiting run has no live driver, so it needs a "resume"
+ * affordance even when it is not paused at a breakpoint. Terminal runs never do.
+ */
+function showsActionHint(run: LightRun): boolean {
+  return isBreakpoint(run) || (isNonTerminal(run) && isOrphaned(run));
+}
+
+/**
  * Client-side ordering (spec): needs-you → orphaned → waiting → stale → rest.
  * The server already sorts by status priority; this refines the head of the
  * list to the spec order for the flat filtered view.
@@ -38,8 +48,11 @@ function isOrphaned(run: LightRun): boolean {
 function rank(run: LightRun): number {
   if (isBreakpoint(run)) return 0;
   if (run.driver === "orphaned") return 1;
-  if (run.status === "waiting" || run.status === "pending") return 2;
+  // sort-stale-tier-unreachable: test isStale BEFORE the waiting/pending branch.
+  // Stale runs are themselves waiting/pending, so checking waiting first would
+  // always score them as tier 2 and the 'stale' tier would be unreachable.
   if (run.isStale) return 3;
+  if (run.status === "waiting" || run.status === "pending") return 2;
   return 4;
 }
 
@@ -187,7 +200,7 @@ function RunRow({ run }: { run: LightRun }) {
         {formatRelativeTime(run.updatedAt)}
       </span>
       <div className="relative z-10 ml-auto flex items-center gap-2">
-        {isBreakpoint(run) && <ActionHint run={run} />}
+        {showsActionHint(run) && <ActionHint run={run} />}
       </div>
     </div>
   );
