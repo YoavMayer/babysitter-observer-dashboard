@@ -65,6 +65,13 @@ export default defineConfig({
       OBSERVER_REGISTRY: path.resolve(__dirname, "e2e/fixtures/.observer-test.json"),
       PORT: String(testPort),
       OBSERVER_STALE_THRESHOLD_MS: "999999999999",
+      // Test isolation: serve ONLY the fixture runs, never the real ~/.a5c/runs.
+      OBSERVER_WATCH_EXCLUSIVE: "1",
+      // Pin a very large retention window so the static fixtures (which carry
+      // fixed, months-old timestamps) never age out of listProjectRuns. Without
+      // this, completed/failed fixture runs fall outside the default 30-day
+      // retention and per-project counts no longer match the fixture manifest.
+      OBSERVER_RETENTION_DAYS: "36500",
     },
   },
 });

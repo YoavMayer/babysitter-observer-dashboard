@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import path from 'path';
+import os from 'os';
 import { promises as fs } from 'fs';
 import {
   getConfig,
@@ -28,6 +29,7 @@ describe('config-loader', () => {
     delete process.env.POLL_INTERVAL;
     delete process.env.OBSERVER_DEFAULT_THEME;
     delete process.env.THEME;
+    delete process.env.OBSERVER_WATCH_EXCLUSIVE;
     invalidateConfigCache();
   });
 
@@ -156,6 +158,34 @@ describe('config-loader', () => {
       const config = await getConfig();
 
       expect(config.theme).toBe('light');
+    });
+
+    it('auto-adds the home ~/.a5c/runs dir when OBSERVER_WATCH_EXCLUSIVE is unset', async () => {
+      mockReadFile.mockRejectedValue(new Error('ENOENT'));
+      process.env.OBSERVER_WATCH_DIR = '/custom/watch/dir';
+      invalidateConfigCache();
+
+      const config = await getConfig();
+
+      const homeRuns = path.join(os.homedir(), '.a5c', 'runs');
+      expect(config.sources.some((s) => path.resolve(s.path) === path.resolve(homeRuns))).toBe(true);
+      expect(config.sources.some((s) => s.label === 'home')).toBe(true);
+    });
+
+    it('does NOT auto-add the home ~/.a5c/runs dir when OBSERVER_WATCH_EXCLUSIVE is set', async () => {
+      mockReadFile.mockRejectedValue(new Error('ENOENT'));
+      process.env.OBSERVER_WATCH_DIR = '/custom/watch/dir';
+      process.env.OBSERVER_WATCH_EXCLUSIVE = '1';
+      invalidateConfigCache();
+
+      const config = await getConfig();
+
+      const homeRuns = path.join(os.homedir(), '.a5c', 'runs');
+      expect(config.sources.some((s) => path.resolve(s.path) === path.resolve(homeRuns))).toBe(false);
+      expect(config.sources.some((s) => s.label === 'home')).toBe(false);
+      // Only the explicitly configured source remains.
+      expect(config.sources).toHaveLength(1);
+      expect(config.sources[0].path).toBe('/custom/watch/dir');
     });
 
     it('defaults theme to dark for invalid theme values', async () => {

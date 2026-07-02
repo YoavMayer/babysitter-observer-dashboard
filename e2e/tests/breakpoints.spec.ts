@@ -74,8 +74,8 @@ test.describe("Breakpoint Banner", () => {
     const banner = page.getByTestId("breakpoint-banner");
     await expect(banner).toBeVisible({ timeout: 15_000 });
 
-    // Verify it shows "Approval Needed"
-    await expect(banner).toContainText("Approval Needed");
+    // Verify it shows the current banner label ("Needs You")
+    await expect(banner).toContainText("Needs You");
 
     // Verify it shows the breakpoint question
     await expect(banner).toContainText("Approve deployment to staging?");

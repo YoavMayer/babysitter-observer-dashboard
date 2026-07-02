@@ -174,10 +174,19 @@ export async function getConfig(): Promise<ObserverConfig> {
   // Always also watch the agent-default runs dir (~/.a5c/runs). Runs are created
   // in EITHER ~/.a5c/runs (agent default) OR <project>/.a5c/runs; watching only
   // one hid the user's current work. depth:0 => treat it as a direct runs dir.
-  const rawSources: WatchSource[] = [
-    ...chosen,
-    { path: path.join(os.homedir(), ".a5c", "runs"), depth: 0, label: "home" },
-  ];
+  //
+  // Opt-out for test isolation: when OBSERVER_WATCH_EXCLUSIVE is truthy (e.g. "1"),
+  // do NOT auto-add the home runs dir — respect only the explicitly configured
+  // WATCH_DIR / WATCH_DIRS / OBSERVER_WATCH_DIR (or registry/fallback) sources.
+  // The E2E webServer sets this so the dashboard serves ONLY the fixture runs
+  // instead of leaking real ~/.a5c/runs data into count assertions.
+  const watchExclusive = !!process.env.OBSERVER_WATCH_EXCLUSIVE;
+  const rawSources: WatchSource[] = watchExclusive
+    ? [...chosen]
+    : [
+        ...chosen,
+        { path: path.join(os.homedir(), ".a5c", "runs"), depth: 0, label: "home" },
+      ];
   const seen = new Set<string>();
   const sources = rawSources.filter((s) => {
     const normalized = path.resolve(s.path);
