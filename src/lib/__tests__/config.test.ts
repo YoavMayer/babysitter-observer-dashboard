@@ -255,9 +255,9 @@ describe('config', () => {
       expect(config1).toBe(config2); // same object reference
     });
 
-    it('explicit --watch-dir / env overrides registry sources', async () => {
-      // An explicit OBSERVER_WATCH_DIR (CLI --watch-dir) must win over the
-      // persisted registry — see config-loader source precedence.
+    it('explicit --watch-dir / env merges with registry sources (QA F3)', async () => {
+      // An explicit OBSERVER_WATCH_DIR (CLI --watch-dir) is listed first but
+      // must NOT drop the persisted registry sources — see config-loader.
       mockReadFile.mockResolvedValue(
         JSON.stringify({
           sources: [{ path: '/registry/path', depth: 1 }],
@@ -268,8 +268,10 @@ describe('config', () => {
 
       const config = await getConfig();
 
-      expect(config.sources.filter((s) => s.label !== 'home')).toHaveLength(1);
-      expect(config.sources[0].path).toBe('/env/path');
+      const nonHome = config.sources.filter((s) => s.label !== 'home');
+      expect(nonHome).toHaveLength(2);
+      expect(nonHome[0].path).toBe('/env/path');
+      expect(nonHome[1].path).toBe('/registry/path');
     });
 
     it('falls back to defaults when registry has empty sources array', async () => {

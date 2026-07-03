@@ -160,27 +160,46 @@ export async function getConfig(): Promise<ObserverConfig> {
   const registry = await loadRegistry();
   const explicitEnvSources = getExplicitEnvSources();
 
-  // Precedence: an explicit --watch-dir / WATCH_DIR(S) at invocation time wins over
-  // the persisted registry, which in turn wins over the parent-of-cwd fallback.
-  // (Previously a non-empty registry silently overrode an explicit --watch-dir.)
-  // Deduplicate sources by normalized path to prevent duplicate discovery.
-  const chosen =
-    explicitEnvSources.length > 0
-      ? explicitEnvSources
-      : registry.sources.length > 0
-        ? registry.sources
-        : getFallbackSources();
+  // Isolation escape hatch: when OBSERVER_WATCH_EXCLUSIVE is truthy (e.g. "1"),
+  // respect ONLY the explicitly configured WATCH_DIR / WATCH_DIRS /
+  // OBSERVER_WATCH_DIR sources (or registry/fallback when none) — no registry
+  // merge and no auto-added home runs dir. The E2E webServer sets this so the
+  // dashboard serves ONLY the fixture runs instead of leaking real ~/.a5c/runs
+  // data into count assertions.
+  const watchExclusive = !!process.env.OBSERVER_WATCH_EXCLUSIVE;
+
+  let chosen: WatchSource[];
+  if (watchExclusive) {
+    chosen =
+      explicitEnvSources.length > 0
+        ? explicitEnvSources
+        : registry.sources.length > 0
+          ? registry.sources
+          : getFallbackSources();
+  } else {
+    // QA F3: an explicit --watch-dir / WATCH_DIR(S) used to REPLACE the
+    // persisted registry, so every CLI restart with --watch-dir silently
+    // dropped the sources added via Settings (~/.a5c/observer.json). Explicit
+    // flag/env sources now MERGE with registry sources (explicit first;
+    // deduplicated by normalized path below). Parent-of-cwd remains a
+    // last-resort fallback only when neither supplies anything.
+    chosen = [...explicitEnvSources, ...registry.sources];
+    if (explicitEnvSources.length > 0 && registry.sources.length > 0) {
+      console.log(
+        `[config] merging explicit watch source(s) [${explicitEnvSources
+          .map((s) => s.path)
+          .join(", ")}] with registry source(s) [${registry.sources
+          .map((s) => s.path)
+          .join(", ")}]`
+      );
+    }
+    if (chosen.length === 0) chosen = getFallbackSources();
+  }
 
   // Always also watch the agent-default runs dir (~/.a5c/runs). Runs are created
   // in EITHER ~/.a5c/runs (agent default) OR <project>/.a5c/runs; watching only
   // one hid the user's current work. depth:0 => treat it as a direct runs dir.
-  //
-  // Opt-out for test isolation: when OBSERVER_WATCH_EXCLUSIVE is truthy (e.g. "1"),
-  // do NOT auto-add the home runs dir — respect only the explicitly configured
-  // WATCH_DIR / WATCH_DIRS / OBSERVER_WATCH_DIR (or registry/fallback) sources.
-  // The E2E webServer sets this so the dashboard serves ONLY the fixture runs
-  // instead of leaking real ~/.a5c/runs data into count assertions.
-  const watchExclusive = !!process.env.OBSERVER_WATCH_EXCLUSIVE;
+  // (Skipped under OBSERVER_WATCH_EXCLUSIVE — see above.)
   const rawSources: WatchSource[] = watchExclusive
     ? [...chosen]
     : [

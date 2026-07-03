@@ -91,8 +91,9 @@ describe('config-loader', () => {
       expect(config.sources[0].label).toBe('cli');
     });
 
-    it('explicit OBSERVER_WATCH_DIR overrides a non-empty registry', async () => {
-      // Registry lists sources, but an explicit --watch-dir must still win.
+    it('explicit OBSERVER_WATCH_DIR MERGES with a non-empty registry (QA F3)', async () => {
+      // Starting with --watch-dir must NOT drop the Settings-persisted
+      // registry sources: they merge (explicit first), deduped by path.
       mockReadFile.mockResolvedValue(
         JSON.stringify({
           sources: [{ path: '/registered/path', depth: 3, label: 'registry' }],
@@ -103,9 +104,68 @@ describe('config-loader', () => {
 
       const config = await getConfig();
 
-      expect(config.sources.filter((s) => s.label !== 'home')).toHaveLength(1);
-      expect(config.sources[0].path).toBe('/explicit/watch/dir');
-      expect(config.sources[0].label).toBe('cli');
+      const nonHome = config.sources.filter((s) => s.label !== 'home');
+      expect(nonHome).toHaveLength(2);
+      expect(nonHome[0].path).toBe('/explicit/watch/dir');
+      expect(nonHome[0].label).toBe('cli');
+      expect(nonHome[1].path).toBe('/registered/path');
+      expect(nonHome[1].label).toBe('registry');
+    });
+
+    it('Settings-persisted sources survive a start with --watch-dir (QA F3)', async () => {
+      // Live regression: ~/.a5c/observer.json held a second Settings-added
+      // source; starting the CLI with --watch-dir X made it vanish.
+      mockReadFile.mockResolvedValue(
+        JSON.stringify({
+          sources: [
+            { path: '/home/user/projects', depth: 2, label: 'settings-added' },
+            { path: '/home/user/.a5c/runs', depth: 0, label: 'home' },
+          ],
+        }),
+      );
+      process.env.OBSERVER_WATCH_DIR = '/current/project';
+      invalidateConfigCache();
+
+      const config = await getConfig();
+
+      expect(config.sources.some((s) => s.path === '/home/user/projects')).toBe(true);
+      expect(config.sources.some((s) => s.path === '/current/project')).toBe(true);
+    });
+
+    it('deduplicates by path when --watch-dir repeats a registry source', async () => {
+      mockReadFile.mockResolvedValue(
+        JSON.stringify({
+          sources: [{ path: '/same/path', depth: 2, label: 'registry' }],
+        }),
+      );
+      process.env.OBSERVER_WATCH_DIR = '/same/path';
+      invalidateConfigCache();
+
+      const config = await getConfig();
+
+      const matches = config.sources.filter(
+        (s) => path.resolve(s.path) === path.resolve('/same/path'),
+      );
+      expect(matches).toHaveLength(1);
+      // Explicit CLI intent wins the dedupe (listed first).
+      expect(matches[0].label).toBe('cli');
+    });
+
+    it('OBSERVER_WATCH_EXCLUSIVE keeps explicit sources exclusive — registry is NOT merged', async () => {
+      // The e2e isolation escape hatch: fixture-only sources, no leakage.
+      mockReadFile.mockResolvedValue(
+        JSON.stringify({
+          sources: [{ path: '/registered/path', depth: 3, label: 'registry' }],
+        }),
+      );
+      process.env.OBSERVER_WATCH_DIR = '/fixtures/only';
+      process.env.OBSERVER_WATCH_EXCLUSIVE = '1';
+      invalidateConfigCache();
+
+      const config = await getConfig();
+
+      expect(config.sources).toHaveLength(1);
+      expect(config.sources[0].path).toBe('/fixtures/only');
     });
 
     it('reads sources from registry file', async () => {
