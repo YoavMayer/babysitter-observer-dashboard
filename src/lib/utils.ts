@@ -9,7 +9,11 @@ export function formatDuration(ms: number | undefined | null): string {
   if (minutes < 60) return `${minutes}m ${remainingSeconds}s`;
   const hours = Math.floor(minutes / 60);
   const remainingMinutes = minutes % 60;
-  return `${hours}h ${remainingMinutes}m`;
+  if (hours < 48) return `${hours}h ${remainingMinutes}m`;
+  // QA F7: "388h 25m" is unreadable — past 48h, days carry the meaning.
+  const days = Math.floor(hours / 24);
+  const remainingHours = hours % 24;
+  return `${days}d ${remainingHours}h`;
 }
 
 export function formatTimestamp(iso: string | undefined): string {

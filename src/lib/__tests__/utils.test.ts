@@ -41,6 +41,15 @@ describe('formatDuration', () => {
     expect(formatDuration(3600000)).toBe('1h 0m');
     expect(formatDuration(7260000)).toBe('2h 1m');
   });
+
+  it('formats ages >=48h in days (QA F7)', () => {
+    // Just under the threshold stays in hours.
+    expect(formatDuration(47 * 3600000 + 59 * 60000)).toBe('47h 59m');
+    // At the threshold, switch to days.
+    expect(formatDuration(48 * 3600000)).toBe('2d 0h');
+    // The QA F7 example: 388h 25m → 16d 4h.
+    expect(formatDuration((388 * 3600 + 25 * 60) * 1000)).toBe('16d 4h');
+  });
 });
 
 describe('formatTimestamp', () => {
