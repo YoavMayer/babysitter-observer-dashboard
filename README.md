@@ -379,6 +379,18 @@ npx playwright show-report
 
 The Playwright configuration (`playwright.config.ts`) automatically starts a dev server pointed at `e2e/fixtures/runs/` so tests run against deterministic data.
 
+#### Hosts where Playwright's bundled Chromium can't install
+
+On some hosts `npx playwright install` fails with an error like `Playwright does not support chromium on <platform>` (seen e.g. on ubuntu26.04-x64 before Playwright ships builds for it). You can still run the e2e suite with a browser you already have — both options are supported out of the box by `playwright.config.ts`:
+
+```bash
+# Use the system-installed Google Chrome (recommended)
+PLAYWRIGHT_CHROME_CHANNEL=chrome npx playwright test
+
+# Or point at an explicit Chromium/Chrome binary
+OBSERVER_CHROMIUM_PATH=/usr/bin/chromium npx playwright test
+```
+
 ## Troubleshooting
 
 ### Port already in use
