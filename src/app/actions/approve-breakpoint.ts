@@ -5,6 +5,7 @@ import path from "path";
 import crypto from "crypto";
 import { monotonicFactory } from "ulid";
 import { findRunDir } from "@/lib/path-resolver";
+import { getVersionInfo } from "@/lib/version-info";
 
 export interface ApproveBreakpointResult {
   success: boolean;
@@ -49,6 +50,13 @@ async function appendJournalEntry(
   const ulid = nextUlid();
   const filename = `${seq.toString().padStart(6, "0")}.${ulid}.json`;
 
+  // SDK-native entries carry a top-level `sdkVersion` (after `data`, before
+  // `checksum`) with the installed babysitter version. Reuse the detection in
+  // version-info (cached `babysitter --version`); omit the field rather than
+  // forge a value when detection fails ("N/A"/non-semver).
+  const detected = getVersionInfo().babysitter;
+  const sdkVersion = /^\d+\.\d+\.\d+/.test(detected) ? detected : undefined;
+
   const eventPayload = {
     type: "EFFECT_RESOLVED",
     recordedAt: now,
@@ -59,6 +67,9 @@ async function appendJournalEntry(
       startedAt: now,
       finishedAt: now,
     },
+    // Key order matters only for human diffing, not the checksum — but keep
+    // it identical to SDK-written entries: type, recordedAt, data, sdkVersion.
+    ...(sdkVersion !== undefined ? { sdkVersion } : {}),
   };
 
   const contents = JSON.stringify(eventPayload, null, 2) + "\n";

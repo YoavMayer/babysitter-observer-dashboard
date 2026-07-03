@@ -1,17 +1,23 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Create hoisted mock functions
-const { mockAccess, mockWriteFile, mockMkdir, mockReaddir, mockFindRunDir } = vi.hoisted(() => ({
+const { mockAccess, mockWriteFile, mockMkdir, mockReaddir, mockFindRunDir, mockGetVersionInfo } = vi.hoisted(() => ({
   mockAccess: vi.fn(),
   mockWriteFile: vi.fn(),
   mockMkdir: vi.fn(),
   mockReaddir: vi.fn(),
   mockFindRunDir: vi.fn(),
+  mockGetVersionInfo: vi.fn(),
 }));
 
 // Mock path-resolver
 vi.mock("@/lib/path-resolver", () => ({
   findRunDir: mockFindRunDir,
+}));
+
+// Mock version-info so tests never shell out to `babysitter --version`
+vi.mock("@/lib/version-info", () => ({
+  getVersionInfo: mockGetVersionInfo,
 }));
 
 // Mock fs with a complete replacement that includes default export
@@ -44,6 +50,8 @@ describe("approveBreakpoint", () => {
     // Default: journal dir has some existing entries
     mockMkdir.mockResolvedValue(undefined);
     mockReaddir.mockResolvedValue(["000001.01ABC.json", "000002.01DEF.json"]);
+    // Default: CLI version detection succeeds
+    mockGetVersionInfo.mockReturnValue({ app: "0.12.3", babysitter: "6.0.2" });
   });
 
   // -------------------------------------------------------------------------
@@ -158,9 +166,41 @@ describe("approveBreakpoint", () => {
     expect(journalParsed.data.effectId).toBe("eff-001");
     expect(journalParsed.data.status).toBe("ok");
     expect(journalParsed.data.resultRef).toBe("tasks/eff-001/result.json");
+    // SDK-native entries carry the installed SDK/CLI version at the top level.
+    expect(journalParsed.sdkVersion).toBe("6.0.2");
     expect(journalParsed.checksum).toBeDefined();
     expect(typeof journalParsed.checksum).toBe("string");
     expect(journalParsed.checksum.length).toBe(64); // SHA-256 hex
+
+    // Key order matches SDK-written entries: type, recordedAt, data, sdkVersion, checksum.
+    expect(Object.keys(journalParsed)).toEqual([
+      "type",
+      "recordedAt",
+      "data",
+      "sdkVersion",
+      "checksum",
+    ]);
+  });
+
+  it("omits sdkVersion when CLI version detection fails", async () => {
+    mockGetVersionInfo.mockReturnValue({ app: "0.12.3", babysitter: "N/A" });
+    mockFindRunDir.mockResolvedValue({
+      runDir: "/projects/app/.a5c/runs/run-001",
+      source: defaultSource,
+      projectName: "app",
+      projectPath: "/projects/app",
+    });
+    mockAccess.mockResolvedValue(undefined);
+    mockWriteFile.mockResolvedValue(undefined);
+
+    const result = await approveBreakpoint("run-001", "eff-001", "yes");
+    expect(result.success).toBe(true);
+
+    const [, journalContent] = mockWriteFile.mock.calls[1];
+    const journalParsed = JSON.parse(journalContent as string);
+    // Never forge a version we didn't detect.
+    expect("sdkVersion" in journalParsed).toBe(false);
+    expect(journalParsed.type).toBe("EFFECT_RESOLVED");
   });
 
   it("journal checksum is valid SHA-256 of payload without checksum", async () => {
