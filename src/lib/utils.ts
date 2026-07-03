@@ -88,9 +88,21 @@ export function getStatusBg(status: string): string {
   }
 }
 
+// Opaque machine-generated ids where any fragment is as good as any other:
+// ULID (26-char Crockford base32), UUID, or a long hex hash.
+const ULID_RE = /^[0-9A-HJKMNP-TV-Z]{26}$/i;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const HEX_RE = /^[0-9a-f]{16,}$/i;
+
 export function formatShortId(id: string, chars: number = 4): string {
   if (!id) return '—';
   if (id.length <= chars) return id;
+  // Human-named ids (e.g. a run dir called "my-migration"): the head carries
+  // the meaning — "...tion" would be useless. Show the name, head-truncated
+  // only when genuinely long (QA F9 tail).
+  if (!ULID_RE.test(id) && !UUID_RE.test(id) && !HEX_RE.test(id)) {
+    return id.length <= 20 ? id : truncateId(id, 17);
+  }
   return '...' + id.slice(-chars);
 }
 

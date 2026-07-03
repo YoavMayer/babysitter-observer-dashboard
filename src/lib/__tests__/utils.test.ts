@@ -135,9 +135,21 @@ describe('formatShortId', () => {
     expect(formatShortId('abcd')).toBe('abcd');
   });
 
-  it('shows last N chars with leading ellipsis', () => {
-    expect(formatShortId('abcdefgh')).toBe('...efgh');
-    expect(formatShortId('abcdefgh', 6)).toBe('...cdefgh');
+  it('shows last N chars with leading ellipsis for machine ids', () => {
+    // ULID → any fragment is as good as any other, tail wins.
+    expect(formatShortId('01KVAEXP3ERB4KX9G031GS4YE0')).toBe('...4YE0');
+    expect(formatShortId('01KVAEXP3ERB4KX9G031GS4YE0', 6)).toBe('...GS4YE0');
+    // UUID and long hex hashes are equally opaque.
+    expect(formatShortId('550e8400-e29b-41d4-a716-446655440000')).toBe('...0000');
+    expect(formatShortId('dc57c0b0317c423c09d38028fb2fbbba')).toBe('...bbba');
+  });
+
+  it('keeps human-named ids readable instead of tail fragments (QA F9)', () => {
+    // "...-org" told the user nothing; the dir name is the meaning.
+    expect(formatShortId('ai-org')).toBe('ai-org');
+    expect(formatShortId('podcast-notes')).toBe('podcast-notes');
+    // Genuinely long human names head-truncate, preserving the head.
+    expect(formatShortId('a-very-long-human-readable-run-name')).toBe('a-very-long-human...');
   });
 });
 

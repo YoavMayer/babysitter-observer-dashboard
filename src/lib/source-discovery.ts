@@ -127,6 +127,11 @@ export async function discoverAllRunDirs(): Promise<DiscoveredRun[]> {
         const entries = await fs.readdir(source.path, { withFileTypes: true });
         for (const entry of entries) {
           if (entry.isDirectory()) {
+            // Same guard as the depth>0 branch (QA F9): direct runs dirs also
+            // accumulate stray note/report folders (e.g. a dir of .md files).
+            // Without this they resolve via findRunDir and render a fully
+            // fabricated "Unknown / Pending / 0 tasks" run page.
+            if (!(await isRunDir(path.join(source.path, entry.name)))) continue;
             // Try to read projectName from run.json for more accurate project grouping
             let projectName = fallbackProjectName;
             try {
