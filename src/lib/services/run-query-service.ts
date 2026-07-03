@@ -225,13 +225,20 @@ export class RunQueryService {
     const config = await this.deps.getConfig();
     const projects = this.deps.getProjectSummaries();
 
-    // Filter out hidden projects
+    // QA F4: hiddenProjects must not silently swallow needs-you. Hiding is a
+    // GRID concern only, so instead of dropping hidden projects here (which
+    // made the banner/needs-you counts miss their pending breakpoints), we
+    // annotate them with hidden:true and let the dashboard exclude them from
+    // the grid while keeping them on the alarm surface. Search (/api/runs)
+    // never filtered by hiddenProjects — that stays: search sees everything.
     const hiddenSet = new Set(config.hiddenProjects);
-    const visibleProjects = projects.filter((p) => !hiddenSet.has(p.projectName));
+    const annotatedProjects = projects.map((p) =>
+      hiddenSet.has(p.projectName) ? { ...p, hidden: true } : p
+    );
 
     // Apply retention filter: exclude projects whose latest update is older than retentionDays
     const retentionCutoff = Date.now() - config.retentionDays * 24 * 60 * 60 * 1000;
-    const retainedProjects = visibleProjects.filter(
+    const retainedProjects = annotatedProjects.filter(
       (p) =>
         // Always keep projects with active or stale runs regardless of age
         p.activeRuns > 0 ||

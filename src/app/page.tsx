@@ -24,6 +24,7 @@ export default function DashboardPage() {
     filteredProjects,
     activeProjects,
     historyProjects,
+    hiddenProjectCount,
     statusFilter,
     sortMode,
     historyCollapsed,
@@ -104,6 +105,7 @@ export default function DashboardPage() {
           sortMode={sortMode}
           onSortModeToggle={() => setSortMode((prev) => prev === "status" ? "activity" : "status")}
           filteredProjectCount={filteredProjects.length}
+          hiddenProjectCount={hiddenProjectCount}
         />
 
         {/* Content: project grid for "all", flat filtered run list otherwise */}

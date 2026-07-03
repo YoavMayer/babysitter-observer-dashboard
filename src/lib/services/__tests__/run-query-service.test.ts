@@ -530,19 +530,25 @@ describe("RunQueryService", () => {
       expect(result.recentCompletionWindowMs).toBe(14400000);
     });
 
-    it("filters out hidden projects", async () => {
+    it("annotates hidden projects with hidden:true instead of dropping them (QA F4)", async () => {
       (deps.getConfig as ReturnType<typeof vi.fn>).mockResolvedValue(
         makeConfig({ hiddenProjects: ["secret"] })
       );
       (deps.getProjectSummaries as ReturnType<typeof vi.fn>).mockReturnValue([
-        makeSummary({ projectName: "visible" }),
-        makeSummary({ projectName: "secret" }),
+        makeSummary({ projectName: "visible", pendingBreakpoints: 0 }),
+        makeSummary({ projectName: "secret", pendingBreakpoints: 1 }),
       ]);
 
       const result = await service.listProjects();
 
-      expect(result.projects).toHaveLength(1);
-      expect(result.projects[0].projectName).toBe("visible");
+      // Both projects are returned: hiding is a grid concern; the alarm
+      // surface (needs-you banner/counts) must still see "secret"'s breakpoint.
+      expect(result.projects).toHaveLength(2);
+      const visible = result.projects.find((p) => p.projectName === "visible");
+      const hidden = result.projects.find((p) => p.projectName === "secret");
+      expect(visible?.hidden).toBeUndefined();
+      expect(hidden?.hidden).toBe(true);
+      expect(hidden?.pendingBreakpoints).toBe(1);
     });
 
     it("applies retention filter on projects", async () => {

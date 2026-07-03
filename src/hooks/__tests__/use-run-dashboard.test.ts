@@ -206,4 +206,73 @@ describe('useRunDashboard', () => {
     // fingerprint format: failedRuns-staleRuns-pendingBreakpoints
     expect(result.current.bannerFingerprint).toBe('2-1-0');
   });
+
+  // QA F4: hiddenProjects must not silently swallow needs-you. Hiding affects
+  // the project grid only — the alarm surface (banner + needs-you counts)
+  // still includes hidden projects.
+  describe('hidden projects (QA F4)', () => {
+    const hiddenBp = {
+      runId: 'run-hidden-1',
+      effectId: 'eff-1',
+      projectName: 'wc26-pool',
+      processId: 'proc-1',
+      breakpointQuestion: 'Deploy?',
+    };
+
+    beforeEach(() => {
+      mockedUseProjects.mockReturnValue({
+        projects: [
+          createMockProjectSummary({ projectName: 'visible-a', pendingBreakpoints: 2 }),
+          createMockProjectSummary({ projectName: 'visible-b', pendingBreakpoints: 1 }),
+          createMockProjectSummary({
+            projectName: 'wc26-pool',
+            hidden: true,
+            pendingBreakpoints: 1,
+            breakpointRuns: [hiddenBp],
+            totalRuns: 4,
+          }),
+        ],
+        recentCompletionWindowMs: 14400000,
+        loading: false,
+        error: undefined,
+        refresh: mockRefresh,
+      });
+    });
+
+    it('includes hidden projects in the breakpoint banner list', () => {
+      const { result } = renderHook(() => useRunDashboard());
+      expect(result.current.allBreakpointRuns).toContainEqual(hiddenBp);
+    });
+
+    it('includes hidden projects in the needs-you count (banner says truth: 4, not 3)', () => {
+      const { result } = renderHook(() => useRunDashboard());
+      expect(result.current.filterCounts.needsyou).toBe(4);
+      expect(result.current.summaryMetrics.pendingBreakpoints).toBe(4);
+    });
+
+    it('excludes hidden projects from the grid and grid metrics', () => {
+      const { result } = renderHook(() => useRunDashboard());
+      // statusFilter defaults to "all" → grid view
+      expect(result.current.filteredProjects.map((p) => p.projectName)).toEqual([
+        'visible-a',
+        'visible-b',
+      ]);
+      // KPI totals only cover visible projects (default fixture totalRuns=10)
+      expect(result.current.metrics.totalRuns).toBe(20);
+      expect(result.current.summaryMetrics.totalProjects).toBe(2);
+    });
+
+    it('surfaces hidden projects under the needs-you filter so count === list', () => {
+      const { result } = renderHook(() => useRunDashboard());
+      act(() => {
+        result.current.setStatusFilter('needsyou');
+      });
+      expect(result.current.filteredProjects.map((p) => p.projectName)).toContain('wc26-pool');
+    });
+
+    it('exposes hiddenProjectCount for the "N hidden" indicator', () => {
+      const { result } = renderHook(() => useRunDashboard());
+      expect(result.current.hiddenProjectCount).toBe(1);
+    });
+  });
 });

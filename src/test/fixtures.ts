@@ -216,6 +216,8 @@ export interface CreateMockProjectSummaryOptions {
   latestUpdate?: string;
   pendingBreakpoints?: number;
   orphanedRuns?: number;
+  breakpointRuns?: ProjectSummary['breakpointRuns'];
+  hidden?: boolean;
 }
 
 export function createMockProjectSummary(
@@ -233,7 +235,8 @@ export function createMockProjectSummary(
     latestUpdate: overrides.latestUpdate ?? isoNow(),
     pendingBreakpoints: overrides.pendingBreakpoints ?? 0,
     orphanedRuns: overrides.orphanedRuns ?? 0,
-    breakpointRuns: [],
+    breakpointRuns: overrides.breakpointRuns ?? [],
+    ...(overrides.hidden !== undefined ? { hidden: overrides.hidden } : {}),
   };
 }
 

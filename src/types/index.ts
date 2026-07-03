@@ -190,6 +190,12 @@ export interface ProjectSummary {
   /** Non-terminal runs (waiting/pending) whose orchestrator is not attached. */
   orphanedRuns: number;
   breakpointRuns: BreakpointRunInfo[];
+  /**
+   * True when the project is in the registry's hiddenProjects list. Hiding
+   * only removes the project from the GRID — alarm surfaces (needs-you
+   * banner/counts) and search still include it (QA F4).
+   */
+  hidden?: boolean;
 }
 
 // Session info

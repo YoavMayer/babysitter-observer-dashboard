@@ -34,6 +34,8 @@ export interface UseRunDashboardReturn {
   filteredProjects: ProjectSummary[];
   activeProjects: ProjectSummary[];
   historyProjects: ProjectSummary[];
+  /** Number of registry-hidden projects (grid-hidden, still on the alarm surface). */
+  hiddenProjectCount: number;
 
   // State
   statusFilter: DashboardStatusFilter;
@@ -90,32 +92,45 @@ export function useRunDashboard(): UseRunDashboardReturn {
     refresh();
   }, [refresh]);
 
-  // Aggregate metrics across all projects
-  const metrics = useMemo<DashboardMetrics>(() => {
-    const totalRuns = projects.reduce((s, p) => s + p.totalRuns, 0);
-    const activeRuns = projects.reduce((s, p) => s + p.activeRuns, 0);
-    const completedRuns = projects.reduce((s, p) => s + p.completedRuns, 0);
-    const failedRuns = projects.reduce((s, p) => s + p.failedRuns, 0);
-    const staleRuns = projects.reduce((s, p) => s + p.staleRuns, 0);
-    const totalTasks = projects.reduce((s, p) => s + p.totalTasks, 0);
-    const completedTasks = projects.reduce((s, p) => s + p.completedTasksAggregate, 0);
-    return { totalRuns, activeRuns, completedRuns, failedRuns, staleRuns, totalTasks, completedTasks };
-  }, [projects]);
+  // QA F4: /api/runs?mode=projects now returns hidden projects annotated with
+  // hidden:true instead of dropping them. Hiding affects the project GRID only;
+  // the alarm surface (needs-you banner + needs-you counts) must still see
+  // hidden projects, or a hidden project with a pending breakpoint silently
+  // disappears from "needs you" while search still finds its runs.
+  const visibleProjects = useMemo(
+    () => projects.filter((p) => !p.hidden),
+    [projects]
+  );
+  const hiddenProjectCount = projects.length - visibleProjects.length;
 
-  // Collect all breakpoint runs across all projects
+  // Aggregate metrics across visible projects (grid-level KPIs).
+  const metrics = useMemo<DashboardMetrics>(() => {
+    const totalRuns = visibleProjects.reduce((s, p) => s + p.totalRuns, 0);
+    const activeRuns = visibleProjects.reduce((s, p) => s + p.activeRuns, 0);
+    const completedRuns = visibleProjects.reduce((s, p) => s + p.completedRuns, 0);
+    const failedRuns = visibleProjects.reduce((s, p) => s + p.failedRuns, 0);
+    const staleRuns = visibleProjects.reduce((s, p) => s + p.staleRuns, 0);
+    const totalTasks = visibleProjects.reduce((s, p) => s + p.totalTasks, 0);
+    const completedTasks = visibleProjects.reduce((s, p) => s + p.completedTasksAggregate, 0);
+    return { totalRuns, activeRuns, completedRuns, failedRuns, staleRuns, totalTasks, completedTasks };
+  }, [visibleProjects]);
+
+  // Collect all breakpoint runs across ALL projects — including hidden ones.
+  // The needs-you banner is an alarm surface, not a grid view (QA F4).
   const allBreakpointRuns = useMemo<BreakpointRunInfo[]>(() => {
     return projects.flatMap((p) => p.breakpointRuns ?? []);
   }, [projects]);
 
-  // Executive summary metrics for the banner
+  // Executive summary metrics for the banner. pendingBreakpoints intentionally
+  // sums over ALL projects (hidden included) — see the alarm-surface note above.
   const summaryMetrics = useMemo<ExecutiveSummaryMetrics>(() => ({
-    totalProjects: projects.length,
+    totalProjects: visibleProjects.length,
     activeRuns: metrics.activeRuns,
     failedRuns: metrics.failedRuns,
     completedRuns: metrics.completedRuns,
     staleRuns: metrics.staleRuns,
     pendingBreakpoints: projects.reduce((s, p) => s + p.pendingBreakpoints, 0),
-  }), [projects, metrics]);
+  }), [projects, visibleProjects, metrics]);
 
   // Fingerprint for banner dismiss
   const bannerFingerprint = `${summaryMetrics.failedRuns}-${summaryMetrics.staleRuns}-${summaryMetrics.pendingBreakpoints}`;
@@ -129,30 +144,34 @@ export function useRunDashboard(): UseRunDashboardReturn {
       completed: metrics.completedRuns,
       failed: metrics.failedRuns,
       pending: 0,
-      // Runs paused at a breakpoint waiting for a human decision.
+      // Runs paused at a breakpoint waiting for a human decision. Sums over
+      // ALL projects (hidden included): the badge must equal the flat
+      // needs-you LIST length, and /api/runs never filters hiddenProjects.
       needsyou: projects.reduce((s, p) => s + (p.pendingBreakpoints ?? 0), 0),
       // Non-terminal runs whose orchestrator is no longer attached. Uses the
       // per-project orphanedRuns aggregate so the badge equals the flat orphaned
       // LIST length (filterByStatus "orphaned"), including task-wait orphans that
       // breakpointRuns would miss.
-      orphaned: projects.reduce((s, p) => s + (p.orphanedRuns ?? 0), 0),
+      orphaned: visibleProjects.reduce((s, p) => s + (p.orphanedRuns ?? 0), 0),
     } as Record<DashboardStatusFilter, number>;
-  }, [metrics, projects]);
+  }, [metrics, projects, visibleProjects]);
 
-  // Filter projects by status counts
+  // Filter projects by status counts. The grid excludes hidden projects,
+  // EXCEPT under the "needsyou" alarm filter where a hidden project with a
+  // pending breakpoint must still surface (count === grid === flat list).
   const filteredProjects = useMemo(() => {
-    if (statusFilter === "all") return projects;
-    if (statusFilter === "stale") return projects.filter((p) => p.staleRuns > 0);
+    if (statusFilter === "all") return visibleProjects;
+    if (statusFilter === "stale") return visibleProjects.filter((p) => p.staleRuns > 0);
     if (statusFilter === "needsyou") return projects.filter((p) => (p.pendingBreakpoints ?? 0) > 0);
     if (statusFilter === "orphaned")
-      return projects.filter((p) => (p.orphanedRuns ?? 0) > 0);
-    return projects.filter((project) => {
+      return visibleProjects.filter((p) => (p.orphanedRuns ?? 0) > 0);
+    return visibleProjects.filter((project) => {
       if (statusFilter === "waiting") return project.activeRuns > 0;
       if (statusFilter === "completed") return project.completedRuns > 0;
       if (statusFilter === "failed") return project.failedRuns > 0;
       return false;
     });
-  }, [projects, statusFilter]);
+  }, [projects, visibleProjects, statusFilter]);
 
   // Determine the status filter to pass to ProjectHealthCard.
   // "stale"/"needsyou"/"orphaned" are cross-status views → show all runs in the matching projects.
@@ -205,6 +224,7 @@ export function useRunDashboard(): UseRunDashboardReturn {
     filteredProjects,
     activeProjects,
     historyProjects,
+    hiddenProjectCount,
     statusFilter,
     sortMode,
     historyCollapsed,

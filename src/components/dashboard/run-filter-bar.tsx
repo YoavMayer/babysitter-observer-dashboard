@@ -1,5 +1,5 @@
 "use client";
-import { ArrowUpDown, Clock } from "lucide-react";
+import { ArrowUpDown, Clock, EyeOff } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { DashboardSortMode, DashboardStatusFilter } from "@/hooks/use-run-dashboard";
 
@@ -20,6 +20,8 @@ export interface RunFilterBarProps {
   sortMode: DashboardSortMode;
   onSortModeToggle: () => void;
   filteredProjectCount: number;
+  /** Registry-hidden project count — shown as a reveal indicator (QA F4). */
+  hiddenProjectCount?: number;
 }
 
 export function RunFilterBar({
@@ -29,6 +31,7 @@ export function RunFilterBar({
   sortMode,
   onSortModeToggle,
   filteredProjectCount,
+  hiddenProjectCount = 0,
 }: RunFilterBarProps) {
   return (
     <div className="mb-5">
@@ -68,6 +71,20 @@ export function RunFilterBar({
             </button>
           );
         })}
+        {/* QA F4: hidden projects are dropped from the grid but NOT from the
+            needs-you alarm surface — make the hiding visible and reversible.
+            Opens Settings (manage hidden projects) via the open-settings event. */}
+        {hiddenProjectCount > 0 && (
+          <button
+            data-testid="hidden-projects-indicator"
+            onClick={() => window.dispatchEvent(new CustomEvent("open-settings"))}
+            title={`${hiddenProjectCount} project${hiddenProjectCount !== 1 ? "s" : ""} hidden from the grid (needs-you alerts still shown). Click to manage in Settings.`}
+            className="ml-1 rounded-md px-2.5 py-1.5 min-h-[44px] text-xs font-medium inline-flex items-center gap-1.5 text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary transition-all"
+          >
+            <EyeOff className="h-3 w-3" aria-hidden="true" focusable="false" />
+            {hiddenProjectCount} hidden
+          </button>
+        )}
         {/* Sort toggle + Project count */}
         <div className="ml-auto flex items-center gap-2">
           <button
