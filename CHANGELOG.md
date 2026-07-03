@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.13.0] - 2026-07-03
+### Added
+- **Flat filtered run list** — clicking a status pill now shows a flat, cross-project list of the matching runs (instead of only filtering the project grid), with per-run action hints and stale-first triage ordering so the oldest stuck work surfaces on top
+- **"Needs you" and "Orphaned" filters** — new status pills to isolate runs waiting on a human decision and runs whose orchestrator process is gone
+- **Orchestrator liveness detection** — the observer reads `run.lock` + a pid liveness probe to tell an actively-driven run from an abandoned one, shown as a per-run chip (live / orphaned / none); read-only, it never touches the process
+- **"N hidden" indicator** — when projects are hidden via Settings, a chip next to the filter pills shows how many are hidden and opens Settings to manage them
+
+### Fixed
+- **Honest "Waiting" label** — runs blocked on a breakpoint were labeled "Running"; the pill and its counts now say "Waiting" and mean it
+- **Hidden projects no longer swallow "needs you"** — hiding a project silently dropped its pending approvals from the needs-you banner and counts; hiding now affects the project grid and KPIs only, never the alarm surface (banner, needs-you count/filter, and search still include hidden projects)
+- **Badge/count reconciliation** — the needs-you / orphaned / waiting badges and the in-progress header count now use the same predicates as the lists they open (no more "badge says 8, list shows 14")
+- **`--watch-dir` merges with saved sources** — since 0.12.4 an explicit `--watch-dir` / `WATCH_DIR(S)` replaced the sources persisted via Settings (`~/.a5c/observer.json`), silently dropping them on every restart; explicit sources now merge with the registry (deduped by path; `OBSERVER_WATCH_EXCLUSIVE=1` keeps explicit-only for test isolation). `~/.a5c/runs` (the agent-default run location) is always watched as well
+- **Version display shows the real CLI version** — `/api/version` cached the babysitter CLI version once per server process, so a long-lived dashboard kept reporting the version detected at first request; it now re-detects with a 5-minute TTL plus an idle-gap refresh
+- **No fake run pages for non-run dirs** — stray folders under a runs dir (notes, report drops) no longer render as ghost "Unknown / Pending / 0 tasks" runs or inflate counts; only dirs with `run.json` or a `journal/` are treated as runs, junk dirs 404
+- **Readable short ids** — human-named run dirs (e.g. `ai-org`) keep their name in run cards; only opaque machine ids (ULID/UUID/hex) get tail-truncated
+- **Stale approval hint reports real driver liveness** — approvals pending >2 minutes said "(checking...)" forever; now "(still waiting — driver attached)" when the orchestrator is live, plain "(still waiting)" otherwise
+- **`sdkVersion` stamped on approval journal writes** — the `EFFECT_RESOLVED` entry written by the approval path now carries a top-level `sdkVersion` like SDK-native entries (checksum recipe verified against a real 6.0.2 entry); the field is omitted rather than forged when detection fails
+- **Ages ≥48h render in days** — "388h 25m" now reads "16d 4h"
+
+### Changed
+- **Breakpoint cards inform, don't rule** — the dashboard's one-click Approve (which wrote a journal entry that sits inert when no orchestrator is attached, and flattened multi-option surveys into a blunt approve) is replaced with a liveness-aware, read-only treatment: see the pending decision, then "Answer in terminal" or "no live driver — resume to answer" with a copy-run-id shortcut
+- **Flat-list accessibility** — proper list semantics, ARIA roles/labels, screen-reader announcements for copy and loading states, decorative icons hidden from assistive tech
+
+### Other
+- docs: how to run the e2e suite on hosts where Playwright's bundled Chromium is unavailable (`PLAYWRIGHT_CHROME_CHANNEL=chrome` or `OBSERVER_CHROMIUM_PATH=<binary>`)
+- test: e2e fixtures isolated via `OBSERVER_WATCH_EXCLUSIVE`; flat-list e2e coverage with page-object locators; id-display fixtures follow the machine-vs-human short-id split
+
 ## [0.12.4] - 2026-07-01
 ### Fixed
 - fix(ci): repair bump-version.sh so auto-version + publish run
