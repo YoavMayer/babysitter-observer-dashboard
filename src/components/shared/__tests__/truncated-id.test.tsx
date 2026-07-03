@@ -4,22 +4,25 @@ import { render, screen } from '@/test/test-utils';
 import userEvent from '@testing-library/user-event';
 import { TruncatedId } from '../truncated-id';
 
+// Run ids are ULIDs in practice — opaque machine ids tail-truncate.
+const ULID = '01ARZ3NDEKTSV4RRFFQ69G5FAV';
+
 describe('TruncatedId', () => {
   it('renders without crashing', () => {
-    render(<TruncatedId id="abc123def456" />);
-    // formatShortId("abc123def456", 4) => "...f456"
-    expect(screen.getByText('...f456')).toBeInTheDocument();
+    render(<TruncatedId id={ULID} />);
+    // formatShortId(ULID, 4) => "...5FAV"
+    expect(screen.getByText('...5FAV')).toBeInTheDocument();
   });
 
   it('renders truncated ID with default 4 chars', () => {
-    render(<TruncatedId id="long-id-string-xyz" />);
-    expect(screen.getByText('...-xyz')).toBeInTheDocument();
+    render(<TruncatedId id={ULID} />);
+    expect(screen.getByText('...5FAV')).toBeInTheDocument();
   });
 
   it('renders truncated ID with custom chars count', () => {
-    render(<TruncatedId id="abcdefghij" chars={6} />);
-    // formatShortId("abcdefghij", 6) => "...efghij"
-    expect(screen.getByText('...efghij')).toBeInTheDocument();
+    render(<TruncatedId id={ULID} chars={6} />);
+    // formatShortId(ULID, 6) => "...9G5FAV"
+    expect(screen.getByText('...9G5FAV')).toBeInTheDocument();
   });
 
   it('renders full ID when shorter than chars', () => {
@@ -27,19 +30,25 @@ describe('TruncatedId', () => {
     expect(screen.getByText('ab')).toBeInTheDocument();
   });
 
+  it('renders human-named ids in full instead of tail fragments (QA F9)', () => {
+    render(<TruncatedId id="ai-org" />);
+    // Not "...-org" — the dir name IS the meaning.
+    expect(screen.getByText('ai-org')).toBeInTheDocument();
+  });
+
   it('copies full ID to clipboard on click', async () => {
     const user = userEvent.setup();
     const writeTextSpy = vi.spyOn(navigator.clipboard, 'writeText');
-    render(<TruncatedId id="full-id-to-copy" />);
-    const el = screen.getByText('...copy');
+    render(<TruncatedId id={ULID} />);
+    const el = screen.getByText('...5FAV');
     await user.click(el);
-    expect(writeTextSpy).toHaveBeenCalledWith('full-id-to-copy');
+    expect(writeTextSpy).toHaveBeenCalledWith(ULID);
   });
 
   it('applies copied class after click', async () => {
     const user = userEvent.setup();
-    render(<TruncatedId id="some-test-id" />);
-    const el = screen.getByText('...t-id');
+    render(<TruncatedId id={ULID} />);
+    const el = screen.getByText('...5FAV');
     await user.click(el);
     // After copying, the element gets 'text-primary' class to indicate copied state
     expect(el.className).toContain('text-primary');
