@@ -99,8 +99,40 @@ describe('BreakpointBanner', () => {
     // (the staleness tick interval triggers state update internally)
     rerender(<BreakpointBanner breakpointRuns={[bp]} />);
 
+    // QA F8: never "(checking...)" — no probe runs from this card.
     expect(screen.getByTestId('staleness-indicator')).toBeInTheDocument();
-    expect(screen.getByText('(checking...)')).toBeInTheDocument();
+    expect(screen.getByText('(still waiting)')).toBeInTheDocument();
+    expect(screen.queryByText('(checking...)')).not.toBeInTheDocument();
+  });
+
+  it('stale hint reflects real driver liveness when the driver is attached', () => {
+    const bp = makeBp({ runId: 'stale-live-run', driver: 'live' });
+
+    const { rerender } = render(<BreakpointBanner breakpointRuns={[bp]} />);
+
+    act(() => {
+      vi.advanceTimersByTime(130000);
+    });
+    rerender(<BreakpointBanner breakpointRuns={[bp]} />);
+
+    // driver === "live" (from run.lock + pid liveness) → say so, honestly.
+    expect(screen.getByText('(still waiting — driver attached)')).toBeInTheDocument();
+  });
+
+  it('stale hint stays plain when the driver is orphaned', () => {
+    const bp = makeBp({ runId: 'stale-orphan-run', driver: 'orphaned' });
+
+    const { rerender } = render(<BreakpointBanner breakpointRuns={[bp]} />);
+
+    act(() => {
+      vi.advanceTimersByTime(130000);
+    });
+    rerender(<BreakpointBanner breakpointRuns={[bp]} />);
+
+    // The orphaned state is already surfaced by the "No live driver" pill;
+    // the stale hint must not claim a driver is attached.
+    expect(screen.getByText('(still waiting)')).toBeInTheDocument();
+    expect(screen.queryByText(/driver attached/)).not.toBeInTheDocument();
   });
 
   it('does not show staleness indicator before threshold', () => {

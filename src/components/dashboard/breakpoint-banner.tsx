@@ -55,8 +55,12 @@ function BreakpointBannerItem({ bp, stale, onDismiss }: { bp: BreakpointRunInfo;
               Needs You
             </span>
             {stale && (
+              // QA F8: no probe runs from this card, so never imply one
+              // ("checking..."). Report the real signal we DO have: run.lock
+              // driver liveness (bp.driver), the same primitive behind the
+              // "No live driver" pill below.
               <span className="text-xs text-foreground-muted italic" data-testid="staleness-indicator">
-                (checking...)
+                {bp.driver === "live" ? "(still waiting — driver attached)" : "(still waiting)"}
               </span>
             )}
             <span className="text-xs text-foreground-muted font-medium">
