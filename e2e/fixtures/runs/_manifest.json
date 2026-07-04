@@ -1,10 +1,10 @@
 {
   "generatedAt": "2026-02-17T06:03:05.367Z",
-  "runCount": 51,
-  "totalTasks": 586,
+  "runCount": 55,
+  "totalTasks": 594,
   "statusCounts": {
     "failed": 8,
-    "waiting": 11,
+    "waiting": 14,
     "completed": 28,
     "pending": 4
   },
@@ -13,7 +13,8 @@
     "hockey-7-shifts": 14,
     "content-scheduler": 13,
     "sales-pipeline": 10,
-    "test-breakpoint-project": 1
+    "test-breakpoint-project": 1,
+    "kanban-board-project": 3
   },
   "runs": [
     {
@@ -423,6 +424,46 @@
       "status": "waiting",
       "taskCount": 2,
       "createdAt": "2026-02-17T10:00:00.000Z"
+    },
+    {
+      "runId": "01KTESTKANBANLONGBP00001",
+      "processId": "kanban/long-breakpoint",
+      "projectName": "kanban-board-project",
+      "status": "waiting",
+      "taskCount": 2,
+      "createdAt": "2026-01-25T09:00:00.000Z"
+    },
+    {
+      "runId": "01KTESTKANBANAPPROVE0002",
+      "processId": "kanban/approve-flow",
+      "projectName": "kanban-board-project",
+      "status": "waiting",
+      "taskCount": 2,
+      "createdAt": "2026-01-26T10:00:00.000Z"
+    },
+    {
+      "runId": "01KTESTKANBANSSEMOVE0003",
+      "processId": "kanban/sse-move",
+      "projectName": "kanban-board-project",
+      "status": "waiting",
+      "taskCount": 2,
+      "createdAt": "2026-01-27T11:00:00.000Z"
+    },
+    {
+      "runId": "01KTESTKANBANHIDDENBP004",
+      "processId": "kanban/hidden-breakpoint",
+      "projectName": "kanban-hidden-project",
+      "status": "waiting",
+      "taskCount": 1,
+      "createdAt": "2026-01-28T12:00:00.000Z"
+    },
+    {
+      "runId": "01KTESTKANBANHIDDENWK005",
+      "processId": "kanban/hidden-working",
+      "projectName": "kanban-hidden-project",
+      "status": "waiting",
+      "taskCount": 1,
+      "createdAt": "2026-01-29T13:00:00.000Z"
     }
   ]
 }

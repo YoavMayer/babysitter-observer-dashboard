@@ -14,6 +14,18 @@ test.beforeAll(async () => {
   manifest = await getManifest();
 });
 
+/**
+ * Grid-visible run total. Since the kanban wave-3 fixtures, the manifest's
+ * runCount counts every run SURFACED on the dashboard (grid-visible runs PLUS
+ * the registry-hidden project's needs-you run on the alarm surface — the board
+ * columns sum to exactly that number). The KPI tiles and the "All" pill are
+ * grid-level metrics (QA F4: hiding removes a project from the GRID), so they
+ * count only the runs of the projects in projectCounts.
+ */
+function gridRunCount(): number {
+  return Object.values(manifest.projectCounts).reduce((sum, n) => sum + n, 0);
+}
+
 // ---------------------------------------------------------------------------
 // Dashboard Loading & Header
 // ---------------------------------------------------------------------------
@@ -71,7 +83,7 @@ test.describe("KPI Metric Tiles", () => {
     const tile = dashboardPage.getMetricTile("total-runs");
     await expect(tile).toBeVisible();
     await expect(tile).toContainText("Total Runs");
-    await expect(tile).toContainText(String(manifest.runCount));
+    await expect(tile).toContainText(String(gridRunCount()));
   });
 
   test("Active tile shows the active run count", async ({ dashboardPage }) => {
@@ -104,7 +116,7 @@ test.describe("KPI Metric Tiles", () => {
     const totalTile = dashboardPage.getMetricTile("total-runs");
     const totalText = await totalTile.innerText();
     const totalValue = parseInt(totalText.match(/\d+/)?.[0] || "0", 10);
-    expect(totalValue).toBe(manifest.runCount);
+    expect(totalValue).toBe(gridRunCount());
   });
 });
 
@@ -289,7 +301,7 @@ test.describe("Filter Pills", () => {
   test("filter pills show count badges when runs exist", async ({ dashboardPage }) => {
     // The "All" pill should show the total run count
     const allPill = dashboardPage.getFilterPill("all");
-    await expect(allPill).toContainText(String(manifest.runCount));
+    await expect(allPill).toContainText(String(gridRunCount()));
 
     // Completed pill should show completed count
     if ((manifest.statusCounts.completed || 0) > 0) {
@@ -878,7 +890,7 @@ test.describe("Data Integrity", () => {
 
     // Total Runs KPI should equal the sum of all project run counts
     const totalTile = dashboardPage.getMetricTile("total-runs");
-    await expect(totalTile).toContainText(String(manifest.runCount));
+    await expect(totalTile).toContainText(String(gridRunCount()));
 
     // The project count should match the number of unique projects
     const projectCount = Object.keys(manifest.projectCounts).length;

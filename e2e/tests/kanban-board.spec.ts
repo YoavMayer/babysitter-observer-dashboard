@@ -331,7 +331,7 @@ test.describe("Kanban board — rendering & chrome (SPEC-vibekanban)", () => {
 // ---------------------------------------------------------------------------
 
 test.describe("Kanban board — Needs-you cards (SPEC-vibekanban)", () => {
-  test.fixme(
+  test(
     `AC-14: a Needs-you card shows the FULL breakpoint question verbatim (>120 chars) and one chip per option (${PENDING_IMPL})`,
     async ({ page }) => {
       // Fixture prerequisite: KANBAN_LONG_BP_RUN_ID with the exact question +
@@ -417,7 +417,7 @@ test.describe("Kanban board — Needs-you cards (SPEC-vibekanban)", () => {
     }
   );
 
-  test.fixme(
+  test(
     `AC-16: an orphaned-driver Needs-you card shows the "No live driver — resume to answer" hint and a working copy-run-id control (${PENDING_IMPL})`,
     async ({ page, context }) => {
       // 01KTESTPENDINGBPFIXTURE0 has no run.lock => driver "none" => orphaned.
@@ -439,7 +439,7 @@ test.describe("Kanban board — Needs-you cards (SPEC-vibekanban)", () => {
     }
   );
 
-  test.fixme(
+  test(
     `AC-17: clicking a card outside its interactive children navigates to /runs/{runId} (${PENDING_IMPL})`,
     async ({ page }) => {
       await gotoBoard(page);
@@ -454,7 +454,7 @@ test.describe("Kanban board — Needs-you cards (SPEC-vibekanban)", () => {
     }
   );
 
-  test.fixme(
+  test(
     `AC-18: resolving a breakpoint on disk moves the card out of Needs you within 10s via SSE, without a page reload (${PENDING_IMPL})`,
     async ({ page }) => {
       // Fixture prerequisite: KANBAN_SSE_BP_RUN_ID — a dedicated pending
@@ -500,7 +500,7 @@ test.describe("Kanban board — Needs-you cards (SPEC-vibekanban)", () => {
 // ---------------------------------------------------------------------------
 
 test.describe("Kanban board — hidden projects, junk, empty & overflow (SPEC-vibekanban)", () => {
-  test.fixme(
+  test(
     `AC-19: hidden-project breakpoints stay on the Needs-you alarm surface (marked), other hidden runs appear in no column, counts agree (${PENDING_IMPL})`,
     async ({ page }) => {
       // Fixture prerequisite: registry hiddenProjects includes
@@ -532,7 +532,7 @@ test.describe("Kanban board — hidden projects, junk, empty & overflow (SPEC-vi
     }
   );
 
-  test.fixme(
+  test(
     `AC-20: junk directories (non-run dirs in a watched source) get no card in any column and are excluded from counts (${PENDING_IMPL})`,
     async ({ page }) => {
       // Self-contained junk fixture: a directory with no journal/ and no
@@ -587,7 +587,7 @@ test.describe("Kanban board — hidden projects, junk, empty & overflow (SPEC-vi
     }
   );
 
-  test.fixme(
+  test(
     `AC-22: a 40-run Completed column scrolls independently and virtualizes (fewer DOM cards than its header count of 40) (${PENDING_IMPL})`,
     async ({ page }) => {
       const runs = Array.from({ length: 40 }, (_, i) =>
@@ -630,7 +630,7 @@ test.describe("Kanban board — hidden projects, junk, empty & overflow (SPEC-vi
 // ---------------------------------------------------------------------------
 
 test.describe("Kanban board — pill focus & keyboard (SPEC-vibekanban)", () => {
-  test.fixme(
+  test(
     `AC-23: clicking the Failed pill focuses/highlights the Failed column and dims the others without switching to the flat list; All restores (${PENDING_IMPL})`,
     async ({ page }) => {
       await interceptRuns(page, [
