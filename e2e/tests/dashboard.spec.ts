@@ -160,6 +160,10 @@ test.describe("Project Health Cards", () => {
     // Use Playwright's auto-retrying toContainText instead of a one-shot
     // innerText() read, which can flake when cards are still hydrating.
     const cards = dashboardPage.getProjectCards();
+    // Auto-retrying visibility wait before the one-shot count() — the count
+    // can otherwise race the grid hydrating and read 0 (same flake class the
+    // comment above describes for innerText()).
+    await expect(cards.first()).toBeVisible({ timeout: 15_000 });
     const count = await cards.count();
     expect(count).toBeGreaterThan(0);
 
@@ -214,12 +218,14 @@ test.describe("Filter Pills", () => {
     // All, Needs you, Waiting, Orphaned, Stale, Completed, Failed — but the
     // Orphaned and Stale pills are hidden when their count is 0. So the always-
     // present set is 5 and the maximum is 7.
-    const pills = dashboardPage.getFilterPills();
+    // Count the actual status pills by their testid prefix. getFilterPills()
+    // matches every button inside filter-bar, which now also hosts the sort
+    // toggle AND the two Board|List view-toggle segments (SPEC-vibekanban
+    // §6.1), so a raw button count is no longer a meaningful pill count.
+    const pills = dashboardPage.page.locator('[data-testid^="filter-pill-"]');
     const count = await pills.count();
-    // getFilterPills() also matches the sort-toggle button inside filter-bar,
-    // so allow for it (>= base pills) rather than pinning an exact number.
     expect(count).toBeGreaterThanOrEqual(5);
-    expect(count).toBeLessThanOrEqual(8);
+    expect(count).toBeLessThanOrEqual(7);
 
     // The 5 always-visible pills must each be present, by testid.
     for (const value of ["all", "needsyou", "waiting", "completed", "failed"]) {

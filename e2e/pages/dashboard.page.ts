@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from "@playwright/test";
+import { seedListView } from "../helpers";
 
 /**
  * Page Object for the Observer Dashboard (/).
@@ -92,8 +93,17 @@ export class DashboardPage {
 
   /* ---- Navigation ---- */
 
-  /** Navigate to the dashboard root. */
+  /**
+   * Navigate to the dashboard root in LIST view.
+   *
+   * The kanban board is the default view at "/" (SPEC-vibekanban §6.1), but
+   * this page object models the legacy list-view surfaces (project grid,
+   * flat run list). Seeding the persisted view before navigation keeps every
+   * legacy spec on the view it was written against; board specs use their own
+   * navigation helper in kanban-board.spec.ts and never go through here.
+   */
   async goto() {
+    await seedListView(this.page);
     // Use domcontentloaded because SSE keeps the "load" event open
     await this.page.goto("/", { waitUntil: "domcontentloaded" });
   }
