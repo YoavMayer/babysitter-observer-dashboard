@@ -10,6 +10,7 @@ import {
   ActionHint,
 } from "@/components/dashboard/run-list";
 import { assignColumn, type BoardRun } from "@/components/kanban/column-model";
+import { KanbanBreakpointPanel } from "@/components/kanban/kanban-breakpoint-panel";
 import type { Run } from "@/types";
 
 /**
@@ -138,6 +139,7 @@ export function KanbanCard({ run }: KanbanCardProps) {
       </div>
 
       {/* Column-specific additions (§5) */}
+      {column === "needsyou" && <KanbanBreakpointPanel run={run} />}
       {column === "orphaned" && (
         <div className="flex">
           <ActionHint run={run} />
