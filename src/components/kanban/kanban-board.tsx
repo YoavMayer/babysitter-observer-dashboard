@@ -37,9 +37,18 @@ export interface KanbanBoardProps {
   hiddenProjects?: Set<string>;
   /** When true, suppress SSE-triggered refetches (catch-up mode, §4). */
   suppressSseRefetch?: boolean;
+  /**
+   * §6.2 pill → column focus: the focused column gets a highlight ring and is
+   * scrolled into view; the others dim. null/undefined = no focus ("All").
+   */
+  focusColumnKey?: BoardColumnKey | null;
 }
 
-export function KanbanBoard({ hiddenProjects, suppressSseRefetch }: KanbanBoardProps) {
+export function KanbanBoard({
+  hiddenProjects,
+  suppressSseRefetch,
+  focusColumnKey = null,
+}: KanbanBoardProps) {
   const params = new URLSearchParams({
     status: "",
     sort: "status",
@@ -132,6 +141,8 @@ export function KanbanBoard({ hiddenProjects, suppressSseRefetch }: KanbanBoardP
             columnKey={key}
             runs={partition[key]}
             countTooltip={key === "orphaned" ? orphanedTooltip : undefined}
+            focused={focusColumnKey === key}
+            dimmed={focusColumnKey !== null && focusColumnKey !== key}
           />
         );
       })}

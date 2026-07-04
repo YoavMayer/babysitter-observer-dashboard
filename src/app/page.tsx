@@ -1,6 +1,6 @@
 "use client";
-import { useMemo } from "react";
-import { useRunDashboard } from "@/hooks/use-run-dashboard";
+import { useCallback, useMemo } from "react";
+import { useRunDashboard, type DashboardStatusFilter } from "@/hooks/use-run-dashboard";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { BreakpointBanner } from "@/components/dashboard/breakpoint-banner";
 import { CatchUpBanner } from "@/components/dashboard/catch-up-banner";
@@ -12,7 +12,18 @@ import { RunList } from "@/components/dashboard/run-list";
 import { ErrorBoundary } from "@/components/shared/error-boundary";
 import { GlobalSearch } from "@/components/dashboard/global-search";
 import { KanbanBoard } from "@/components/kanban/kanban-board";
+import type { BoardColumnKey } from "@/components/kanban/column-model";
 import { ViewToggle, type DashboardView } from "@/components/kanban/view-toggle";
+
+/** Status-pill values that map 1:1 onto board columns (§6.2). */
+const BOARD_COLUMN_KEYS: ReadonlySet<string> = new Set([
+  "needsyou",
+  "orphaned",
+  "waiting",
+  "stale",
+  "failed",
+  "completed",
+]);
 
 export default function DashboardPage() {
   const {
@@ -54,6 +65,24 @@ export default function DashboardPage() {
   const hiddenProjectNames = useMemo(
     () => new Set(projects.filter((p) => p.hidden).map((p) => p.projectName)),
     [projects]
+  );
+
+  // §6.2: in board view a status pill does not swap to a flat list — it
+  // FOCUSES the matching column. Clicking the already-active pill (or "All")
+  // clears the focus. List mode keeps today's filter behavior untouched.
+  const focusColumnKey: BoardColumnKey | null =
+    view === "board" && BOARD_COLUMN_KEYS.has(statusFilter)
+      ? (statusFilter as BoardColumnKey)
+      : null;
+  const handleStatusFilterChange = useCallback(
+    (value: DashboardStatusFilter) => {
+      if (view === "board" && value !== "all" && value === statusFilter) {
+        setStatusFilter("all");
+        return;
+      }
+      setStatusFilter(value);
+    },
+    [view, statusFilter, setStatusFilter]
   );
 
   const showBanners = !loading && !error && projects.length > 0;
@@ -117,7 +146,7 @@ export default function DashboardPage() {
         {/* Filter pills + sort toggle */}
         <RunFilterBar
           statusFilter={statusFilter}
-          onStatusFilterChange={setStatusFilter}
+          onStatusFilterChange={handleStatusFilterChange}
           filterCounts={filterCounts}
           sortMode={sortMode}
           onSortModeToggle={() => setSortMode((prev) => prev === "status" ? "activity" : "status")}
@@ -133,6 +162,7 @@ export default function DashboardPage() {
             <KanbanBoard
               hiddenProjects={hiddenProjectNames}
               suppressSseRefetch={catchUp.active}
+              focusColumnKey={focusColumnKey}
             />
           </ErrorBoundary>
         ) : statusFilter === "all" ? (

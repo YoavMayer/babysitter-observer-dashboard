@@ -1,11 +1,14 @@
 "use client";
+import { useEffect, useRef } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { cn } from "@/lib/cn";
 import { KanbanCard } from "@/components/kanban/kanban-card";
+import { VIRTUALIZATION_THRESHOLD } from "@/components/dashboard/virtualized-run-list";
 import type { BoardColumnKey, BoardRun } from "@/components/kanban/column-model";
 
 /**
- * A single board column — SPEC-vibekanban §3.2 (labels/tones), §7 (empty
- * placeholders), §8 (list semantics).
+ * A single board column — SPEC-vibekanban §3.2 (labels/tones), §6.2 (pill →
+ * column focus), §7 (empty placeholders, virtualization), §8 (list semantics).
  *
  * Header shows the column label and an HONEST count (§3.4): the number of
  * cards actually in this column post-partition. The Orphaned column may carry
@@ -13,9 +16,21 @@ import type { BoardColumnKey, BoardRun } from "@/components/kanban/column-model"
  * mismatch between pill counts (overlapping buckets) and column counts
  * (disjoint partition).
  *
+ * Columns above VIRTUALIZATION_THRESHOLD items virtualize their card list with
+ * the existing @tanstack/react-virtual dependency (same cutoff/pattern as
+ * virtualized-run-list.tsx; stable runId item keys), scrolling independently
+ * inside the column — never delegating to the page body.
+ *
  * Frozen DOM contract (kanban-board.spec.ts): exactly three testid families —
- * kanban-column-<key>, kanban-column-count-<key>, kanban-column-cards-<key>.
+ * kanban-column-<key>, kanban-column-count-<key>, kanban-column-cards-<key> —
+ * plus data-focused/data-dimmed for the pill-focus treatment (AC-23).
  */
+
+/** Estimated compact-card height (px) for initial virtual measurement (§5). */
+const ESTIMATED_CARD_HEIGHT = 110;
+
+/** Overscan matching the flat-list virtualization pattern. */
+const OVERSCAN_COUNT = 3;
 
 interface ColumnSpec {
   label: string;
@@ -68,19 +83,61 @@ export interface KanbanColumnProps {
   runs: BoardRun[];
   /** Count-honesty tooltip (§3.4) — e.g. orphaned runs captured by Needs-you. */
   countTooltip?: string | null;
+  /** §6.2 pill focus: this column is highlighted and scrolled into view. */
+  focused?: boolean;
+  /** §6.2 pill focus: another column is focused — dim this one. */
+  dimmed?: boolean;
 }
 
-export function KanbanColumn({ columnKey, runs, countTooltip }: KanbanColumnProps) {
+export function KanbanColumn({
+  columnKey,
+  runs,
+  countTooltip,
+  focused = false,
+  dimmed = false,
+}: KanbanColumnProps) {
   const spec = COLUMN_SPECS[columnKey];
+  const sectionRef = useRef<HTMLElement>(null);
+  const cardsRef = useRef<HTMLDivElement>(null);
+
+  // §6.2: clicking a status pill focuses the corresponding column — scroll it
+  // into view (the highlight ring is applied via data-focused styling below).
+  useEffect(() => {
+    if (focused) {
+      sectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "nearest",
+      });
+    }
+  }, [focused]);
+
+  // §7: virtualize above the shared threshold with stable runId item keys.
+  const virtualize = runs.length >= VIRTUALIZATION_THRESHOLD;
+  const virtualizer = useVirtualizer({
+    count: runs.length,
+    getScrollElement: () => cardsRef.current,
+    estimateSize: () => ESTIMATED_CARD_HEIGHT,
+    overscan: OVERSCAN_COUNT,
+    getItemKey: (index) => runs[index]?.runId ?? index,
+    enabled: virtualize,
+  });
+
   return (
     <section
+      ref={sectionRef}
       data-testid={`kanban-column-${columnKey}`}
+      data-focused={focused ? "true" : undefined}
+      data-dimmed={dimmed ? "true" : undefined}
       className={cn(
         "flex flex-col min-w-[280px] w-[280px] shrink-0 rounded-lg border border-border bg-background-secondary/40",
         // Alarm surface tone (§3.2): the Needs-you column glows.
         columnKey === "needsyou" && "border-warning/30",
         // Terminal columns are visually de-emphasized.
-        columnKey === "completed" && "opacity-80"
+        columnKey === "completed" && "opacity-80",
+        // §6.2 focus/dim treatment: highlight ring vs opacity dim.
+        focused && "ring-2 ring-primary/60",
+        dimmed && "opacity-40"
       )}
     >
       {/* Header: label + honest count (§3.4). */}
@@ -104,18 +161,55 @@ export function KanbanColumn({ columnKey, runs, countTooltip }: KanbanColumnProp
 
       {/* Independently scrolling card area (§7: viewport-bound, never the page body). */}
       <div
+        ref={cardsRef}
         data-testid={`kanban-column-cards-${columnKey}`}
         role="list"
         aria-label={`${spec.label}, ${runs.length} runs`}
-        className="flex flex-col gap-2 p-2 overflow-y-auto max-h-[calc(100vh-260px)]"
+        className={cn(
+          "p-2 overflow-y-auto max-h-[calc(100vh-260px)]",
+          !virtualize && "flex flex-col gap-2"
+        )}
       >
         {runs.length === 0 && spec.emptyText ? (
           // §7 quiet per-column placeholder — never a blank void.
           <p className={cn("px-2 py-6 text-center text-xs text-foreground-muted", spec.emptyClass)}>
             {spec.emptyText}
           </p>
-        ) : (
+        ) : !virtualize ? (
           runs.map((run) => <KanbanCard key={run.runId} run={run} />)
+        ) : (
+          // Virtualized card list (pattern from virtualized-run-list.tsx):
+          // only visible cards + overscan render; header count stays honest.
+          <div
+            style={{
+              height: `${virtualizer.getTotalSize()}px`,
+              width: "100%",
+              position: "relative",
+            }}
+          >
+            {virtualizer.getVirtualItems().map((virtualRow) => {
+              const run = runs[virtualRow.index];
+              if (!run) return null;
+              return (
+                <div
+                  key={virtualRow.key}
+                  data-index={virtualRow.index}
+                  ref={virtualizer.measureElement}
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    transform: `translateY(${virtualRow.start}px)`,
+                  }}
+                >
+                  <div style={{ paddingBottom: 8 }}>
+                    <KanbanCard run={run} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
     </section>
