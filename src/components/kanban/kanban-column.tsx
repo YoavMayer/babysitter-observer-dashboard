@@ -1,0 +1,123 @@
+"use client";
+import { cn } from "@/lib/cn";
+import { KanbanCard } from "@/components/kanban/kanban-card";
+import type { BoardColumnKey, BoardRun } from "@/components/kanban/column-model";
+
+/**
+ * A single board column — SPEC-vibekanban §3.2 (labels/tones), §7 (empty
+ * placeholders), §8 (list semantics).
+ *
+ * Header shows the column label and an HONEST count (§3.4): the number of
+ * cards actually in this column post-partition. The Orphaned column may carry
+ * a tooltip explaining runs captured by Needs-you precedence — no silent
+ * mismatch between pill counts (overlapping buckets) and column counts
+ * (disjoint partition).
+ *
+ * Frozen DOM contract (kanban-board.spec.ts): exactly three testid families —
+ * kanban-column-<key>, kanban-column-count-<key>, kanban-column-cards-<key>.
+ */
+
+interface ColumnSpec {
+  label: string;
+  /** Optional sub-label under the header label (Working: "waiting / running"). */
+  subLabel?: string;
+  /** §7 quiet placeholder for always-visible columns (auto-hide columns omit it). */
+  emptyText?: string;
+  /** Column tone (§3.2): header accent classes. */
+  headerClass: string;
+  /** Success-tinted empty placeholder for the alarm column ("all clear"). */
+  emptyClass?: string;
+}
+
+/** Column labels/tones per SPEC §3.2 and empty placeholders per §7. */
+export const COLUMN_SPECS: Record<BoardColumnKey, ColumnSpec> = {
+  needsyou: {
+    label: "Needs you",
+    emptyText: "Nothing needs you — all clear.",
+    headerClass: "text-warning",
+    emptyClass: "text-success",
+  },
+  orphaned: {
+    label: "Orphaned",
+    headerClass: "text-error",
+  },
+  waiting: {
+    label: "Working",
+    subLabel: "waiting / running",
+    emptyText: "No runs in progress.",
+    headerClass: "text-primary",
+  },
+  stale: {
+    label: "Stale",
+    headerClass: "text-zinc-500",
+  },
+  failed: {
+    label: "Failed",
+    emptyText: "No failed runs.",
+    headerClass: "text-error/70",
+  },
+  completed: {
+    label: "Completed",
+    emptyText: "No completed runs in the retention window.",
+    headerClass: "text-foreground-muted",
+  },
+};
+
+export interface KanbanColumnProps {
+  columnKey: BoardColumnKey;
+  runs: BoardRun[];
+  /** Count-honesty tooltip (§3.4) — e.g. orphaned runs captured by Needs-you. */
+  countTooltip?: string | null;
+}
+
+export function KanbanColumn({ columnKey, runs, countTooltip }: KanbanColumnProps) {
+  const spec = COLUMN_SPECS[columnKey];
+  return (
+    <section
+      data-testid={`kanban-column-${columnKey}`}
+      className={cn(
+        "flex flex-col min-w-[280px] w-[280px] shrink-0 rounded-lg border border-border bg-background-secondary/40",
+        // Alarm surface tone (§3.2): the Needs-you column glows.
+        columnKey === "needsyou" && "border-warning/30",
+        // Terminal columns are visually de-emphasized.
+        columnKey === "completed" && "opacity-80"
+      )}
+    >
+      {/* Header: label + honest count (§3.4). */}
+      <div
+        className="flex items-baseline gap-2 px-3 py-2 border-b border-border"
+        title={countTooltip ?? undefined}
+      >
+        <span className={cn("text-xs font-semibold uppercase tracking-wide", spec.headerClass)}>
+          {spec.label}
+        </span>
+        {spec.subLabel && (
+          <span className="text-[10px] text-foreground-muted">{spec.subLabel}</span>
+        )}
+        <span
+          data-testid={`kanban-column-count-${columnKey}`}
+          className="ml-auto rounded-full bg-background-secondary px-1.5 py-px text-xs leading-tight font-semibold tabular-nums text-foreground-muted"
+        >
+          {runs.length}
+        </span>
+      </div>
+
+      {/* Independently scrolling card area (§7: viewport-bound, never the page body). */}
+      <div
+        data-testid={`kanban-column-cards-${columnKey}`}
+        role="list"
+        aria-label={`${spec.label}, ${runs.length} runs`}
+        className="flex flex-col gap-2 p-2 overflow-y-auto max-h-[calc(100vh-260px)]"
+      >
+        {runs.length === 0 && spec.emptyText ? (
+          // §7 quiet per-column placeholder — never a blank void.
+          <p className={cn("px-2 py-6 text-center text-xs text-foreground-muted", spec.emptyClass)}>
+            {spec.emptyText}
+          </p>
+        ) : (
+          runs.map((run) => <KanbanCard key={run.runId} run={run} />)
+        )}
+      </div>
+    </section>
+  );
+}

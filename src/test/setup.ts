@@ -82,7 +82,7 @@ vi.mock('lucide-react', () => {
     'ExternalLink', 'Eye', 'EyeOff', 'FileJson', 'FileText', 'FolderOpen',
     'GitBranch', 'Github',
     'Hand', 'Hash', 'HelpCircle', 'History', 'Inbox', 'Info', 'Layers',
-    'Loader2', 'Moon', 'Palette',
+    'LayoutGrid', 'List', 'Loader2', 'Moon', 'Palette',
     'Pause', 'Percent', 'Pin', 'Plus', 'Puzzle', 'RefreshCw', 'Search', 'Settings',
     'Sun', 'Tag', 'Terminal', 'Timer', 'Trash2', 'Wifi', 'WifiOff',
     'X', 'XCircle',

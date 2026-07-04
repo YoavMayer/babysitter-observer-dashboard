@@ -1,5 +1,7 @@
 "use client";
+import { useMemo } from "react";
 import { useRunDashboard } from "@/hooks/use-run-dashboard";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 import { BreakpointBanner } from "@/components/dashboard/breakpoint-banner";
 import { CatchUpBanner } from "@/components/dashboard/catch-up-banner";
 import { ExecutiveSummaryBanner } from "@/components/dashboard/executive-summary-banner";
@@ -9,6 +11,8 @@ import { ProjectListView } from "@/components/dashboard/project-list-view";
 import { RunList } from "@/components/dashboard/run-list";
 import { ErrorBoundary } from "@/components/shared/error-boundary";
 import { GlobalSearch } from "@/components/dashboard/global-search";
+import { KanbanBoard } from "@/components/kanban/kanban-board";
+import { ViewToggle, type DashboardView } from "@/components/kanban/view-toggle";
 
 export default function DashboardPage() {
   const {
@@ -38,6 +42,19 @@ export default function DashboardPage() {
     toggleMetricFilter,
     handleHideProject,
   } = useRunDashboard();
+
+  // Board/list view (SPEC-vibekanban §6.1): persisted per browser, board default.
+  const [view, setView] = usePersistedState<DashboardView>(
+    "observer:dashboard-view",
+    "board"
+  );
+
+  // §6.3 grid parity: registry-hidden project names — the board excludes their
+  // runs from every column except the Needs-you alarm surface.
+  const hiddenProjectNames = useMemo(
+    () => new Set(projects.filter((p) => p.hidden).map((p) => p.projectName)),
+    [projects]
+  );
 
   const showBanners = !loading && !error && projects.length > 0;
 
@@ -106,10 +123,19 @@ export default function DashboardPage() {
           onSortModeToggle={() => setSortMode((prev) => prev === "status" ? "activity" : "status")}
           filteredProjectCount={filteredProjects.length}
           hiddenProjectCount={hiddenProjectCount}
+          viewToggle={<ViewToggle view={view} onViewChange={setView} />}
         />
 
-        {/* Content: project grid for "all", flat filtered run list otherwise */}
-        {statusFilter === "all" ? (
+        {/* Content: board view (default), or the unchanged list view —
+            project grid for "all", flat filtered run list otherwise */}
+        {view === "board" ? (
+          <ErrorBoundary section="Run Board">
+            <KanbanBoard
+              hiddenProjects={hiddenProjectNames}
+              suppressSseRefetch={catchUp.active}
+            />
+          </ErrorBoundary>
+        ) : statusFilter === "all" ? (
           <ProjectListView
             loading={loading}
             error={error}

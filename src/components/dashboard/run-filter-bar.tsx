@@ -22,6 +22,8 @@ export interface RunFilterBarProps {
   filteredProjectCount: number;
   /** Registry-hidden project count — shown as a reveal indicator (QA F4). */
   hiddenProjectCount?: number;
+  /** Board/list view toggle slot (SPEC-vibekanban §6.1) — rendered next to the sort toggle. */
+  viewToggle?: React.ReactNode;
 }
 
 export function RunFilterBar({
@@ -32,6 +34,7 @@ export function RunFilterBar({
   onSortModeToggle,
   filteredProjectCount,
   hiddenProjectCount = 0,
+  viewToggle,
 }: RunFilterBarProps) {
   return (
     <div className="mb-5">
@@ -85,8 +88,9 @@ export function RunFilterBar({
             {hiddenProjectCount} hidden
           </button>
         )}
-        {/* Sort toggle + Project count */}
+        {/* View toggle + Sort toggle + Project count */}
         <div className="ml-auto flex items-center gap-2">
+          {viewToggle}
           <button
             data-testid="sort-toggle"
             onClick={onSortModeToggle}
