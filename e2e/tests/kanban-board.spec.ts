@@ -173,7 +173,7 @@ async function resolveBreakpointOnDisk(runId: string, effectId: string): Promise
 // ---------------------------------------------------------------------------
 
 test.describe("Kanban board — rendering & chrome (SPEC-vibekanban)", () => {
-  test.fixme(
+  test(
     `AC-11: board is the default view on a fresh profile and the board/list toggle persists across reloads (${PENDING_IMPL})`,
     async ({ page }) => {
       await gotoBoard(page);
@@ -200,7 +200,7 @@ test.describe("Kanban board — rendering & chrome (SPEC-vibekanban)", () => {
     }
   );
 
-  test.fixme(
+  test(
     `AC-12: columns render in SPEC order and Orphaned/Stale auto-hide when empty (${PENDING_IMPL})`,
     async ({ page }) => {
       // Deterministic bucket population via /api/runs interception:
@@ -247,7 +247,7 @@ test.describe("Kanban board — rendering & chrome (SPEC-vibekanban)", () => {
     }
   );
 
-  test.fixme(
+  test(
     `AC-13: every column header count equals the number of rendered cards in that column (${PENDING_IMPL})`,
     async ({ page }) => {
       // <=15 per column so virtualization (threshold 15) does not hide cards.
@@ -287,7 +287,7 @@ test.describe("Kanban board — rendering & chrome (SPEC-vibekanban)", () => {
     }
   );
 
-  test.fixme(
+  test(
     `AC-25: card ages >=48h render in days ("2d ago" for a 50h-old run) (${PENDING_IMPL})`,
     async ({ page }) => {
       const fiftyHoursAgo = new Date(Date.now() - 50 * 60 * 60 * 1000).toISOString();
@@ -302,7 +302,7 @@ test.describe("Kanban board — rendering & chrome (SPEC-vibekanban)", () => {
     }
   );
 
-  test.fixme(
+  test(
     `AC-27: list-mode regression guard — grid and flat filtered list behave as on the base branch, with zero board elements (${PENDING_IMPL})`,
     async ({ page }) => {
       await gotoBoard(page);
@@ -566,7 +566,7 @@ test.describe("Kanban board — hidden projects, junk, empty & overflow (SPEC-vi
     }
   );
 
-  test.fixme(
+  test(
     `AC-21: empty board renders the shared EmptyState; a populated board shows the per-column "all clear" placeholder in Needs you (${PENDING_IMPL})`,
     async ({ page }) => {
       // Zero runs at all => shared EmptyState, full width, no column skeletons.
