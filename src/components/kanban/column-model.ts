@@ -11,7 +11,6 @@
  * mapping over runs the observer already fetched; it never writes anything.
  */
 
-import { sortRuns } from "@/lib/services/run-query-service";
 import type { LightRun } from "@/lib/services/run-query-service";
 
 /** Column keys, matching the RunFilterBar pill/bucket keys (SPEC §3.2). */
@@ -99,6 +98,21 @@ export function assignColumn(run: LightRun): BoardColumnKey {
   return "completed";
 }
 
+/**
+ * Within-column sort: updatedAt DESC with runId as the final tiebreaker — the
+ * exact "activity" comparator from sortRuns (run-query-service.ts). Duplicated
+ * here (not imported) because this module is bundled CLIENT-side: importing a
+ * value from run-query-service drags its fs/config-loader server imports into
+ * the client bundle and breaks the Next.js build. Type-only imports are fine.
+ */
+function sortByActivity(runs: LightRun[]): void {
+  runs.sort((a, b) => {
+    const cmp = (b.updatedAt || "").localeCompare(a.updatedAt || "");
+    if (cmp !== 0) return cmp;
+    return a.runId.localeCompare(b.runId);
+  });
+}
+
 /** Build an empty partition with every column present (stable shape). */
 function emptyPartition(): BoardPartition {
   return {
@@ -142,7 +156,7 @@ export function partitionRuns(
 
   // Within-column order: updatedAt DESC, runId tiebreaker (sortRuns "activity").
   for (const key of COLUMN_ORDER) {
-    sortRuns(partition[key], "activity");
+    sortByActivity(partition[key]);
   }
 
   return partition;
