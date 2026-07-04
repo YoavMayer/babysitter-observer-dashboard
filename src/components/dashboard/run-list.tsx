@@ -60,8 +60,10 @@ function rank(run: LightRun): number {
   return 4;
 }
 
-/** Inline driver-liveness chip derived from run.driver. */
-function LivenessChip({ run }: { run: LightRun }) {
+/** Inline driver-liveness chip derived from run.driver.
+ * Exported for reuse by the kanban board card (SPEC-vibekanban §5 — same chip,
+ * same sr-only expansions, not a reimplementation). */
+export function LivenessChip({ run }: { run: LightRun }) {
   if (!run.driver) return null;
   if (run.driver === "live") {
     return (
@@ -92,8 +94,9 @@ function LivenessChip({ run }: { run: LightRun }) {
  * Neutral status indicator for terminal runs (completed/failed). Liveness is
  * not meaningful here, so we never show the "orphaned" chip — just a subtle,
  * status-appropriate dot with the plain status label.
+ * Exported for reuse by the kanban board card (SPEC-vibekanban §5).
  */
-function StatusDot({ run }: { run: LightRun }) {
+export function StatusDot({ run }: { run: LightRun }) {
   const failed = run.status === "failed";
   return (
     <span
@@ -111,8 +114,10 @@ function StatusDot({ run }: { run: LightRun }) {
   );
 }
 
-/** Read-only action hint mirroring the breakpoint banner copy. */
-function ActionHint({ run }: { run: LightRun }) {
+/** Read-only action hint mirroring the breakpoint banner copy.
+ * Exported for reuse by the kanban board card (SPEC-vibekanban §5 — the
+ * Orphaned-column card shows the same resume-guidance + copy-id cluster). */
+export function ActionHint({ run }: { run: LightRun }) {
   const [copied, setCopied] = useState(false);
   const orphaned = isOrphaned(run);
 
