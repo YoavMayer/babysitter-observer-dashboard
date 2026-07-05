@@ -5,11 +5,16 @@
  * into `tasks/<effectId>/task.json → metadata.payload.*` (evidence run
  * DEPUTYsmartSAMAL/01KWE8RYQEHJ7BATR3V88AQVSD: payload keys
  * [context, expert, question, tags, title], multi-line question, NO
- * input.json). Older shapes carry the fields in `input.json` or directly under
- * `taskDef.inputs`. This module is the ONE shared resolver used by all three
- * parser extraction sites (task list, task detail, digest batch-read).
+ * input.json). SDK 6.0.2 writes them under `task.json → .breakpoint.*` instead
+ * (evidence run 01KWRJGED9BEE39SSPMH0M4JE3/01KWS6QP63XWADWW6N7HBGQ3GH:
+ * breakpoint keys [breakpointId, expert, options, question, tags], metadata
+ * null, NO input.json). Older shapes carry the fields in `input.json` or
+ * directly under `taskDef.inputs`. This module is the ONE shared resolver used
+ * by all three parser extraction sites (task list, task detail, digest
+ * batch-read).
  *
- * Precedence per field: input.json > taskDef.inputs > metadata.payload.
+ * Precedence per field:
+ *   input.json > taskDef.inputs > taskDef.breakpoint > metadata.payload.
  * The first source that carries a field wins; fields resolve INDEPENDENTLY
  * (a title from the payload may accompany a question from inputs).
  *
@@ -69,7 +74,7 @@ function asRecord(value: unknown): Record<string, unknown> | undefined {
 }
 
 /**
- * Resolve a breakpoint's question/title/options/context from the three
+ * Resolve a breakpoint's question/title/options/context from the four
  * on-disk sources, in precedence order (UX-R2 §13.1).
  *
  * @param taskDef parsed `tasks/<effectId>/task.json` (or null when missing)
@@ -86,6 +91,14 @@ export function resolveBreakpointPayload(
   }> = [
     { source: "input", fields: asRecord(input) },
     { source: "taskDefInputs", fields: asRecord(taskDef?.inputs) },
+    // SDK 6.0.2 ctx.breakpoint writes question/options under task.json →
+    // .breakpoint. It ranks ABOVE metadata.payload: the .breakpoint block is
+    // the task definition's own first-party record of the breakpoint (written
+    // by the SDK that raised it), while metadata.payload is orchestrator-
+    // attached annotation that may lag or mirror it. It ranks BELOW
+    // input.json/taskDef.inputs, which remain the explicit per-invocation
+    // inputs and therefore the most specific sources.
+    { source: "taskDefBreakpoint", fields: asRecord(taskDef?.breakpoint) },
     { source: "metadataPayload", fields: asRecord(metadata?.payload) },
   ];
 

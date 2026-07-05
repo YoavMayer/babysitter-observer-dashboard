@@ -170,7 +170,13 @@ export interface BreakpointRunInfo {
   effectId: string;
   projectName: string;
   processId: string;
-  breakpointQuestion: string;
+  /**
+   * The REAL on-disk question, when one exists (UX-R2 §13.1). Left unset for
+   * genuinely question-less breakpoints — the data layer never pre-fills the
+   * honest fallback copy (a truthy pre-fill would mask downstream task-level
+   * fallbacks); display surfaces apply it at render time (AC-32).
+   */
+  breakpointQuestion?: string;
   /** Orchestrator attachment — whether an answer can actually be applied now. */
   driver?: 'live' | 'orphaned' | 'none';
 }

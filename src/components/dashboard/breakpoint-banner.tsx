@@ -3,6 +3,7 @@ import { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react
 import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { Hand, AlertTriangle, CheckCircle2, X, Terminal, Copy } from "lucide-react";
+import { BREAKPOINT_NO_QUESTION_FALLBACK } from "@/lib/breakpoint-payload";
 import type { BreakpointRunInfo } from "@/types";
 
 interface ResolvedEntry {
@@ -71,7 +72,9 @@ function BreakpointBannerItem({ bp, stale, onDismiss }: { bp: BreakpointRunInfo;
             </span>
           </div>
           <p className="text-sm text-foreground truncate">
-            {bp.breakpointQuestion}
+            {/* Display-level honest last resort (UX-R2 §13.1 AC-32): the data
+                layer leaves the question unset when none exists on disk. */}
+            {bp.breakpointQuestion || BREAKPOINT_NO_QUESTION_FALLBACK}
           </p>
         </div>
       </Link>
@@ -290,7 +293,8 @@ export function BreakpointBanner({ breakpointRuns }: BreakpointBannerProps) {
               </span>
             </div>
             <p className="text-sm text-foreground-muted truncate">
-              {entry.bp.breakpointQuestion}
+              {/* Same display-level fallback as the pending card (AC-32). */}
+              {entry.bp.breakpointQuestion || BREAKPOINT_NO_QUESTION_FALLBACK}
             </p>
           </div>
         </Link>

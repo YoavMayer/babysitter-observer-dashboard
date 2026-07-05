@@ -580,6 +580,52 @@ describe('run-cache', () => {
       expect(afterTtl[0].totalRuns).toBe(1);
     });
 
+    it('carries a REAL digest question into breakpointRuns verbatim', async () => {
+      mockReadFile.mockResolvedValue(JSON.stringify({ processId: 'proc' }));
+
+      mockGetRunDigest.mockResolvedValue(
+        makeDigest({
+          runId: 'bp-with-q',
+          status: 'waiting',
+          pendingBreakpoints: 1,
+          waitingKind: 'breakpoint',
+          breakpointQuestion: 'Accept the upgrade branch + runbooks + report?',
+          breakpointEffectId: 'eff-1',
+        })
+      );
+      await getDigestCached('/runs/bp-with-q', defaultSource, 'proj');
+
+      const [summary] = getProjectSummaries();
+      expect(summary.breakpointRuns).toHaveLength(1);
+      expect(summary.breakpointRuns[0].breakpointQuestion).toBe(
+        'Accept the upgrade branch + runbooks + report?'
+      );
+    });
+
+    it('leaves breakpointQuestion UNSET when the digest has none — never pre-fills the fallback copy', async () => {
+      mockReadFile.mockResolvedValue(JSON.stringify({ processId: 'proc' }));
+
+      // Digest with NO on-disk question (parser only stores real questions).
+      mockGetRunDigest.mockResolvedValue(
+        makeDigest({
+          runId: 'bp-no-q',
+          status: 'waiting',
+          pendingBreakpoints: 1,
+          waitingKind: 'breakpoint',
+          breakpointEffectId: 'eff-2',
+        })
+      );
+      await getDigestCached('/runs/bp-no-q', defaultSource, 'proj');
+
+      const [summary] = getProjectSummaries();
+      expect(summary.breakpointRuns).toHaveLength(1);
+      // A truthy pre-filled fallback at the DATA layer would forever mask
+      // downstream task-level fallbacks (e.g. the kanban panel's
+      // task?.breakpoint?.question chain). The honest last-resort copy is a
+      // DISPLAY concern — the data layer must report "no question" honestly.
+      expect(summary.breakpointRuns[0].breakpointQuestion).toBeUndefined();
+    });
+
     it('preserves both breakpoint and non-breakpoint entries regardless of TTL', async () => {
       mockReadFile.mockResolvedValue(JSON.stringify({ processId: 'proc' }));
 

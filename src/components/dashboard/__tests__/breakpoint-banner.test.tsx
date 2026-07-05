@@ -55,6 +55,22 @@ describe('BreakpointBanner', () => {
     expect(screen.getByText('proj-b')).toBeInTheDocument();
   });
 
+  it('shows the honest last-resort copy for a genuinely question-less entry (display-level fallback)', () => {
+    // The data layer (run-cache) leaves breakpointQuestion unset when no
+    // question exists on disk; the banner applies the honest copy at DISPLAY
+    // time, so behavior stays identical for question-less runs (AC-32).
+    render(
+      <BreakpointBanner
+        breakpointRuns={[makeBp({ breakpointQuestion: undefined })]}
+      />
+    );
+    expect(
+      screen.getByText(
+        'Approval required — this breakpoint has no question text on disk.'
+      )
+    ).toBeInTheDocument();
+  });
+
   it('renders "Needs You" label for each breakpoint', () => {
     render(<BreakpointBanner breakpointRuns={[makeBp()]} />);
     expect(screen.getByText('Needs You')).toBeInTheDocument();

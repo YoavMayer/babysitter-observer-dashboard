@@ -6,7 +6,6 @@ import type { RunDigest, Run, ProjectSummary } from "@/types";
 import { promises as fs } from "fs";
 import path from "path";
 import { getGlobal } from "./global-registry";
-import { BREAKPOINT_NO_QUESTION_FALLBACK } from "./breakpoint-payload";
 
 /** Return true when err represents a "file/directory not found" filesystem error. */
 function isNotFoundError(err: unknown): boolean {
@@ -319,10 +318,13 @@ export function getProjectSummaries(): ProjectSummary[] {
         effectId: entry.digest.breakpointEffectId || "",
         projectName,
         processId: entry.digest.processId || "unknown",
-        // Honest last resort (UX-R2 §13.1 AC-32): no question in any on-disk
-        // source — never a bare "Approval required".
-        breakpointQuestion:
-          entry.digest.breakpointQuestion || BREAKPOINT_NO_QUESTION_FALLBACK,
+        // Pass the digest's question through UNCHANGED — possibly undefined.
+        // The data layer must never pre-fill the honest fallback copy: a
+        // truthy pre-fill here masked every downstream task-level fallback
+        // (e.g. the kanban panel's task?.breakpoint?.question chain). Display
+        // surfaces apply BREAKPOINT_NO_QUESTION_FALLBACK at render time
+        // (UX-R2 §13.1 AC-32).
+        breakpointQuestion: entry.digest.breakpointQuestion,
         driver: entry.digest.driver,
       });
     }

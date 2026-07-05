@@ -75,14 +75,25 @@ const HIDDEN_PLAIN_RUN_ID = "01KTESTKANBANHIDDENWK005";
 //   task.json metadata.payload; no input.json; no question in inputs) —
 //   replicates run DEPUTYsmartSAMAL/01KWE8RYQEHJ7BATR3V88AQVSD.
 // - NOQUEST: a genuinely question-less breakpoint (no question in ANY source).
+// - TASKDEF: SDK 6.0.2 ctx.breakpoint shape (question/options ONLY under
+//   task.json → .breakpoint; metadata null; no input.json; no question in
+//   inputs) — replicates run 01KWRJGED9BEE39SSPMH0M4JE3/01KWS6QP63XWADWW6N7HBGQ3GH.
 const KANBAN_PAYLOAD_BP_RUN_ID = "01KTESTKANBANPAYLOAD0006";
 const KANBAN_NOQUEST_BP_RUN_ID = "01KTESTKANBANNOQUEST0007";
 const KANBAN_NOQUEST_BP_EFFECT_ID = "01KTEST_KANBAN_NOQUEST_1";
+const KANBAN_TASKDEF_BP_RUN_ID = "01KTESTKANBANTASKDEF0008";
 
 // AC-33: payload title + distinctive question substring, asserted against the
 // fixture's metadata.payload (the sources the old parser never read).
 const PAYLOAD_BP_TITLE = "Gate 1 — Coordinate partition with Gidon";
 const PAYLOAD_BP_QUESTION_MARKER = "COORDINATION GATE";
+
+// AC-35: task-def title + distinctive question substring + options, asserted
+// against the fixture's task.json → .breakpoint block (SDK 6.0.2 shape — the
+// source the pre-fix resolver never read).
+const TASKDEF_BP_TITLE = "Gate 2 — Accept the release cut (nothing is pushed)";
+const TASKDEF_BP_QUESTION_MARKER = "TASKDEF GATE";
+const TASKDEF_BP_OPTIONS = ["Accept", "Request changes"];
 
 // AC-32/AC-34: the honest last-resort copy, frozen VERBATIM (SPEC §13.1).
 const NOQUEST_FALLBACK_COPY =
@@ -569,6 +580,37 @@ test.describe("Kanban board — UX-R2 §13.1 breakpoint question shape", () => {
       await expect(card).toContainText(PAYLOAD_BP_QUESTION_MARKER);
 
       // The string "Approval required" appears nowhere on this card.
+      const cardText = (await card.textContent()) ?? "";
+      expect(cardText).not.toContain("Approval required");
+    }
+  );
+
+  test(
+    "AC-35: an SDK 6.0.2 (.breakpoint) breakpoint card shows the task-def title, full question and option chips — never the fallback copy",
+    async ({ page }) => {
+      await gotoBoard(page);
+
+      const card = cardFor(page, KANBAN_TASKDEF_BP_RUN_ID);
+      await expect(card).toBeVisible({ timeout: 15_000 });
+      await expect(
+        column(page, "needsyou").locator(`[data-run-id="${KANBAN_TASKDEF_BP_RUN_ID}"]`)
+      ).toBeVisible();
+
+      // The task definition's own title renders as the panel heading (the
+      // .breakpoint block carries no title of its own).
+      await expect(card.getByTestId("kanban-bp-title")).toHaveText(TASKDEF_BP_TITLE, {
+        timeout: 15_000,
+      });
+
+      // The .breakpoint question renders (distinctive substring — the text
+      // the pre-fix resolver never read off disk).
+      await expect(card).toContainText(TASKDEF_BP_QUESTION_MARKER);
+
+      // The .breakpoint options render as chips (same source, same resolver).
+      const chips = card.getByTestId("kanban-bp-option-chip");
+      await expect(chips).toHaveText(TASKDEF_BP_OPTIONS, { timeout: 15_000 });
+
+      // The fallback copy ("Approval required …") appears nowhere on this card.
       const cardText = (await card.textContent()) ?? "";
       expect(cardText).not.toContain("Approval required");
     }
