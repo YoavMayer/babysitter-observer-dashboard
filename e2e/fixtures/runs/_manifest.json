@@ -1,10 +1,10 @@
 {
   "generatedAt": "2026-02-17T06:03:05.367Z",
-  "runCount": 55,
-  "totalTasks": 594,
+  "runCount": 57,
+  "totalTasks": 596,
   "statusCounts": {
     "failed": 8,
-    "waiting": 14,
+    "waiting": 16,
     "completed": 28,
     "pending": 4
   },
@@ -14,7 +14,7 @@
     "content-scheduler": 13,
     "sales-pipeline": 10,
     "test-breakpoint-project": 1,
-    "kanban-board-project": 3
+    "kanban-board-project": 5
   },
   "runs": [
     {
@@ -464,6 +464,22 @@
       "status": "waiting",
       "taskCount": 1,
       "createdAt": "2026-01-29T13:00:00.000Z"
+    },
+    {
+      "runId": "01KTESTKANBANPAYLOAD0006",
+      "processId": "kanban/payload-gate",
+      "projectName": "kanban-board-project",
+      "status": "waiting",
+      "taskCount": 1,
+      "createdAt": "2026-01-30T09:00:00.000Z"
+    },
+    {
+      "runId": "01KTESTKANBANNOQUEST0007",
+      "processId": "kanban/no-question",
+      "projectName": "kanban-board-project",
+      "status": "waiting",
+      "taskCount": 1,
+      "createdAt": "2026-01-31T10:00:00.000Z"
     }
   ]
 }

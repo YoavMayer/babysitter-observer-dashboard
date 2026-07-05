@@ -57,6 +57,25 @@ const HIDDEN_PROJECT_NAME = "kanban-hidden-project";
 const HIDDEN_BP_RUN_ID = "01KTESTKANBANHIDDENBP004";
 const HIDDEN_PLAIN_RUN_ID = "01KTESTKANBANHIDDENWK005";
 
+// UX-R2 §13.1 fixtures (AC-33/AC-34 — NEW acceptance criteria, gate-free
+// bug fix, taxonomy-independent per §13.6):
+// - PAYLOAD: v6 ctx.breakpoint evidence shape (question/title ONLY under
+//   task.json metadata.payload; no input.json; no question in inputs) —
+//   replicates run DEPUTYsmartSAMAL/01KWE8RYQEHJ7BATR3V88AQVSD.
+// - NOQUEST: a genuinely question-less breakpoint (no question in ANY source).
+const KANBAN_PAYLOAD_BP_RUN_ID = "01KTESTKANBANPAYLOAD0006";
+const KANBAN_NOQUEST_BP_RUN_ID = "01KTESTKANBANNOQUEST0007";
+const KANBAN_NOQUEST_BP_EFFECT_ID = "01KTEST_KANBAN_NOQUEST_1";
+
+// AC-33: payload title + distinctive question substring, asserted against the
+// fixture's metadata.payload (the sources the old parser never read).
+const PAYLOAD_BP_TITLE = "Gate 1 — Coordinate partition with Gidon";
+const PAYLOAD_BP_QUESTION_MARKER = "COORDINATION GATE";
+
+// AC-32/AC-34: the honest last-resort copy, frozen VERBATIM (SPEC §13.1).
+const NOQUEST_FALLBACK_COPY =
+  "Approval required — this breakpoint has no question text on disk.";
+
 // AC-14: the fixture question, asserted VERBATIM (length > 120 chars).
 const LONG_BP_QUESTION =
   "The staging deploy changes the database schema, rotates two service credentials, and restarts the ingest workers — do you approve rolling this out to the shared staging environment now?";
@@ -504,6 +523,87 @@ test.describe("Kanban board — Needs-you cards (SPEC-vibekanban)", () => {
         expect(marker).toBe(true);
       } finally {
         for (const f of createdFiles) await fs.unlink(f).catch(() => {});
+      }
+    }
+  );
+});
+
+// ---------------------------------------------------------------------------
+// UX-R2 §13.1 — question-shape fix (AC-33, AC-34). NEW acceptance criteria
+// authored with the fix wave (not amendments to frozen §10 assertions).
+// ---------------------------------------------------------------------------
+
+test.describe("Kanban board — UX-R2 §13.1 breakpoint question shape", () => {
+  test(
+    "AC-33: an evidence-shape (metadata.payload) breakpoint card shows the payload title and full question — never a bare 'Approval required'",
+    async ({ page }) => {
+      await gotoBoard(page);
+
+      const card = cardFor(page, KANBAN_PAYLOAD_BP_RUN_ID);
+      await expect(card).toBeVisible({ timeout: 15_000 });
+      await expect(
+        column(page, "needsyou").locator(`[data-run-id="${KANBAN_PAYLOAD_BP_RUN_ID}"]`)
+      ).toBeVisible();
+
+      // metadata.payload.title renders as the breakpoint panel's heading.
+      await expect(card.getByTestId("kanban-bp-title")).toHaveText(PAYLOAD_BP_TITLE, {
+        timeout: 15_000,
+      });
+
+      // The full multi-line payload question renders (distinctive substring —
+      // the text the old parser never read off disk).
+      await expect(card).toContainText(PAYLOAD_BP_QUESTION_MARKER);
+
+      // The string "Approval required" appears nowhere on this card.
+      const cardText = (await card.textContent()) ?? "";
+      expect(cardText).not.toContain("Approval required");
+    }
+  );
+
+  test(
+    "AC-34: a genuinely question-less breakpoint card shows the honest fallback copy verbatim, and the Answer flow still works",
+    async ({ page }) => {
+      // This test answers the breakpoint through the real approve flow, so it
+      // restores the fixture to its pending state afterwards (AC-15 pattern —
+      // fixtures are never left mutated).
+      const dir = runDir(KANBAN_NOQUEST_BP_RUN_ID);
+      const resultPath = path.join(dir, "tasks", KANBAN_NOQUEST_BP_EFFECT_ID, "result.json");
+      const journalDir = path.join(dir, "journal");
+      const journalBefore = await fs.readdir(journalDir);
+
+      try {
+        await gotoBoard(page);
+
+        const card = cardFor(page, KANBAN_NOQUEST_BP_RUN_ID);
+        await expect(card).toBeVisible({ timeout: 15_000 });
+        await expect(
+          column(page, "needsyou").locator(`[data-run-id="${KANBAN_NOQUEST_BP_RUN_ID}"]`)
+        ).toBeVisible();
+
+        // Honest last-resort copy, verbatim (AC-32) — never a bare
+        // "Approval required" that implies a generic approval.
+        await expect(card).toContainText(NOQUEST_FALLBACK_COPY, { timeout: 15_000 });
+
+        // The fallback never blocks answering: expand the Answer section and
+        // submit a custom answer through the existing approve flow.
+        await card.getByTestId("kanban-bp-answer-toggle").click();
+        const approval = card.getByTestId("breakpoint-approval");
+        await expect(approval).toBeVisible();
+        await approval.getByTestId("custom-answer-input").fill("acknowledged");
+        await approval.getByTestId("approve-btn").click();
+        await expect(card.getByTestId("approval-result")).toBeVisible({ timeout: 15_000 });
+
+        // The answer landed on disk through the one write path.
+        const result = JSON.parse(await fs.readFile(resultPath, "utf-8"));
+        expect(result.status).toBe("ok");
+        expect(result.value.answer).toBe("acknowledged");
+      } finally {
+        // Restore the fixture to its pending state for other tests/workers.
+        const journalAfter = await fs.readdir(journalDir).catch(() => [] as string[]);
+        for (const f of journalAfter) {
+          if (!journalBefore.includes(f)) await fs.unlink(path.join(journalDir, f)).catch(() => {});
+        }
+        await fs.unlink(resultPath).catch(() => {});
       }
     }
   );
