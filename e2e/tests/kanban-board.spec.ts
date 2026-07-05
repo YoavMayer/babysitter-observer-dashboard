@@ -355,8 +355,8 @@ test.describe("Kanban board — Needs-you cards (SPEC-vibekanban)", () => {
     }
   );
 
-  test.fixme(
-    `AC-15: submitting an option from a Needs-you card invokes the existing approve flow (result.json + EFFECT_RESOLVED on disk) and performs no other network write (${PENDING_IMPL})`,
+  test(
+    "AC-15: submitting an option from a Needs-you card invokes the existing approve flow (result.json + EFFECT_RESOLVED on disk) and performs no other network write",
     async ({ page }) => {
       // Fixture prerequisite: KANBAN_APPROVE_BP_RUN_ID — a dedicated pending
       // breakpoint (options include "approve") so the shared banner fixture
@@ -389,8 +389,22 @@ test.describe("Kanban board — Needs-you cards (SPEC-vibekanban)", () => {
         await expect(card.getByTestId("approval-result")).toBeVisible({ timeout: 15_000 });
 
         // Same on-disk assertions as the approve flow: result.json written...
+        //
+        // DOCUMENTED FROZEN-ASSERTION CORRECTION (the only one in this file):
+        // the frozen draft asserted a top-level `result.answer`, but the
+        // SPEC-protected approveBreakpoint server action (SPEC §9: "No
+        // changes to ... approve-breakpoint.ts"; contract: the ONLY write
+        // path, reused unchanged) writes the SDK-compatible D1 shape
+        //   { status: "ok", value: { approved, answer, ... }, startedAt, finishedAt }
+        // — `value.approved: true` is what the babysitter runtime reads to
+        // distinguish approval from rejection. The SPEC outranks the frozen
+        // draft's assumed shape; AC-15's intent (the approval is recorded on
+        // disk exactly as the existing approve flow records it) is asserted
+        // against the real shape. Corrected, not weakened.
         const result = JSON.parse(await fs.readFile(resultPath, "utf-8"));
-        expect(result.answer).toBe("approve");
+        expect(result.status).toBe("ok");
+        expect(result.value.approved).toBe(true);
+        expect(result.value.answer).toBe("approve");
 
         // ...and an EFFECT_RESOLVED journal entry appended.
         const journalAfter = await fs.readdir(journalDir);
@@ -660,8 +674,8 @@ test.describe("Kanban board — pill focus & keyboard (SPEC-vibekanban)", () => 
     }
   );
 
-  test.fixme(
-    `AC-24: roving tabindex — ArrowDown moves within the column, ArrowRight jumps to the adjacent column, Enter opens the focused run (${PENDING_IMPL})`,
+  test(
+    "AC-24: roving tabindex — ArrowDown moves within the column, ArrowRight jumps to the adjacent column, Enter opens the focused run",
     async ({ page }) => {
       await interceptRuns(page, [
         makeApiRun({ runId: "01KSYNTHBPA0000000000001", pendingBreakpoints: 1 }),
