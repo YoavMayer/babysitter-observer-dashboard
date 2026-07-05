@@ -44,7 +44,22 @@ export default defineConfig({
 
   projects: [
     {
+      // Suite warm-up (settings-flake root cause): one solo browser pass over
+      // the page routes so `next dev` compiles them BEFORE the fully-parallel
+      // worker stampede. See e2e/tests/warmup.setup.ts.
+      name: "warmup",
+      testMatch: /warmup\.setup\.ts/,
+      use: {
+        ...devices["Desktop Chrome"],
+        ...(chromeChannel ? { channel: chromeChannel } : {}),
+        ...(chromeExecutable
+          ? { launchOptions: { executablePath: chromeExecutable } }
+          : {}),
+      },
+    },
+    {
       name: "chromium",
+      dependencies: ["warmup"],
       use: {
         ...devices["Desktop Chrome"],
         ...(chromeChannel ? { channel: chromeChannel } : {}),

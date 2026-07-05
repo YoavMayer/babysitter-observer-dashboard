@@ -790,10 +790,13 @@ test.describe("Settings Modal", () => {
     // that interfere with the click handler registration.
     await dashboardPage.waitForData();
 
-    await dashboardPage.settingsButton.click();
+    // Deterministic open (settings-flake class): re-clicks until the modal
+    // mounts instead of one blind click + a long toBeVisible timeout — see
+    // DashboardPage.openSettings for the root-cause note.
+    await dashboardPage.openSettings();
 
     // Settings modal should become visible (Radix Dialog.Portal may take a moment)
-    await expect(page.getByTestId("settings-modal")).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByTestId("settings-modal")).toBeVisible();
   });
 });
 

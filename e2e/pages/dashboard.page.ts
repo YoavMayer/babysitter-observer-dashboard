@@ -108,6 +108,33 @@ export class DashboardPage {
     await this.page.goto("/", { waitUntil: "domcontentloaded" });
   }
 
+  /* ---- Actions ---- */
+
+  /**
+   * Open the Settings modal DETERMINISTICALLY.
+   *
+   * A single blind `settingsButton.click()` is a known flake class under the
+   * parallel dev-server suite: with 12 workers hammering cold Next.js
+   * compiles, a click can land in the window where the header button is
+   * painted but React has not (re)attached its onClick handler yet (hydration
+   * / SSE-triggered re-render race) — the click "succeeds" and nothing opens,
+   * and the follow-up toBeVisible burns its whole timeout. Instead of bumping
+   * timeouts, re-click until the modal actually mounts: the loop converges on
+   * the first attempt after handlers are live, and fails fast overall via
+   * toPass's outer budget.
+   */
+  async openSettings() {
+    const modal = this.page.getByTestId("settings-modal");
+    await expect(this.settingsButton).toBeVisible({ timeout: 30_000 });
+    await expect(async () => {
+      // A previous attempt may have succeeded just after its 2s check ended —
+      // never re-click through the open modal's overlay.
+      if (await modal.isVisible()) return;
+      await this.settingsButton.click({ timeout: 5_000 });
+      await expect(modal).toBeVisible({ timeout: 2_000 });
+    }).toPass({ timeout: 30_000 });
+  }
+
   /* ---- Queries ---- */
 
   /**
