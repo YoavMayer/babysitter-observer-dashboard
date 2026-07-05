@@ -192,6 +192,20 @@ describe('BreakpointBanner', () => {
     expect(screen.queryByTestId('breakpoint-banner')).not.toBeInTheDocument();
   });
 
+  // --- §13.3: orphaned hint is recoverable, never red ---
+  it('orphaned "No live driver" pill wears the stalled tokens, not the error red', () => {
+    render(<BreakpointBanner breakpointRuns={[makeBp({ runId: 'orphan-run', driver: 'orphaned' })]} />);
+
+    const pill = screen.getByText('No live driver — resume to answer');
+    // §13.3 one hue = one meaning: red is terminal failure ONLY. The orphaned
+    // state is recoverable (answer is recorded now, applied on resume), so it
+    // uses the same stalled tokens as run-list.tsx's ActionHint.
+    expect(pill.className).toMatch(/bg-status-stalled-muted/);
+    expect(pill.className).toMatch(/text-status-stalled/);
+    expect(pill.className).toMatch(/border-status-stalled\/30/);
+    expect(pill.className).not.toMatch(/text-error|bg-error|border-error/);
+  });
+
   // --- Accessibility ---
   it('has role="alert" and aria-live="assertive"', () => {
     render(<BreakpointBanner breakpointRuns={[makeBp()]} />);

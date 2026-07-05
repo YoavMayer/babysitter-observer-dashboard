@@ -79,7 +79,10 @@ function BreakpointBannerItem({ bp, stale, onDismiss }: { bp: BreakpointRunInfo;
       <div className="shrink-0 flex flex-col items-end gap-1" data-testid="breakpoint-action-hint">
         {orphaned ? (
           <span
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-error/15 text-error border border-error/30"
+            // §13.3: red = terminal failure ONLY. Orphaned is recoverable
+            // (resume applies the answer), so it wears the stalled tokens —
+            // same migration as run-list.tsx's ActionHint.
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-status-stalled-muted text-status-stalled border border-status-stalled/30"
             // §13.4: honest orphaned semantics — recorded now, applied on resume.
             title="No live orchestrator is attached. Recorded now → applied when the run is resumed (babysitter run:iterate)."
           >
