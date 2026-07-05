@@ -92,3 +92,34 @@ describe("KanbanCard chip gating (SPEC-vibekanban AC-26)", () => {
     expect(screen.queryByText(ORPHANED_SR_TEXT)).not.toBeInTheDocument();
   });
 });
+
+// ---------------------------------------------------------------------------
+// UX-R2 §13.5 — AC-48 (nit): project-tag truncation on the INNER text node.
+// Structural half of the AC (the visual ellipsis is asserted in the e2e).
+// ---------------------------------------------------------------------------
+
+describe("KanbanCard project tag truncation (UX-R2 §13.5 / AC-48)", () => {
+  const LONG_PROJECT_NAME =
+    "a-very-long-project-name-that-should-ellipsize-cleanly-01234"; // 60 chars
+
+  it("AC-48: `truncate` sits on the inner text span, the Tag icon stays outside it", () => {
+    expect(LONG_PROJECT_NAME).toHaveLength(60);
+    render(
+      <KanbanCard
+        run={makeLightRun({ status: "waiting", projectName: LONG_PROJECT_NAME })}
+      />
+    );
+
+    const inner = screen.getByTestId("kanban-card-project-name");
+    expect(inner).toHaveTextContent(LONG_PROJECT_NAME);
+    expect(inner.className).toContain("truncate");
+    // The icon is NOT inside the truncated node (it must never be clipped)...
+    expect(inner.querySelector("svg")).toBeNull();
+    // ...but the flex wrapper still carries icon + text, and can shrink
+    // (min-w-0) without truncating itself.
+    const wrapper = inner.parentElement as HTMLElement;
+    expect(wrapper.querySelector("svg")).not.toBeNull();
+    expect(wrapper.className).toContain("min-w-0");
+    expect(wrapper.className).not.toContain("truncate");
+  });
+});

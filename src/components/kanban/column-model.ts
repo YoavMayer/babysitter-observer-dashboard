@@ -234,3 +234,25 @@ export function stalledOverflowTooltip(
   const noun = captured === 1 ? "run is" : "runs are";
   return `+${captured} more stalled ${noun} shown under Needs you`;
 }
+
+/**
+ * Count honesty for the Working column header — UX-R2 §13.5/AC-47, the same
+ * absorbed-into mechanism as stalledOverflowTooltip: the "waiting" pill counts
+ * every non-stale in-progress run (breakpoint runs included), while the board
+ * partition sends breakpoint runs to Needs-you first. A needs-you run counts
+ * here only when Working is where it would otherwise land (assignColumn minus
+ * row 1: not orphaned, not stale) — orphaned/stale needs-you runs are already
+ * disclosed by the Stalled tooltip, so no run is disclosed twice.
+ *
+ * Returns null when the waiting pill count equals the Working column count.
+ */
+export function workingOverflowTooltip(
+  partition: Record<BoardColumnKey, LightRun[]>
+): string | null {
+  const wouldBeWorking = (run: LightRun) =>
+    !isOrphanedBucket(run) && run.isStale !== true;
+  const captured = partition.needsyou.filter(wouldBeWorking).length;
+  if (captured === 0) return null;
+  const noun = captured === 1 ? "run is" : "runs are";
+  return `+${captured} more working ${noun} shown under Needs you`;
+}

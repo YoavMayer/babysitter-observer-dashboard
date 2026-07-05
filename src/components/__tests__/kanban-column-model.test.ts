@@ -42,6 +42,9 @@ import {
   // 4-column taxonomy — the orphaned/stale tooltips merged into the Stalled
   // host's stalledOverflowTooltip (AC-10 amended text, §13.6).
   stalledOverflowTooltip,
+  // UX-R2 §13.5/AC-47: the Working column gets the same absorbed-into
+  // mechanism for breakpoint runs the waiting pill counts.
+  workingOverflowTooltip,
   type BoardColumnKey,
 } from "@/components/kanban/column-model";
 
@@ -597,5 +600,89 @@ describe("groupColumns (UX-R2 §13.2b / AC-35)", () => {
     expect(groups.waiting).toBe(partition.waiting);
     expect(groups.stalled).toEqual([]);
     expect(groups.done).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// UX-R2 §13.5 — AC-47: workingOverflowTooltip (Working column count honesty,
+// the same absorbed-into mechanism as the Stalled tooltip).
+// ---------------------------------------------------------------------------
+
+describe("workingOverflowTooltip (UX-R2 §13.5 / AC-47)", () => {
+  it("AC-47: a non-stale breakpoint run absorbed into Needs-you is disclosed with the exact singular text", () => {
+    // The AC-47 fixture shape: waiting pill counts 2 (both non-stale
+    // in-progress runs), the Working column renders only the plain run.
+    const liveBp = makeLightRun({
+      runId: "01KTESTWORKBP00000000001",
+      status: "waiting",
+      pendingBreakpoints: 1,
+      driver: "live",
+    });
+    const plainWork = makeLightRun({
+      runId: "01KTESTWORKPLAIN00000002",
+      status: "waiting",
+      pendingBreakpoints: 0,
+      driver: "live",
+    });
+    const partition = partitionRuns([liveBp, plainWork]);
+    expect(partition.needsyou).toHaveLength(1);
+    expect(partition.waiting).toHaveLength(1);
+    expect(workingOverflowTooltip(partition)).toBe(
+      "+1 more working run is shown under Needs you"
+    );
+  });
+
+  it("pluralizes for multiple absorbed working runs", () => {
+    const bp1 = makeLightRun({
+      runId: "01KTESTWORKBPA0000000001",
+      status: "waiting",
+      pendingBreakpoints: 1,
+      driver: "live",
+    });
+    const bp2 = makeLightRun({
+      runId: "01KTESTWORKBPB0000000002",
+      status: "pending",
+      pendingBreakpoints: 1,
+      driver: "live",
+    });
+    const partition = partitionRuns([bp1, bp2]);
+    expect(workingOverflowTooltip(partition)).toBe(
+      "+2 more working runs are shown under Needs you"
+    );
+  });
+
+  it("does NOT double-disclose orphaned/stale Needs-you runs (those belong to the Stalled tooltip)", () => {
+    const orphanedBp = makeLightRun({
+      runId: "01KTESTWORKORPH000000001",
+      status: "waiting",
+      pendingBreakpoints: 1,
+      driver: "orphaned",
+    });
+    const staleBp = makeLightRun({
+      runId: "01KTESTWORKSTALE00000002",
+      status: "waiting",
+      pendingBreakpoints: 1,
+      driver: "live",
+      isStale: true,
+    });
+    const partition = partitionRuns([orphanedBp, staleBp]);
+    expect(partition.needsyou).toHaveLength(2);
+    // Both runs are stalled-bucket shaped — the Working tooltip stays silent
+    // while the Stalled tooltip owns the disclosure (no run counted twice).
+    expect(workingOverflowTooltip(partition)).toBeNull();
+    expect(stalledOverflowTooltip(partition)).toBe(
+      "+2 more stalled runs are shown under Needs you"
+    );
+  });
+
+  it("null when no needs-you run is working-shaped (pill count === column count)", () => {
+    const plainWork = makeLightRun({
+      runId: "01KTESTWORKONLY000000001",
+      status: "waiting",
+      pendingBreakpoints: 0,
+      driver: "live",
+    });
+    const partition = partitionRuns([plainWork]);
+    expect(workingOverflowTooltip(partition)).toBeNull();
   });
 });

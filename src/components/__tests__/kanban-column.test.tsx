@@ -85,4 +85,41 @@ describe("KanbanColumn (SPEC-vibekanban Wave 2)", () => {
     const header = screen.getByTitle("+2 more stalled runs are shown under Needs you");
     expect(header).toBeInTheDocument();
   });
+
+  // UX-R2 §13.5/AC-49: the absorbed-count disclosure is programmatically
+  // associated with the column header — never hover-title-only.
+  it("AC-49: aria-describedby links the header label to the absorbed-count disclosure text", () => {
+    render(
+      <KanbanColumn
+        columnKey="waiting"
+        runs={[boardRun({ runId: "01KCOLTESTRUNAAAAAAAAAA5", status: "waiting" })]}
+        countTooltip="+1 more working run is shown under Needs you"
+      />
+    );
+
+    const label = screen.getByTestId("kanban-column-label-waiting");
+    expect(label).toHaveAttribute("aria-describedby", "kanban-absorbed-waiting");
+    // The header's accessible description carries the tooltip text.
+    expect(label).toHaveAccessibleDescription(
+      "+1 more working run is shown under Needs you"
+    );
+    expect(screen.getByTestId("kanban-absorbed-waiting")).toHaveTextContent(
+      "+1 more working run is shown under Needs you"
+    );
+  });
+
+  it("AC-49 (complement): no dangling aria-describedby when there is nothing to disclose", () => {
+    render(
+      <KanbanColumn
+        columnKey="waiting"
+        runs={[boardRun({ runId: "01KCOLTESTRUNAAAAAAAAAA6", status: "waiting" })]}
+      />
+    );
+    expect(screen.getByTestId("kanban-column-label-waiting")).not.toHaveAttribute(
+      "aria-describedby"
+    );
+    expect(
+      screen.queryByTestId("kanban-absorbed-waiting")
+    ).not.toBeInTheDocument();
+  });
 });

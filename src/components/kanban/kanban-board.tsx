@@ -13,6 +13,7 @@ import {
   groupColumns,
   partitionRuns,
   stalledOverflowTooltip,
+  workingOverflowTooltip,
   type BoardColumnKey,
   type BoardGroupKey,
   type BoardGroups,
@@ -242,6 +243,11 @@ export function KanbanBoard({
       ) ?? null)
     : null;
 
+  // §13.5/AC-47 count honesty for Working: breakpoint runs the waiting pill
+  // counts render under Needs-you — the Working header discloses where the
+  // difference went (same mechanism as the Stalled absorbed-into tooltip).
+  const workingTooltip = workingOverflowTooltip(partition);
+
   // §7 fetch-window: the API window is capped at 500 — when more runs exist,
   // say so instead of silently truncating (count-honesty, F1 lesson).
   const totalCount = data?.totalCount ?? runs.length;
@@ -285,7 +291,13 @@ export function KanbanBoard({
             key={key}
             columnKey={key}
             runs={groups[key]}
-            countTooltip={key === stalledTooltipHost ? stalledTooltip : undefined}
+            countTooltip={
+              key === "waiting"
+                ? workingTooltip
+                : key === stalledTooltipHost
+                  ? stalledTooltip
+                  : undefined
+            }
             focused={focusGroupKey === key}
             dimmed={focusGroupKey !== null && focusGroupKey !== key}
             keyboard={keyboard}

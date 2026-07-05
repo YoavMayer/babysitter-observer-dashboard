@@ -129,9 +129,14 @@ export function KanbanCard({ run, keyboard }: KanbanCardProps) {
       <div className="flex items-center gap-2 min-w-0">
         {nonTerminal ? <LivenessChip run={run} /> : <StatusDot run={run} />}
         {run.projectName && (
-          <span className="ml-auto flex items-center gap-1 text-xs text-foreground-muted truncate">
+          // §13.5/AC-48: `truncate` lives on the INNER text node so a long
+          // project name ellipsizes without clipping the Tag icon (the flex
+          // wrapper only needs min-w-0 to allow the text to shrink).
+          <span className="ml-auto flex min-w-0 items-center gap-1 text-xs text-foreground-muted">
             <Tag className="h-3 w-3 shrink-0" aria-hidden="true" focusable="false" />
-            {run.projectName}
+            <span data-testid="kanban-card-project-name" className="truncate">
+              {run.projectName}
+            </span>
             {run.hiddenProject && (
               // §6.3: hidden-project needs-you cards are marked, never dropped.
               <span title="project hidden from grid">

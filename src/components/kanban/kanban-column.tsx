@@ -270,6 +270,12 @@ export function KanbanColumn({
       >
         <span
           data-testid={`kanban-column-label-${columnKey}`}
+          // §13.5/AC-49: the absorbed-count disclosure is programmatically
+          // associated with the header, not hover-title-only — the label's
+          // accessible description carries the "+N more …" text.
+          aria-describedby={
+            countTooltip ? `kanban-absorbed-${columnKey}` : undefined
+          }
           className={cn(
             "flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide",
             spec.headerClass
@@ -282,6 +288,17 @@ export function KanbanColumn({
           />
           {spec.label}
         </span>
+        {countTooltip && (
+          // §13.5/AC-49: screen-reader-visible copy of the count-honesty
+          // tooltip (the hover title above), referenced by aria-describedby.
+          <span
+            id={`kanban-absorbed-${columnKey}`}
+            data-testid={`kanban-absorbed-${columnKey}`}
+            className="sr-only"
+          >
+            {countTooltip}
+          </span>
+        )}
         {spec.subLabel && (
           <span className="text-[10px] text-foreground-muted">{spec.subLabel}</span>
         )}
