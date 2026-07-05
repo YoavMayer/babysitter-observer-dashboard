@@ -48,7 +48,21 @@ describe("KanbanColumn (SPEC-vibekanban Wave 2)", () => {
         runs={[boardRun({ runId: "01KCOLTESTRUNAAAAAAAAAA3", status: "waiting" })]}
       />
     );
-    expect(screen.getByRole("list", { name: "Working, 1 runs" })).toBeInTheDocument();
+    // Design-QA (nit): singular count reads "1 run", never "1 runs".
+    expect(screen.getByRole("list", { name: "Working, 1 run" })).toBeInTheDocument();
+  });
+
+  it("pluralizes the accessible column name for multiple runs (§8)", () => {
+    render(
+      <KanbanColumn
+        columnKey="waiting"
+        runs={[
+          boardRun({ runId: "01KCOLTESTRUNAAAAAAAAAA8", status: "waiting" }),
+          boardRun({ runId: "01KCOLTESTRUNAAAAAAAAAA9", status: "waiting" }),
+        ]}
+      />
+    );
+    expect(screen.getByRole("list", { name: "Working, 2 runs" })).toBeInTheDocument();
   });
 
   it("shows the quiet §7 placeholder for an empty always-visible column", () => {

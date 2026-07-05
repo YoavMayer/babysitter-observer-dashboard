@@ -11,6 +11,7 @@ import {
   COLUMN_ORDER,
   partitionRuns,
   orphanedOverflowTooltip,
+  staleOverflowTooltip,
   type BoardColumnKey,
   type BoardPartition,
 } from "@/components/kanban/column-model";
@@ -219,6 +220,20 @@ export function KanbanBoard({
 
   const orphanedTooltip = orphanedOverflowTooltip(partition);
 
+  // Design-QA round 1 (minor): the stale pill can read "Stale N" while the
+  // board shows no Stale column at all (every stale run absorbed by
+  // Needs-you/Orphaned precedence ⇒ empty column auto-hid). Same §3.4
+  // count-honesty mechanism as the orphaned tooltip: host the explanation on
+  // the Stale column when it is visible, otherwise on the first visible
+  // column that absorbed the runs (Needs-you is always visible, so a host
+  // always exists when the tooltip is non-null).
+  const staleTooltip = staleOverflowTooltip(partition);
+  const staleTooltipHost: BoardColumnKey | null = staleTooltip
+    ? ((["stale", "orphaned", "needsyou"] as BoardColumnKey[]).find((key) =>
+        visibleKeys.includes(key)
+      ) ?? null)
+    : null;
+
   // §7 fetch-window: the API window is capped at 500 — when more runs exist,
   // say so instead of silently truncating (count-honesty, F1 lesson).
   const totalCount = data?.totalCount ?? runs.length;
@@ -262,7 +277,17 @@ export function KanbanBoard({
             key={key}
             columnKey={key}
             runs={partition[key]}
-            countTooltip={key === "orphaned" ? orphanedTooltip : undefined}
+            countTooltip={
+              // A column may carry both honesty tooltips (e.g. Orphaned holds
+              // absorbed-orphaned AND hosts the stale absorption note) —
+              // multi-line title, one line per mechanism.
+              [
+                key === "orphaned" ? orphanedTooltip : null,
+                key === staleTooltipHost ? staleTooltip : null,
+              ]
+                .filter(Boolean)
+                .join("\n") || undefined
+            }
             focused={focusColumnKey === key}
             dimmed={focusColumnKey !== null && focusColumnKey !== key}
             keyboard={keyboard}

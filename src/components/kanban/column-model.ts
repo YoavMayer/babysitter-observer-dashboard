@@ -180,3 +180,32 @@ export function orphanedOverflowTooltip(
   const noun = capturedByNeedsYou === 1 ? "run is" : "runs are";
   return `+${capturedByNeedsYou} more orphaned ${noun} shown under Needs you`;
 }
+
+/**
+ * Count honesty for the STALE bucket (design-QA round 1, same §3.4 mechanism
+ * as orphanedOverflowTooltip): the stale pill counts every `isStale === true`
+ * run, but Needs-you/Orphaned precedence absorbs stale runs into higher
+ * columns — the board can even show NO Stale column (empty ⇒ auto-hidden)
+ * while the pill still reads "Stale N". This computes the tooltip that makes
+ * the absorption explicit — no silent mismatch.
+ *
+ * Returns null when no stale run was captured by a higher-precedence column
+ * (i.e. pill count === Stale column count).
+ */
+export function staleOverflowTooltip(
+  partition: Record<BoardColumnKey, LightRun[]>
+): string | null {
+  const isStale = (run: LightRun) => run.isStale === true;
+  const capturedByNeedsYou = partition.needsyou.filter(isStale).length;
+  const capturedByOrphaned = partition.orphaned.filter(isStale).length;
+  const captured = capturedByNeedsYou + capturedByOrphaned;
+  if (captured === 0) return null;
+  const hosts = [
+    capturedByNeedsYou > 0 ? "Needs you" : null,
+    capturedByOrphaned > 0 ? "Orphaned" : null,
+  ]
+    .filter(Boolean)
+    .join(" and ");
+  const noun = captured === 1 ? "run is" : "runs are";
+  return `+${captured} more stale ${noun} shown under ${hosts}`;
+}

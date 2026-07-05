@@ -10,7 +10,10 @@ import {
   ActionHint,
 } from "@/components/dashboard/run-list";
 import { assignColumn, type BoardRun } from "@/components/kanban/column-model";
-import { KanbanBreakpointPanel } from "@/components/kanban/kanban-breakpoint-panel";
+import {
+  KanbanBreakpointPanel,
+  ACTION_HINT_FIT_CLASS,
+} from "@/components/kanban/kanban-breakpoint-panel";
 import type { UseBoardKeyboardResult } from "@/components/kanban/use-board-keyboard";
 import type { Run } from "@/types";
 
@@ -144,8 +147,9 @@ export function KanbanCard({ run, keyboard }: KanbanCardProps) {
         )}
       </div>
 
-      {/* Row 2: friendly process name */}
-      <span className="text-sm font-medium text-foreground truncate">
+      {/* Row 2: friendly process name — design-QA (nit): 2-line clamp instead
+          of a mid-word single-line ellipsis at the 280px column width. */}
+      <span className="text-sm font-medium text-foreground line-clamp-2 break-words">
         {friendlyProcessName(run.processId)}
       </span>
 
@@ -162,7 +166,9 @@ export function KanbanCard({ run, keyboard }: KanbanCardProps) {
       {/* Column-specific additions (§5) */}
       {column === "needsyou" && <KanbanBreakpointPanel run={run} />}
       {column === "orphaned" && (
-        <div className="flex">
+        // Design-QA (major): ACTION_HINT_FIT_CLASS keeps the shared shrink-0
+        // hint cluster wrapping INSIDE the 280px card (see the export's doc).
+        <div className={ACTION_HINT_FIT_CLASS}>
           <ActionHint run={run} />
         </div>
       )}

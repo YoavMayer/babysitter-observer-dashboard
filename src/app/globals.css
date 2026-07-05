@@ -51,6 +51,9 @@
   --success-muted: rgba(0, 255, 136, 0.15);
   --warning: #FFD700;
   --warning-muted: rgba(255, 215, 0, 0.15);
+  /* Text-on-background alarm label (design-QA: neon gold is fine on dark,
+     but needs a darker ink in light mode to clear WCAG 4.5:1). */
+  --warning-label: #FFD700;
   --error: #FF3366;
   --error-muted: rgba(255, 51, 102, 0.18);
   --info: #00F0FF;
@@ -195,6 +198,8 @@
   --success-muted: rgba(0, 204, 110, 0.12);
   --warning: #D4AF00;
   --warning-muted: rgba(212, 175, 0, 0.12);
+  /* Darkened alarm-label gold: #8a6d00 on near-white ≈ 4.9:1 (≥ 4.5:1). */
+  --warning-label: #8a6d00;
   --error: #E6295A;
   --error-muted: rgba(230, 41, 90, 0.12);
   --info: #00C8D6;
@@ -324,6 +329,7 @@
   --color-success-muted: var(--success-muted);
   --color-warning: var(--warning);
   --color-warning-muted: var(--warning-muted);
+  --color-warning-label: var(--warning-label);
   --color-error: var(--error);
   --color-error-muted: var(--error-muted);
   --color-info: var(--info);

@@ -51,7 +51,9 @@ export const COLUMN_SPECS: Record<BoardColumnKey, ColumnSpec> = {
   needsyou: {
     label: "Needs you",
     emptyText: "Nothing needs you — all clear.",
-    headerClass: "text-warning",
+    // Design-QA (minor): the header label uses the theme-aware warning-label
+    // token — neon gold on dark, darkened gold in light mode (≥4.5:1).
+    headerClass: "text-warning-label",
     emptyClass: "text-success",
   },
   orphaned: {
@@ -175,7 +177,7 @@ export function KanbanColumn({
         ref={cardsRef}
         data-testid={`kanban-column-cards-${columnKey}`}
         role="list"
-        aria-label={`${spec.label}, ${runs.length} runs`}
+        aria-label={`${spec.label}, ${runs.length} ${runs.length === 1 ? "run" : "runs"}`}
         className={cn(
           "p-2 overflow-y-auto max-h-[calc(100vh-260px)]",
           !virtualize && "flex flex-col gap-2"

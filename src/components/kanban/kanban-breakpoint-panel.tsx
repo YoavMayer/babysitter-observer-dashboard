@@ -19,6 +19,21 @@ import type { BoardRun } from "@/components/kanban/column-model";
  * run-detail page doesn't already have).
  */
 
+/**
+ * Design-QA (major): the shared ActionHint cluster is `shrink-0 flex` sized
+ * for the wide flat-list rows — at the 280px board column it overflowed the
+ * card by ~120px. This container-scoped override lets the cluster shrink and
+ * wrap INSIDE the card without touching the shared component (run-list.tsx
+ * list-view rendering is unchanged). Also imported by kanban-card.tsx for the
+ * Orphaned-column hint.
+ */
+export const ACTION_HINT_FIT_CLASS =
+  "flex min-w-0 max-w-full " +
+  "[&_[data-testid=run-action-hint]]:min-w-0 " +
+  "[&_[data-testid=run-action-hint]]:max-w-full " +
+  "[&_[data-testid=run-action-hint]]:shrink " +
+  "[&_[data-testid=run-action-hint]]:flex-wrap";
+
 export interface KanbanBreakpointPanelProps {
   run: BoardRun;
 }
@@ -93,7 +108,7 @@ export function KanbanBreakpointPanel({ run }: KanbanBreakpointPanelProps) {
       {/* Driver-aware informing hint, identical to the banner/flat-list
           pattern: orphaned/none => "No live driver — resume to answer" +
           copy-run-id; live => "Answer in terminal". */}
-      <div className="flex">
+      <div className={ACTION_HINT_FIT_CLASS}>
         <ActionHint run={run} />
       </div>
 
@@ -115,7 +130,14 @@ export function KanbanBreakpointPanel({ run }: KanbanBreakpointPanelProps) {
       </button>
       {expanded &&
         (task ? (
-          <BreakpointApproval task={task} runId={run.runId} />
+          // Design-QA (blocker): at the 280px column the shared approval's
+          // input+Approve row cannot fit — the submit button clipped at the
+          // card edge. Container-scoped override stacks the button below the
+          // input on the board only; BreakpointApproval itself (and its
+          // run-detail row layout) is unchanged — still the ONLY write path.
+          <div className="[&_form>div]:flex-col [&_form>div]:items-stretch [&_[data-testid=custom-answer-input]]:min-w-0">
+            <BreakpointApproval task={task} runId={run.runId} />
+          </div>
         ) : (
           <p className="text-xs text-foreground-muted italic">
             Loading breakpoint details…

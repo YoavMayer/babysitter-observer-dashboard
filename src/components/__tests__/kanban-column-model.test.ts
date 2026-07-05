@@ -36,6 +36,7 @@ import {
   assignColumn,
   partitionRuns,
   orphanedOverflowTooltip,
+  staleOverflowTooltip,
   type BoardColumnKey,
 } from "@/components/kanban/column-model";
 
@@ -420,5 +421,75 @@ describe("column-model (SPEC-vibekanban §3 / §10)", () => {
     });
     const partition = partitionRuns([pureOrphaned, liveBp]);
     expect(orphanedOverflowTooltip(partition)).toBeNull();
+  });
+
+  // Design-QA round 1 (minor): the stale pill can over-count the Stale column
+  // (precedence absorbs stale runs into Needs you / Orphaned) — same §3.4
+  // count-honesty mechanism as orphanedOverflowTooltip.
+  it("staleOverflowTooltip: stale runs absorbed into Orphaned produce an explicit tooltip", () => {
+    const orphanedStale1 = makeLightRun({
+      runId: "01KTESTSTALEORPH00000001",
+      status: "waiting",
+      pendingBreakpoints: 0,
+      driver: "orphaned",
+      isStale: true,
+    });
+    const orphanedStale2 = makeLightRun({
+      runId: "01KTESTSTALEORPH00000002",
+      status: "waiting",
+      pendingBreakpoints: 0,
+      driver: "none",
+      isStale: true,
+    });
+
+    const partition = partitionRuns([orphanedStale1, orphanedStale2]);
+
+    // Precedence: orphaned beats stale — the Stale column is empty (and
+    // would auto-hide) while the stale pill still counts 2.
+    expect(partition.stale).toHaveLength(0);
+    expect(partition.orphaned).toHaveLength(2);
+
+    const tooltip = staleOverflowTooltip(partition);
+    expect(tooltip).toBe("+2 more stale runs are shown under Orphaned");
+  });
+
+  it("staleOverflowTooltip: names both absorbing columns and uses the singular noun for one run", () => {
+    const staleBp = makeLightRun({
+      runId: "01KTESTSTALEBP0000000001",
+      status: "waiting",
+      pendingBreakpoints: 1,
+      driver: "live",
+      isStale: true,
+    });
+    const partition = partitionRuns([staleBp]);
+    expect(partition.needsyou).toHaveLength(1);
+    expect(staleOverflowTooltip(partition)).toBe(
+      "+1 more stale run is shown under Needs you"
+    );
+
+    const orphanedStale = makeLightRun({
+      runId: "01KTESTSTALEORPH00000003",
+      status: "waiting",
+      pendingBreakpoints: 0,
+      driver: "orphaned",
+      isStale: true,
+    });
+    const both = partitionRuns([staleBp, orphanedStale]);
+    expect(staleOverflowTooltip(both)).toBe(
+      "+2 more stale runs are shown under Needs you and Orphaned"
+    );
+  });
+
+  it("staleOverflowTooltip: null when every stale run sits in the Stale column (pill count === column count)", () => {
+    const pureStale = makeLightRun({
+      runId: "01KTESTSTALEPURE00000001",
+      status: "waiting",
+      pendingBreakpoints: 0,
+      driver: "live",
+      isStale: true,
+    });
+    const partition = partitionRuns([pureStale]);
+    expect(partition.stale).toHaveLength(1);
+    expect(staleOverflowTooltip(partition)).toBeNull();
   });
 });
