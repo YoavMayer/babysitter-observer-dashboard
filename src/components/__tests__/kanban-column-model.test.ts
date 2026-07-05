@@ -33,7 +33,10 @@ import type { LightRun } from "@/lib/services/run-query-service";
 // pending-impl: SPEC-declared module path — does not exist until Wave 1.
 import {
   COLUMN_ORDER,
+  GROUP_HOST,
+  GROUP_ORDER,
   assignColumn,
+  groupColumns,
   partitionRuns,
   // Amended per owner gate 2026-07-05 run 01KWRR8XAHFCDEGCRBRFHFF44W:
   // 4-column taxonomy — the orphaned/stale tooltips merged into the Stalled
@@ -498,5 +501,101 @@ describe("column-model (SPEC-vibekanban §3 / §10)", () => {
     const partition = partitionRuns([pureStale]);
     expect(partition.stale).toHaveLength(1);
     expect(stalledOverflowTooltip(partition)).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// UX-R2 §13.2 option (b) — AC-35: groupColumns display grouping (owner gate
+// 2026-07-05 run 01KWRR8XAHFCDEGCRBRFHFF44W: 4-column taxonomy + color map).
+// The six-bucket partition is UNCHANGED; these tests cover the pure display
+// layer on top of it.
+// ---------------------------------------------------------------------------
+describe("groupColumns (UX-R2 §13.2b / AC-35)", () => {
+  const T0 = "2026-07-01T10:00:00.000Z";
+  const T1 = "2026-07-02T10:00:00.000Z";
+  const T2 = "2026-07-03T10:00:00.000Z";
+
+  it("GROUP_ORDER is the §13.6 amended AC-12 order and GROUP_HOST maps every bucket to its host", () => {
+    expect(GROUP_ORDER).toEqual(["needsyou", "waiting", "stalled", "done"]);
+    expect(GROUP_HOST).toEqual({
+      needsyou: "needsyou",
+      orphaned: "stalled",
+      waiting: "waiting",
+      stale: "stalled",
+      failed: "done",
+      completed: "done",
+    });
+  });
+
+  it("AC-35: totals are preserved — Σ grouped sizes === Σ partition sizes", () => {
+    const runs = [
+      makeLightRun({ runId: "01KTESTGRPBP000000000001", status: "waiting", pendingBreakpoints: 1, driver: "live" }),
+      makeLightRun({ runId: "01KTESTGRPWORK0000000002", status: "waiting", pendingBreakpoints: 0, driver: "live", isStale: false }),
+      makeLightRun({ runId: "01KTESTGRPORPH0000000003", status: "waiting", pendingBreakpoints: 0, driver: "orphaned" }),
+      makeLightRun({ runId: "01KTESTGRPSTALE000000004", status: "waiting", pendingBreakpoints: 0, driver: "live", isStale: true }),
+      makeLightRun({ runId: "01KTESTGRPFAIL0000000005", status: "failed" }),
+      makeLightRun({ runId: "01KTESTGRPDONE0000000006", status: "completed" }),
+    ];
+    const partition = partitionRuns(runs);
+    const groups = groupColumns(partition);
+
+    const partitionTotal = COLUMN_ORDER.reduce((sum, key) => sum + partition[key].length, 0);
+    const groupTotal = GROUP_ORDER.reduce((sum, key) => sum + groups[key].length, 0);
+    expect(groupTotal).toBe(partitionTotal);
+    expect(groupTotal).toBe(runs.length);
+
+    // Host membership: every partitioned run appears exactly once, in the
+    // column GROUP_HOST names for its bucket.
+    for (const bucket of COLUMN_ORDER) {
+      for (const run of partition[bucket]) {
+        const host = GROUP_HOST[bucket];
+        expect(
+          groups[host].filter((r) => r.runId === run.runId),
+          `run ${run.runId} (bucket ${bucket}) in host ${host}`
+        ).toHaveLength(1);
+      }
+    }
+  });
+
+  it("AC-35: within-group order is §3.2 precedence concatenation — orphaned before stale in Stalled, failed before completed in Done — with each segment keeping updatedAt DESC", () => {
+    const runs = [
+      // Stale segment (newer than every orphaned run — concatenation must
+      // still put it AFTER the orphaned segment).
+      makeLightRun({ runId: "01KTESTGRPSTALEA00000001", status: "waiting", pendingBreakpoints: 0, driver: "live", isStale: true, updatedAt: T2 }),
+      // Orphaned segment, two runs (older timestamps).
+      makeLightRun({ runId: "01KTESTGRPORPHA000000002", status: "waiting", pendingBreakpoints: 0, driver: "orphaned", updatedAt: T0 }),
+      makeLightRun({ runId: "01KTESTGRPORPHB000000003", status: "waiting", pendingBreakpoints: 0, driver: "none", updatedAt: T1 }),
+      // Done: completed newer than failed — failed still renders first.
+      makeLightRun({ runId: "01KTESTGRPDONEA000000004", status: "completed", updatedAt: T2 }),
+      makeLightRun({ runId: "01KTESTGRPFAILA000000005", status: "failed", updatedAt: T0 }),
+      makeLightRun({ runId: "01KTESTGRPFAILB000000006", status: "failed", updatedAt: T1 }),
+    ];
+    const groups = groupColumns(partitionRuns(runs));
+
+    expect(groups.stalled.map((r) => r.runId)).toEqual([
+      // Orphaned segment first, updatedAt DESC within it...
+      "01KTESTGRPORPHB000000003",
+      "01KTESTGRPORPHA000000002",
+      // ...then the stale segment.
+      "01KTESTGRPSTALEA00000001",
+    ]);
+    expect(groups.done.map((r) => r.runId)).toEqual([
+      // Failed segment first, updatedAt DESC within it...
+      "01KTESTGRPFAILB000000006",
+      "01KTESTGRPFAILA000000005",
+      // ...then the completed segment.
+      "01KTESTGRPDONEA000000004",
+    ]);
+  });
+
+  it("AC-35: needsyou and waiting pass through the display grouping untouched", () => {
+    const bp = makeLightRun({ runId: "01KTESTGRPBPX00000000001", status: "waiting", pendingBreakpoints: 1, driver: "orphaned", isStale: true });
+    const work = makeLightRun({ runId: "01KTESTGRPWKX00000000002", status: "waiting", pendingBreakpoints: 0, driver: "live", isStale: false });
+    const partition = partitionRuns([bp, work]);
+    const groups = groupColumns(partition);
+    expect(groups.needsyou).toBe(partition.needsyou);
+    expect(groups.waiting).toBe(partition.waiting);
+    expect(groups.stalled).toEqual([]);
+    expect(groups.done).toEqual([]);
   });
 });

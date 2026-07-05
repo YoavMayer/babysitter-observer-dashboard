@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { EyeOff, AlertCircle, Tag } from "lucide-react";
+import { EyeOff, AlertCircle, MoonStar, Tag } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { friendlyProcessName, formatRelativeTime } from "@/lib/utils";
 import { ProgressBar } from "@/components/shared/progress-bar";
@@ -173,14 +173,25 @@ export function KanbanCard({ run, keyboard }: KanbanCardProps) {
         </div>
       )}
       {column === "stale" && (
-        <span className="inline-flex self-start items-center rounded-full bg-zinc-500/10 border border-zinc-500/20 px-2 py-0.5 text-xs leading-tight font-medium text-zinc-500">
-          {staleTime ? `Stale (${staleTime})` : "Stale"}
+        // §13.2b/AC-36 "quiet" recoverability badge (the stale-bucket half of
+        // the Stalled column; the orphaned half keeps the ActionHint above).
+        // §13.3: amber-gray --status-stalled — recoverable is never red;
+        // AC-41: icon + text, never color alone.
+        <span
+          data-testid="kanban-quiet-badge"
+          data-status-badge
+          className="inline-flex self-start items-center gap-1 rounded-full bg-status-stalled-muted border border-status-stalled/30 px-2 py-0.5 text-xs leading-tight font-medium text-status-stalled"
+          title="No journal activity past the stale threshold — resume to continue"
+        >
+          <MoonStar className="h-3 w-3 shrink-0" aria-hidden="true" focusable="false" />
+          {staleTime ? `Quiet (${staleTime})` : "Quiet"}
         </span>
       )}
       {column === "failed" && failedStep && (
-        <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-error-muted border border-error/20 border-l-2 border-l-error">
-          <AlertCircle className="h-3.5 w-3.5 text-error shrink-0" aria-hidden="true" focusable="false" />
-          <span className="text-xs text-error truncate">
+        // §13.3: terminal failure is the ONLY red surface (--status-failed).
+        <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-status-failed-muted border border-status-failed/20 border-l-2 border-l-status-failed">
+          <AlertCircle className="h-3.5 w-3.5 text-status-failed shrink-0" aria-hidden="true" focusable="false" />
+          <span className="text-xs text-status-failed truncate">
             Failed at: {failedStep.length > 80 ? failedStep.slice(0, 80) + "..." : failedStep}
           </span>
         </div>

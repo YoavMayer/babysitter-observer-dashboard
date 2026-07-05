@@ -84,14 +84,16 @@ export function KanbanBreakpointPanel({ run }: KanbanBreakpointPanelProps) {
       data-testid="kanban-bp-panel"
       className="relative z-10 mt-1 flex flex-col gap-2 rounded-md border border-warning/30 bg-warning-muted p-2"
     >
-      {/* "NEEDS YOU" label + full question (§5: the human decision on-card). */}
-      <div className="flex items-center gap-1.5">
+      {/* "NEEDS YOU" label + full question (§5: the human decision on-card).
+          UX-R2 §13.3/AC-46: the alarm label uses the theme-aware
+          --status-attention token (gold; darkened ≥4.5:1 ink in light mode). */}
+      <div className="flex items-center gap-1.5" data-status-badge>
         <Hand
-          className="h-3.5 w-3.5 text-warning animate-pulse-dot"
+          className="h-3.5 w-3.5 text-status-attention animate-pulse-dot"
           aria-hidden="true"
           focusable="false"
         />
-        <span className="text-[10px] font-bold text-warning uppercase tracking-wider">
+        <span className="text-[10px] font-bold text-status-attention uppercase tracking-wider">
           Needs you
         </span>
       </div>
@@ -117,7 +119,9 @@ export function KanbanBreakpointPanel({ run }: KanbanBreakpointPanelProps) {
             <span
               key={option}
               data-testid="kanban-bp-option-chip"
-              className="inline-flex items-center rounded-full border border-warning/30 bg-warning/10 px-2 py-0.5 text-xs leading-tight font-medium text-warning"
+              // §13.3: option-chip ink follows --status-attention (AA-safe in
+              // light theme); the tinted border/background stay non-text.
+              className="inline-flex items-center rounded-full border border-status-attention/30 bg-status-attention-muted px-2 py-0.5 text-xs leading-tight font-medium text-status-attention"
             >
               {option}
             </span>

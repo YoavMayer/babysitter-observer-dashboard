@@ -843,3 +843,186 @@ test.describe("Kanban board — pill focus & keyboard (SPEC-vibekanban)", () => 
     }
   );
 });
+
+// ---------------------------------------------------------------------------
+// UX-R2 §13.2b / §13.3 — taxonomy compensations & semantic color system
+// (AC-36, AC-37, AC-40..AC-42). NEW acceptance criteria implemented per owner
+// gate 2026-07-05 run 01KWRR8XAHFCDEGCRBRFHFF44W: 4-column taxonomy + color map.
+// ---------------------------------------------------------------------------
+
+/** Resolve any CSS color expression (e.g. "var(--status-failed)") to the
+ *  browser's computed rgb() string on the current theme. */
+async function resolveCssColor(page: Page, cssColor: string): Promise<string> {
+  return page.evaluate((value) => {
+    const el = document.createElement("span");
+    el.style.color = value;
+    document.body.appendChild(el);
+    const resolved = getComputedStyle(el).color;
+    el.remove();
+    return resolved;
+  }, cssColor);
+}
+
+/** Computed color of the first element matching a selector. */
+async function computedColor(page: Page, selector: string): Promise<string> {
+  return page.locator(selector).first().evaluate((el) => getComputedStyle(el).color);
+}
+
+/** Mixed-bucket fixture: 1 needs-you, 1 working, 1 orphaned, 1 stale,
+ *  2 failed, 3 completed (AC-36 chip math shape). */
+function mixedBucketRuns(): Record<string, unknown>[] {
+  return [
+    makeApiRun({ runId: "01KSYNTHUXRBP00000000001", pendingBreakpoints: 1 }),
+    makeApiRun({ runId: "01KSYNTHUXRWORK000000002" }),
+    makeApiRun({ runId: "01KSYNTHUXRORPH000000003", driver: "none" }),
+    makeApiRun({ runId: "01KSYNTHUXRSTALE00000004", isStale: true }),
+    makeApiRun({ runId: "01KSYNTHUXRFAILA00000005", status: "failed" }),
+    makeApiRun({ runId: "01KSYNTHUXRFAILB00000006", status: "failed" }),
+    makeApiRun({ runId: "01KSYNTHUXRDONEA00000007", status: "completed", completedTasks: 4 }),
+    makeApiRun({ runId: "01KSYNTHUXRDONEB00000008", status: "completed", completedTasks: 4 }),
+    makeApiRun({ runId: "01KSYNTHUXRDONEC00000009", status: "completed", completedTasks: 4 }),
+  ];
+}
+
+test.describe("Kanban board — UX-R2 §13.2b/§13.3 taxonomy & color (owner gate 2026-07-05)", () => {
+  test("AC-36: Stalled cards carry exactly one recoverability badge; Done failed cards keep the failed badge and the header shows the 'N failed' chip iff N>0", async ({ page }) => {
+    await interceptRuns(page, mixedBucketRuns());
+    await gotoBoard(page);
+
+    // Stalled hosts the orphaned + stale buckets, in that order.
+    await expect(cardsIn(page, "stalled")).toHaveCount(2);
+
+    // Orphaned-bucket card: the "no driver" resume hint, and NO quiet badge.
+    const orphanedCard = cardFor(page, "01KSYNTHUXRORPH000000003");
+    await expect(orphanedCard.getByTestId("run-action-hint")).toBeVisible();
+    await expect(orphanedCard).toContainText("No live driver — resume to answer");
+    await expect(orphanedCard.getByTestId("kanban-quiet-badge")).toHaveCount(0);
+
+    // Stale-bucket card: the "quiet" badge, and NO no-driver hint.
+    const staleCard = cardFor(page, "01KSYNTHUXRSTALE00000004");
+    await expect(staleCard.getByTestId("kanban-quiet-badge")).toBeVisible();
+    await expect(staleCard.getByTestId("kanban-quiet-badge")).toContainText("Quiet");
+    await expect(staleCard.getByTestId("run-action-hint")).toHaveCount(0);
+
+    // Done: failed cards carry the failed badge (StatusDot failed variant).
+    const failedCard = cardFor(page, "01KSYNTHUXRFAILA00000005");
+    await expect(failedCard.locator('[data-status-badge]')).toContainText("failed");
+
+    // Done header chip: exact "2 failed" for the 2-failed + 3-completed fixture.
+    const chip = page.getByTestId("kanban-done-failed-chip");
+    await expect(chip).toBeVisible();
+    await expect(chip).toHaveText(/^\s*2 failed\s*$/);
+
+    // ...and iff N>0: with no failed runs the chip is absent.
+    await page.unroute("**/api/runs?*");
+    await interceptRuns(page, [
+      makeApiRun({ runId: "01KSYNTHUXRDONEA00000007", status: "completed", completedTasks: 4 }),
+    ]);
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await expect(board(page)).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByTestId("kanban-done-failed-chip")).toHaveCount(0);
+  });
+
+  test("AC-37: every column header has a keyboard-reachable '?' affordance opening one-line definitions of the board columns", async ({ page }) => {
+    await interceptRuns(page, mixedBucketRuns());
+    await gotoBoard(page);
+
+    // Every visible column header renders the affordance.
+    for (const key of COLUMN_KEYS) {
+      await expect(page.getByTestId(`kanban-column-info-${key}`)).toBeVisible();
+    }
+
+    // Keyboard-reachable: focus the affordance and open it with Enter.
+    const info = page.getByTestId("kanban-column-info-needsyou");
+    await info.focus();
+    await page.keyboard.press("Enter");
+    const definitions = page.getByTestId("kanban-column-definitions");
+    await expect(definitions).toBeVisible();
+
+    // One line per column, plain language (§13.2 column meanings).
+    await expect(definitions).toContainText("Needs you — a run is waiting for YOUR answer.");
+    await expect(definitions).toContainText("Working — a live driver is attached and making progress.");
+    await expect(definitions).toContainText(
+      "Stalled — recoverable: no live driver or quiet >1h; resume to continue."
+    );
+    await expect(definitions).toContainText(
+      "Done — terminal: completed or failed; failed runs carry a red failed badge."
+    );
+
+    // Escape closes the popover.
+    await page.keyboard.press("Escape");
+    await expect(definitions).toHaveCount(0);
+  });
+
+  test("AC-40: red is terminal-only — Stalled surfaces never resolve --status-failed; the failed chip and failed badges do", async ({ page }) => {
+    await interceptRuns(page, mixedBucketRuns());
+    await gotoBoard(page);
+    await expect(cardsIn(page, "stalled")).toHaveCount(2);
+
+    const failedColor = await resolveCssColor(page, "var(--status-failed)");
+    const stalledColor = await resolveCssColor(page, "var(--status-stalled)");
+
+    // Stalled header label: the stalled token, never failure red.
+    const stalledHeader = await computedColor(page, '[data-testid="kanban-column-label-stalled"]');
+    expect(stalledHeader).toBe(stalledColor);
+    expect(stalledHeader).not.toBe(failedColor);
+
+    // No status badge on any Stalled card resolves to failure red.
+    const stalledBadgeColors = await page
+      .locator('[data-testid="kanban-column-stalled"] [data-status-badge]')
+      .evaluateAll((els) => els.map((el) => getComputedStyle(el).color));
+    expect(stalledBadgeColors.length).toBeGreaterThan(0);
+    for (const color of stalledBadgeColors) expect(color).not.toBe(failedColor);
+
+    // --status-failed resolves ONLY on failed-run surfaces: the Done header
+    // "N failed" chip and the failed cards' badges.
+    expect(await computedColor(page, '[data-testid="kanban-done-failed-chip"]')).toBe(failedColor);
+    const failedBadge = cardFor(page, "01KSYNTHUXRFAILA00000005").locator("[data-status-badge]");
+    expect(await failedBadge.evaluate((el) => getComputedStyle(el).color)).toBe(failedColor);
+
+    // Needs-you / Working headers carry their own hues — never red.
+    for (const key of ["needsyou", "waiting"] as const) {
+      const color = await computedColor(page, `[data-testid="kanban-column-label-${key}"]`);
+      expect(color, `${key} header is not red`).not.toBe(failedColor);
+    }
+  });
+
+  test("AC-41: never color-alone — every rendered status badge/chip on the board pairs an icon with a text label", async ({ page }) => {
+    await interceptRuns(page, mixedBucketRuns());
+    await gotoBoard(page);
+    await expect(cardsIn(page, "stalled")).toHaveCount(2);
+
+    const badges = await page
+      .locator('[data-testid="kanban-board"] [data-status-badge]')
+      .evaluateAll((els) =>
+        els.map((el) => ({
+          text: (el.textContent ?? "").trim(),
+          hasIcon: el.querySelector('svg, [aria-hidden="true"]') !== null,
+        }))
+      );
+    // The fixture populates every column: liveness chips, quiet badge, resume
+    // hint, status dots, the Done failed chip, and the NEEDS YOU panel label.
+    expect(badges.length).toBeGreaterThanOrEqual(6);
+    for (const badge of badges) {
+      expect(badge.text, "badge has a text label").not.toBe("");
+      expect(badge.hasIcon, `badge "${badge.text}" has an icon`).toBe(true);
+    }
+  });
+
+  test("AC-42: --status-ok resolves on the all-clear empty state and never on Needs-you/Working/Stalled headers", async ({ page }) => {
+    // Only a working run: Needs-you renders its all-clear placeholder.
+    await interceptRuns(page, [makeApiRun({ runId: "01KSYNTHUXRONLYWORK00001" })]);
+    await gotoBoard(page);
+
+    const okColor = await resolveCssColor(page, "var(--status-ok)");
+    const allClear = page.getByText("Nothing needs you — all clear.");
+    await expect(allClear).toBeVisible();
+    expect(await allClear.evaluate((el) => getComputedStyle(el).color)).toBe(okColor);
+
+    // Non-terminal column headers never resolve the succeeded/healthy green.
+    for (const key of ["needsyou", "waiting", "done"] as const) {
+      const color = await computedColor(page, `[data-testid="kanban-column-label-${key}"]`);
+      expect(color, `${key} header is not --status-ok`).not.toBe(okColor);
+    }
+  });
+});

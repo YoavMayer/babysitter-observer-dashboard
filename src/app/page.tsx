@@ -12,10 +12,12 @@ import { RunList } from "@/components/dashboard/run-list";
 import { ErrorBoundary } from "@/components/shared/error-boundary";
 import { GlobalSearch } from "@/components/dashboard/global-search";
 import { KanbanBoard } from "@/components/kanban/kanban-board";
-import type { BoardColumnKey } from "@/components/kanban/column-model";
+import type { BoardColumnKey, BoardGroupKey } from "@/components/kanban/column-model";
 import { ViewToggle, type DashboardView } from "@/components/kanban/view-toggle";
 
-/** Status-pill values that map 1:1 onto board columns (§6.2). */
+/** Status-pill values that map onto board columns (§6.2). Pills keep the six
+ * buckets; the board maps each bucket to its HOST display column (§13.2b —
+ * owner gate 2026-07-05 run 01KWRR8XAHFCDEGCRBRFHFF44W). */
 const BOARD_COLUMN_KEYS: ReadonlySet<string> = new Set([
   "needsyou",
   "orphaned",
@@ -24,6 +26,18 @@ const BOARD_COLUMN_KEYS: ReadonlySet<string> = new Set([
   "failed",
   "completed",
 ]);
+
+/**
+ * §7 fetch-window tails, per display column (§13.2b): the flat list filters by
+ * the six BUCKETS, so grouped columns open on their dominant bucket — Stalled
+ * → orphaned, Done → completed (the pills alongside refine to stale/failed).
+ */
+const TAIL_LIST_FILTER: Record<BoardGroupKey, DashboardStatusFilter> = {
+  needsyou: "needsyou",
+  waiting: "waiting",
+  stalled: "orphaned",
+  done: "completed",
+};
 
 export default function DashboardPage() {
   const {
@@ -85,11 +99,12 @@ export default function DashboardPage() {
     [view, statusFilter, setStatusFilter]
   );
 
-  // §7 fetch-window tails: "View all in list →" switches to list view with
-  // that column's status filter pre-applied (column keys = pill values 1:1).
+  // §7 fetch-window tails: "View all in list →" switches to list view with a
+  // status filter matching that display column (dominant bucket for grouped
+  // columns — §13.2b).
   const handleViewAllInList = useCallback(
-    (key: BoardColumnKey) => {
-      setStatusFilter(key);
+    (key: BoardGroupKey) => {
+      setStatusFilter(TAIL_LIST_FILTER[key]);
       setView("list");
     },
     [setStatusFilter, setView]

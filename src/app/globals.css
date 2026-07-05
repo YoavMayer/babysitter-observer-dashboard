@@ -61,6 +61,17 @@
   --pending: #a1a1aa;
   --pending-muted: rgba(161, 161, 170, 0.15);
 
+  /* Semantic STATUS tokens — UX-R2 §13.3 "one hue, one meaning" (owner gate
+     2026-07-05 run 01KWRR8XAHFCDEGCRBRFHFF44W). Label tokens are verified
+     >=4.5:1 on #0a0a0b (and >=4.4:1 on the #0e0e12 card); -muted tints are
+     non-text backgrounds. Brand magenta is NOT a status; red is terminal-only. */
+  --status-attention: #FFD700;  --status-attention-muted: rgba(255, 215, 0, 0.15);
+  --status-alive:     #00F0FF;  --status-alive-muted:     rgba(0, 240, 255, 0.12);
+  --status-stalled:   #C9A86A;  --status-stalled-muted:   rgba(201, 168, 106, 0.14);
+  --status-failed:    #FF3366;  --status-failed-muted:    rgba(255, 51, 102, 0.18);
+  --status-ok:        #00FF88;  --status-ok-muted:        rgba(0, 255, 136, 0.15);
+  --status-aged:      #9A9AA3;  --status-aged-muted:      rgba(154, 154, 163, 0.12);
+
   /* Border - subtle magenta tint */
   --border: rgba(255, 0, 224, 0.08);
   --border-hover: rgba(255, 0, 224, 0.15);
@@ -207,6 +218,14 @@
   --pending: #a1a1aa;
   --pending-muted: rgba(161, 161, 170, 0.1);
 
+  /* Semantic STATUS tokens (light) — UX-R2 §13.3: labels verified >=4.5:1 on #ffffff. */
+  --status-attention: #8a6d00;  --status-attention-muted: rgba(212, 175, 0, 0.12);
+  --status-alive:     #006E7A;  --status-alive-muted:     rgba(0, 200, 214, 0.10);
+  --status-stalled:   #7A6431;  --status-stalled-muted:   rgba(122, 100, 49, 0.10);
+  --status-failed:    #B01C47;  --status-failed-muted:    rgba(230, 41, 90, 0.12);
+  --status-ok:        #00784A;  --status-ok-muted:        rgba(0, 204, 110, 0.12);
+  --status-aged:      #63636C;  --status-aged-muted:      rgba(161, 161, 170, 0.10);
+
   --border: rgba(255, 0, 224, 0.15);
   --border-hover: rgba(255, 0, 224, 0.25);
   --input: rgba(255, 0, 224, 0.12);
@@ -336,6 +355,19 @@
   --color-info-muted: var(--info-muted);
   --color-pending: var(--pending);
   --color-pending-muted: var(--pending-muted);
+  /* UX-R2 §13.3 status tokens (text-status-*, bg-status-*-muted, ...). */
+  --color-status-attention: var(--status-attention);
+  --color-status-attention-muted: var(--status-attention-muted);
+  --color-status-alive: var(--status-alive);
+  --color-status-alive-muted: var(--status-alive-muted);
+  --color-status-stalled: var(--status-stalled);
+  --color-status-stalled-muted: var(--status-stalled-muted);
+  --color-status-failed: var(--status-failed);
+  --color-status-failed-muted: var(--status-failed-muted);
+  --color-status-ok: var(--status-ok);
+  --color-status-ok-muted: var(--status-ok-muted);
+  --color-status-aged: var(--status-aged);
+  --color-status-aged-muted: var(--status-aged-muted);
   --color-background-muted: var(--background-muted);
   --shadow-sm: var(--shadow-sm);
   --shadow-md: var(--shadow-md);

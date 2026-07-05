@@ -1,31 +1,53 @@
 "use client";
-import { useEffect, useRef } from "react";
-import { ArrowRight } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import {
+  Activity,
+  ArrowRight,
+  BellRing,
+  CheckCircle2,
+  HelpCircle,
+  PauseCircle,
+  XCircle,
+  type LucideIcon,
+} from "lucide-react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { cn } from "@/lib/cn";
 import { KanbanCard } from "@/components/kanban/kanban-card";
 import { VIRTUALIZATION_THRESHOLD } from "@/components/dashboard/virtualized-run-list";
 import type { UseBoardKeyboardResult } from "@/components/kanban/use-board-keyboard";
-import type { BoardColumnKey, BoardRun } from "@/components/kanban/column-model";
+import {
+  GROUP_ORDER,
+  type BoardGroupKey,
+  type BoardRun,
+} from "@/components/kanban/column-model";
 
 /**
  * A single board column — SPEC-vibekanban §3.2 (labels/tones), §6.2 (pill →
- * column focus), §7 (empty placeholders, virtualization), §8 (list semantics).
+ * column focus), §7 (empty placeholders, virtualization), §8 (list semantics),
+ * amended by UX-R2 §13.2b/§13.3 (owner gate 2026-07-05 run
+ * 01KWRR8XAHFCDEGCRBRFHFF44W: 4-column taxonomy + color map).
  *
  * Header shows the column label and an HONEST count (§3.4): the number of
- * cards actually in this column post-partition. The Orphaned column may carry
+ * cards actually in this column post-partition. The Stalled column may carry
  * a tooltip explaining runs captured by Needs-you precedence — no silent
  * mismatch between pill counts (overlapping buckets) and column counts
- * (disjoint partition).
+ * (disjoint partition). The Done header carries an "N failed" chip whenever
+ * the column hosts failed runs (§13.2b — failure is never silent).
+ *
+ * Color discipline (§13.3): header labels use the semantic --status-* tokens
+ * (one hue, one meaning; brand magenta does no status duty; red is
+ * terminal-only) and every colored label/badge pairs an icon with text —
+ * never color alone (AC-41 deutan rule).
  *
  * Columns above VIRTUALIZATION_THRESHOLD items virtualize their card list with
  * the existing @tanstack/react-virtual dependency (same cutoff/pattern as
  * virtualized-run-list.tsx; stable runId item keys), scrolling independently
  * inside the column — never delegating to the page body.
  *
- * Frozen DOM contract (kanban-board.spec.ts): exactly three testid families —
- * kanban-column-<key>, kanban-column-count-<key>, kanban-column-cards-<key> —
- * plus data-focused/data-dimmed for the pill-focus treatment (AC-23).
+ * Frozen DOM contract (kanban-board.spec.ts): testid families
+ * kanban-column-<key>, kanban-column-count-<key>, kanban-column-cards-<key>
+ * (key ∈ needsyou|waiting|stalled|done per the §13.6 amendment), plus
+ * data-focused/data-dimmed for the pill-focus treatment (AC-23).
  */
 
 /** Estimated compact-card height (px) for initial virtual measurement (§5). */
@@ -40,52 +62,132 @@ interface ColumnSpec {
   subLabel?: string;
   /** §7 quiet placeholder for always-visible columns (auto-hide columns omit it). */
   emptyText?: string;
-  /** Column tone (§3.2): header accent classes. */
+  /** Column tone (§13.3): header accent class — a semantic --status-* token. */
   headerClass: string;
-  /** Success-tinted empty placeholder for the alarm column ("all clear"). */
+  /** All-clear/ok-tinted empty placeholder for the alarm column (§13.3: --status-ok). */
   emptyClass?: string;
+  /** §13.3 / AC-41: every colored status label pairs an icon with its text. */
+  icon: LucideIcon;
 }
 
-/** Column labels/tones per SPEC §3.2 and empty placeholders per §7. */
-export const COLUMN_SPECS: Record<BoardColumnKey, ColumnSpec> = {
+/**
+ * Column labels/tones per §13.2b + §13.3 and empty placeholders per §7.
+ * Header classes reference ONLY semantic status tokens (AC-38): no zinc
+ * hardcodes, no brand --primary on a status surface, no alpha-diluted text.
+ */
+export const COLUMN_SPECS: Record<BoardGroupKey, ColumnSpec> = {
   needsyou: {
     label: "Needs you",
     emptyText: "Nothing needs you — all clear.",
-    // Design-QA (minor): the header label uses the theme-aware warning-label
-    // token — neon gold on dark, darkened gold in light mode (≥4.5:1).
-    headerClass: "text-warning-label",
-    emptyClass: "text-success",
-  },
-  orphaned: {
-    label: "Orphaned",
-    headerClass: "text-error",
+    // §13.3: gold = needs action (theme-aware; ≥4.5:1 in both themes).
+    headerClass: "text-status-attention",
+    emptyClass: "text-status-ok",
+    icon: BellRing,
   },
   waiting: {
     label: "Working",
     subLabel: "waiting / running",
     emptyText: "No runs in progress.",
-    headerClass: "text-primary",
+    // §13.3: cyan = alive/working now — brand magenta exits status duty.
+    headerClass: "text-status-alive",
+    icon: Activity,
   },
-  stale: {
-    label: "Stale",
-    headerClass: "text-zinc-500",
+  stalled: {
+    label: "Stalled",
+    subLabel: "no driver / quiet",
+    // §13.3: amber-gray = stalled-but-recoverable — never red (red is terminal).
+    headerClass: "text-status-stalled",
+    icon: PauseCircle,
   },
-  failed: {
-    label: "Failed",
-    emptyText: "No failed runs.",
-    headerClass: "text-error/70",
-  },
-  completed: {
-    label: "Completed",
-    emptyText: "No completed runs in the retention window.",
-    headerClass: "text-foreground-muted",
+  done: {
+    label: "Done",
+    emptyText: "No finished runs in the retention window.",
+    // §13.3: Done header de-emphasizes with the aged token; the "N failed"
+    // chip below carries the terminal-red alarm when failures exist.
+    headerClass: "text-status-aged",
+    icon: CheckCircle2,
   },
 };
 
+/**
+ * §13.2/AC-37 column meanings — one-line plain-language definitions rendered
+ * by the header "?" popover, so the taxonomy explains itself on the board.
+ */
+export const COLUMN_DEFINITIONS: Record<BoardGroupKey, string> = {
+  needsyou: "Needs you — a run is waiting for YOUR answer.",
+  waiting: "Working — a live driver is attached and making progress.",
+  stalled:
+    "Stalled — recoverable: no live driver or quiet >1h; resume to continue.",
+  done: "Done — terminal: completed or failed; failed runs carry a red failed badge.",
+};
+
+/**
+ * §13.2/AC-37: the header "?" affordance. A plain toggle button (keyboard
+ * reachable) opening a small popover that defines every board column in one
+ * line. Closes on Escape and on any outside pointer press. Read-only chrome.
+ */
+function ColumnInfoPopover({ columnKey }: { columnKey: BoardGroupKey }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLSpanElement>(null);
+
+  // Close on pointer presses outside the affordance while open.
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: MouseEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    return () => document.removeEventListener("mousedown", onPointerDown);
+  }, [open]);
+
+  return (
+    <span
+      ref={rootRef}
+      className="relative inline-flex"
+      onKeyDown={(e) => {
+        if (e.key === "Escape" && open) {
+          e.stopPropagation();
+          setOpen(false);
+        }
+      }}
+    >
+      <button
+        type="button"
+        data-testid={`kanban-column-info-${columnKey}`}
+        aria-label="What do the board columns mean?"
+        aria-expanded={open}
+        onClick={() => setOpen((prev) => !prev)}
+        className="flex items-center rounded text-foreground-muted hover:text-foreground-secondary transition-colors"
+      >
+        <HelpCircle className="h-3 w-3" aria-hidden="true" focusable="false" />
+      </button>
+      {open && (
+        <div
+          data-testid="kanban-column-definitions"
+          role="note"
+          aria-label="Column definitions"
+          className="absolute left-0 top-full z-30 mt-1.5 w-72 rounded-md border border-border bg-background-secondary p-2.5 shadow-md"
+        >
+          <ul className="flex flex-col gap-1.5">
+            {GROUP_ORDER.map((key) => (
+              <li
+                key={key}
+                className="text-xs leading-snug text-foreground-secondary"
+              >
+                {COLUMN_DEFINITIONS[key]}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </span>
+  );
+}
+
 export interface KanbanColumnProps {
-  columnKey: BoardColumnKey;
+  columnKey: BoardGroupKey;
   runs: BoardRun[];
-  /** Count-honesty tooltip (§3.4) — e.g. orphaned runs captured by Needs-you. */
+  /** Count-honesty tooltip (§3.4) — e.g. stalled runs captured by Needs-you. */
   countTooltip?: string | null;
   /** §6.2 pill focus: this column is highlighted and scrolled into view. */
   focused?: boolean;
@@ -112,6 +214,14 @@ export function KanbanColumn({
   const spec = COLUMN_SPECS[columnKey];
   const sectionRef = useRef<HTMLElement>(null);
   const cardsRef = useRef<HTMLDivElement>(null);
+  const HeaderIcon = spec.icon;
+
+  // §13.2b: the Done header renders the "N failed" chip whenever it hosts
+  // failed runs — merging failed into Done must never silence failures.
+  const failedCount =
+    columnKey === "done"
+      ? runs.filter((run) => run.status === "failed").length
+      : 0;
 
   // §6.2: clicking a status pill focuses the corresponding column — scroll it
   // into view (the highlight ring is applied via data-focused styling below).
@@ -146,23 +256,48 @@ export function KanbanColumn({
         "flex flex-col min-w-[280px] w-[280px] shrink-0 rounded-lg border border-border bg-background-secondary/40",
         // Alarm surface tone (§3.2): the Needs-you column glows.
         columnKey === "needsyou" && "border-warning/30",
-        // Terminal columns are visually de-emphasized.
-        columnKey === "completed" && "opacity-80",
+        // The terminal column is visually de-emphasized.
+        columnKey === "done" && "opacity-80",
         // §6.2 focus/dim treatment: highlight ring vs opacity dim.
         focused && "ring-2 ring-primary/60",
         dimmed && "opacity-40"
       )}
     >
-      {/* Header: label + honest count (§3.4). */}
+      {/* Header: icon + label + honest count (§3.4); AC-41: never color alone. */}
       <div
-        className="flex items-baseline gap-2 px-3 py-2 border-b border-border"
+        className="flex items-center gap-2 px-3 py-2 border-b border-border"
         title={countTooltip ?? undefined}
       >
-        <span className={cn("text-xs font-semibold uppercase tracking-wide", spec.headerClass)}>
+        <span
+          data-testid={`kanban-column-label-${columnKey}`}
+          className={cn(
+            "flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide",
+            spec.headerClass
+          )}
+        >
+          <HeaderIcon
+            className="h-3.5 w-3.5 shrink-0"
+            aria-hidden="true"
+            focusable="false"
+          />
           {spec.label}
         </span>
         {spec.subLabel && (
           <span className="text-[10px] text-foreground-muted">{spec.subLabel}</span>
+        )}
+        {/* §13.2/AC-37: one-line column definitions behind a "?" affordance. */}
+        <ColumnInfoPopover columnKey={columnKey} />
+        {failedCount > 0 && (
+          // §13.2b/AC-36: red is terminal-only — the chip is the ONLY red on
+          // the Done header, icon + text (AC-41), full-strength token (AC-38).
+          <span
+            data-testid="kanban-done-failed-chip"
+            data-status-badge
+            className="flex items-center gap-1 rounded-full bg-status-failed-muted border border-status-failed/30 px-1.5 py-px text-[10px] leading-tight font-semibold text-status-failed"
+          >
+            <XCircle className="h-3 w-3 shrink-0" aria-hidden="true" focusable="false" />
+            {failedCount} failed
+          </span>
         )}
         <span
           data-testid={`kanban-column-count-${columnKey}`}

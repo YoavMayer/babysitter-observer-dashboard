@@ -8,24 +8,28 @@ import {
   type BoardColumnRuns,
 } from "@/components/kanban/use-board-keyboard";
 import {
-  COLUMN_ORDER,
+  GROUP_HOST,
+  GROUP_ORDER,
+  groupColumns,
   partitionRuns,
-  orphanedOverflowTooltip,
-  staleOverflowTooltip,
+  stalledOverflowTooltip,
   type BoardColumnKey,
-  type BoardPartition,
+  type BoardGroupKey,
+  type BoardGroups,
 } from "@/components/kanban/column-model";
 import type { RunsListResponse } from "@/lib/services/run-query-service";
 
 /**
  * Kanban board view — SPEC-vibekanban §4 (data flow), §7 (empty/overflow),
- * §8 (keyboard navigation, live region).
+ * §8 (keyboard navigation, live region), amended by UX-R2 §13.2b (owner gate
+ * 2026-07-05 run 01KWRR8XAHFCDEGCRBRFHFF44W: 4-column taxonomy + color map).
  *
- * ONE query, client partition: fetches /api/runs once (all-runs mode) and
- * partitions client-side with partitionRuns — this guarantees the
- * disjointness invariant and keeps a single polling URL (never six
- * per-column fetches). Live updates reuse useSmartPolling with the same
- * sseFilter as RunList (SSE-triggered refetch; no new stream endpoints).
+ * ONE query, client partition: fetches /api/runs once (all-runs mode),
+ * partitions client-side with partitionRuns (the UNCHANGED six-bucket
+ * disjointness invariant), then groups the buckets into the four display
+ * columns with groupColumns — a pure presentation layer. Live updates reuse
+ * useSmartPolling with the same sseFilter as RunList (SSE-triggered refetch;
+ * no new stream endpoints).
  *
  * Read-only presentation of run state (contract LAW): this component fetches
  * with GET only and never mutates anything.
@@ -37,16 +41,16 @@ const BOARD_FETCH_LIMIT = 500;
 /** §8: column-count announcements are debounced to avoid SSE chatter. */
 const LIVE_REGION_DEBOUNCE_MS = 5_000;
 
-/** Columns that auto-hide when empty, mirroring the pill behavior (§3.2). */
-const AUTO_HIDE_WHEN_EMPTY: ReadonlySet<BoardColumnKey> = new Set([
-  "orphaned",
-  "stale",
-]);
+/**
+ * Columns that auto-hide when empty (§13.6 amended AC-12): only Stalled —
+ * Needs you / Working / Done are always visible.
+ */
+const AUTO_HIDE_WHEN_EMPTY: ReadonlySet<BoardGroupKey> = new Set(["stalled"]);
 
-/** The visible columns for a partition: COLUMN_ORDER minus auto-hidden ones. */
-function visibleColumnKeys(partition: BoardPartition): BoardColumnKey[] {
-  return COLUMN_ORDER.filter(
-    (key) => !(AUTO_HIDE_WHEN_EMPTY.has(key) && partition[key].length === 0)
+/** The visible columns for the grouped board: GROUP_ORDER minus auto-hidden. */
+function visibleColumnKeys(groups: BoardGroups): BoardGroupKey[] {
+  return GROUP_ORDER.filter(
+    (key) => !(AUTO_HIDE_WHEN_EMPTY.has(key) && groups[key].length === 0)
   );
 }
 
@@ -56,17 +60,17 @@ function visibleColumnKeys(partition: BoardPartition): BoardColumnKey[] {
  * its existing assertive alert role — this is deliberately the board's ONLY
  * live region, and it is polite.
  */
-function useColumnCountAnnouncement(partition: BoardPartition): string {
+function useColumnCountAnnouncement(groups: BoardGroups): string {
   const [announcement, setAnnouncement] = useState("");
-  const lastCountsRef = useRef<Record<BoardColumnKey, number> | null>(null);
+  const lastCountsRef = useRef<Record<BoardGroupKey, number> | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingRef = useRef<string>("");
 
   const counts = useMemo(() => {
-    const next = {} as Record<BoardColumnKey, number>;
-    for (const key of COLUMN_ORDER) next[key] = partition[key].length;
+    const next = {} as Record<BoardGroupKey, number>;
+    for (const key of GROUP_ORDER) next[key] = groups[key].length;
     return next;
-  }, [partition]);
+  }, [groups]);
 
   useEffect(() => {
     const last = lastCountsRef.current;
@@ -76,7 +80,7 @@ function useColumnCountAnnouncement(partition: BoardPartition): string {
       lastCountsRef.current = counts;
       return;
     }
-    const changed = COLUMN_ORDER.filter((key) => counts[key] !== last[key]);
+    const changed = GROUP_ORDER.filter((key) => counts[key] !== last[key]);
     lastCountsRef.current = counts;
     if (changed.length === 0) return;
 
@@ -113,15 +117,17 @@ export interface KanbanBoardProps {
   /** When true, suppress SSE-triggered refetches (catch-up mode, §4). */
   suppressSseRefetch?: boolean;
   /**
-   * §6.2 pill → column focus: the focused column gets a highlight ring and is
-   * scrolled into view; the others dim. null/undefined = no focus ("All").
+   * §6.2 pill → column focus: pills keep the six buckets; the focused bucket's
+   * HOST column (§13.2b: orphaned/stale → Stalled, failed/completed → Done)
+   * gets a highlight ring and is scrolled into view; the others dim.
+   * null/undefined = no focus ("All").
    */
   focusColumnKey?: BoardColumnKey | null;
   /**
    * §7 fetch-window tails: invoked by a column's "View all in list →" row to
-   * switch to list view with that column's status filter pre-applied.
+   * switch to list view with a status filter matching that column pre-applied.
    */
-  onViewAllInList?: (key: BoardColumnKey) => void;
+  onViewAllInList?: (key: BoardGroupKey) => void;
 }
 
 export function KanbanBoard({
@@ -152,7 +158,15 @@ export function KanbanBoard({
     () => partitionRuns(runs, hiddenProjects),
     [runs, hiddenProjects]
   );
-  const visibleKeys = useMemo(() => visibleColumnKeys(partition), [partition]);
+  // §13.2b display grouping over the unchanged six-bucket partition.
+  const groups = useMemo(() => groupColumns(partition), [partition]);
+  const visibleKeys = useMemo(() => visibleColumnKeys(groups), [groups]);
+
+  // §6.2 pill → column focus, remapped to the bucket's host column (§13.6
+  // amended AC-23: failed/completed pills focus Done; orphaned/stale, Stalled).
+  const focusGroupKey: BoardGroupKey | null = focusColumnKey
+    ? GROUP_HOST[focusColumnKey]
+    : null;
 
   // §8 roving tabindex: the keyboard hook navigates the VISIBLE columns in
   // rendered order (auto-hidden columns are skipped, matching the DOM).
@@ -160,14 +174,14 @@ export function KanbanBoard({
     () =>
       visibleKeys.map((key) => ({
         key,
-        runIds: partition[key].map((run) => run.runId),
+        runIds: groups[key].map((run) => run.runId),
       })),
-    [visibleKeys, partition]
+    [visibleKeys, groups]
   );
   const keyboard = useBoardKeyboard(keyboardColumns);
 
   // §8 polite live region (debounced column-count announcements).
-  const announcement = useColumnCountAnnouncement(partition);
+  const announcement = useColumnCountAnnouncement(groups);
 
   if (loading && !data) {
     return (
@@ -218,18 +232,12 @@ export function KanbanBoard({
     );
   }
 
-  const orphanedTooltip = orphanedOverflowTooltip(partition);
-
-  // Design-QA round 1 (minor): the stale pill can read "Stale N" while the
-  // board shows no Stale column at all (every stale run absorbed by
-  // Needs-you/Orphaned precedence ⇒ empty column auto-hid). Same §3.4
-  // count-honesty mechanism as the orphaned tooltip: host the explanation on
-  // the Stale column when it is visible, otherwise on the first visible
-  // column that absorbed the runs (Needs-you is always visible, so a host
-  // always exists when the tooltip is non-null).
-  const staleTooltip = staleOverflowTooltip(partition);
-  const staleTooltipHost: BoardColumnKey | null = staleTooltip
-    ? ((["stale", "orphaned", "needsyou"] as BoardColumnKey[]).find((key) =>
+  // §3.4 count honesty, re-targeted per §13.6 amended AC-10: stalled-bucket
+  // runs absorbed by Needs-you precedence are disclosed on the Stalled host
+  // when it is visible, else on the always-visible Needs-you column itself.
+  const stalledTooltip = stalledOverflowTooltip(partition);
+  const stalledTooltipHost: BoardGroupKey | null = stalledTooltip
+    ? ((["stalled", "needsyou"] as BoardGroupKey[]).find((key) =>
         visibleKeys.includes(key)
       ) ?? null)
     : null;
@@ -270,26 +278,16 @@ export function KanbanBoard({
         aria-label="Run board"
         className="flex gap-3 overflow-x-auto pb-2"
       >
-        {/* §3.2 auto-hide: Orphaned/Stale columns leave the DOM when empty,
-            mirroring their filter-pill behavior (visibleColumnKeys). */}
+        {/* §13.6 amended AC-12 auto-hide: the Stalled column leaves the DOM
+            when empty; Needs you / Working / Done always render. */}
         {visibleKeys.map((key) => (
           <KanbanColumn
             key={key}
             columnKey={key}
-            runs={partition[key]}
-            countTooltip={
-              // A column may carry both honesty tooltips (e.g. Orphaned holds
-              // absorbed-orphaned AND hosts the stale absorption note) —
-              // multi-line title, one line per mechanism.
-              [
-                key === "orphaned" ? orphanedTooltip : null,
-                key === staleTooltipHost ? staleTooltip : null,
-              ]
-                .filter(Boolean)
-                .join("\n") || undefined
-            }
-            focused={focusColumnKey === key}
-            dimmed={focusColumnKey !== null && focusColumnKey !== key}
+            runs={groups[key]}
+            countTooltip={key === stalledTooltipHost ? stalledTooltip : undefined}
+            focused={focusGroupKey === key}
+            dimmed={focusGroupKey !== null && focusGroupKey !== key}
             keyboard={keyboard}
             onViewAllInList={
               // §7: with a truncated fetch window every column may be missing

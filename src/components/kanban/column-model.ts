@@ -162,50 +162,75 @@ export function partitionRuns(
   return partition;
 }
 
+// ---------------------------------------------------------------------------
+// UX-R2 §13.2 option (b) — display-level 4-column grouping (owner gate
+// 2026-07-05 run 01KWRR8XAHFCDEGCRBRFHFF44W: 4-column taxonomy + color map).
+// The six-bucket partition above is UNCHANGED (AC-1..AC-10 stand verbatim);
+// groupColumns() is a pure display layer over it.
+// ---------------------------------------------------------------------------
+
+/** The four display columns the board renders (§13.2b order). */
+export type BoardGroupKey = "needsyou" | "waiting" | "stalled" | "done";
+
+/** Display order per §13.6 amended AC-12: Needs you → Working → Stalled → Done. */
+export const GROUP_ORDER: BoardGroupKey[] = [
+  "needsyou",
+  "waiting",
+  "stalled",
+  "done",
+];
+
 /**
- * Count honesty for the Orphaned column header (SPEC §3.4, F1 lesson): pills
- * count OVERLAPPING buckets while columns count a DISJOINT partition, so
- * orphaned breakpoint runs render under Needs-you and the orphaned pill count
- * may exceed the Orphaned column count. This computes the tooltip that makes
- * the difference explicit — no silent mismatch.
- *
- * Returns null when no needs-you run also matches the orphaned bucket
- * predicate (i.e. pill count === column count).
+ * Bucket → host display column (§13.2b): orphaned+stale host under Stalled,
+ * failed+completed under Done. Used by the pill→column focus mapping — the
+ * filter pills keep all six buckets.
  */
-export function orphanedOverflowTooltip(
-  partition: Record<BoardColumnKey, LightRun[]>
-): string | null {
-  const capturedByNeedsYou = partition.needsyou.filter(isOrphanedBucket).length;
-  if (capturedByNeedsYou === 0) return null;
-  const noun = capturedByNeedsYou === 1 ? "run is" : "runs are";
-  return `+${capturedByNeedsYou} more orphaned ${noun} shown under Needs you`;
+export const GROUP_HOST: Record<BoardColumnKey, BoardGroupKey> = {
+  needsyou: "needsyou",
+  orphaned: "stalled",
+  waiting: "waiting",
+  stale: "stalled",
+  failed: "done",
+  completed: "done",
+};
+
+export type BoardGroups = Record<BoardGroupKey, BoardRun[]>;
+
+/**
+ * Group the six-bucket partition into the four display columns (AC-35).
+ * Totals are preserved (Σ grouped sizes === Σ partition sizes) and the
+ * within-group order is the concatenation in §3.2 precedence order — orphaned
+ * cards before stale cards inside Stalled, failed before completed inside
+ * Done — with each segment keeping its own updatedAt DESC order.
+ */
+export function groupColumns(partition: BoardPartition): BoardGroups {
+  return {
+    needsyou: partition.needsyou,
+    waiting: partition.waiting,
+    stalled: [...partition.orphaned, ...partition.stale],
+    done: [...partition.failed, ...partition.completed],
+  };
 }
 
 /**
- * Count honesty for the STALE bucket (design-QA round 1, same §3.4 mechanism
- * as orphanedOverflowTooltip): the stale pill counts every `isStale === true`
- * run, but Needs-you/Orphaned precedence absorbs stale runs into higher
- * columns — the board can even show NO Stale column (empty ⇒ auto-hidden)
- * while the pill still reads "Stale N". This computes the tooltip that makes
- * the absorption explicit — no silent mismatch.
+ * Count honesty for the Stalled column header (SPEC §3.4, F1 lesson — AC-10
+ * text amended per §13.6): pills count OVERLAPPING buckets while columns
+ * count a DISJOINT partition, so orphaned/stale breakpoint runs render under
+ * Needs-you and the orphaned/stale pill counts may exceed the Stalled column
+ * count. Union math: a Needs-you run that is both orphaned AND stale counts
+ * once. Absorption BETWEEN the orphaned and stale buckets stays inside the
+ * Stalled host and is no longer a column-level discrepancy.
  *
- * Returns null when no stale run was captured by a higher-precedence column
- * (i.e. pill count === Stale column count).
+ * Returns null when no needs-you run also matches a stalled-bucket predicate
+ * (i.e. pill counts === column count).
  */
-export function staleOverflowTooltip(
+export function stalledOverflowTooltip(
   partition: Record<BoardColumnKey, LightRun[]>
 ): string | null {
-  const isStale = (run: LightRun) => run.isStale === true;
-  const capturedByNeedsYou = partition.needsyou.filter(isStale).length;
-  const capturedByOrphaned = partition.orphaned.filter(isStale).length;
-  const captured = capturedByNeedsYou + capturedByOrphaned;
+  const wouldBeStalled = (run: LightRun) =>
+    isOrphanedBucket(run) || run.isStale === true;
+  const captured = partition.needsyou.filter(wouldBeStalled).length;
   if (captured === 0) return null;
-  const hosts = [
-    capturedByNeedsYou > 0 ? "Needs you" : null,
-    capturedByOrphaned > 0 ? "Orphaned" : null,
-  ]
-    .filter(Boolean)
-    .join(" and ");
   const noun = captured === 1 ? "run is" : "runs are";
-  return `+${captured} more stale ${noun} shown under ${hosts}`;
+  return `+${captured} more stalled ${noun} shown under Needs you`;
 }

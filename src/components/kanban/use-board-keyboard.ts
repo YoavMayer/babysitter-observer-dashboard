@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { BoardColumnKey } from "@/components/kanban/column-model";
+import type { BoardGroupKey } from "@/components/kanban/column-model";
 
 /**
  * Roving tabindex across board cards — SPEC-vibekanban §8 / AC-24.
@@ -25,9 +25,11 @@ import type { BoardColumnKey } from "@/components/kanban/column-model";
  * router navigation to /runs/{runId} — never a state mutation.
  */
 
-/** One visible board column and its card runIds, in rendered order. */
+/** One visible board column and its card runIds, in rendered order.
+ * Keys are the four DISPLAY columns (§13.2b — owner gate 2026-07-05 run
+ * 01KWRR8XAHFCDEGCRBRFHFF44W); navigation is bucket-agnostic. */
 export interface BoardColumnRuns {
-  key: BoardColumnKey;
+  key: BoardGroupKey;
   runIds: string[];
 }
 
@@ -149,7 +151,7 @@ export function useBoardKeyboard(
    * retry across a few frames while the virtualizer renders it.
    */
   const revealAndFocus = useCallback(
-    (columnKey: BoardColumnKey, index: number, runId: string) => {
+    (columnKey: BoardGroupKey, index: number, runId: string) => {
       const attempt = (framesLeft: number) => {
         if (focusCardElement(runId) || framesLeft <= 0) return;
         const container = document.querySelector<HTMLElement>(

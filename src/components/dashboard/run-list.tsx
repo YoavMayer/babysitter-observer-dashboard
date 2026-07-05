@@ -70,7 +70,8 @@ export function LivenessChip({ run }: { run: LightRun }) {
       // a11y-status-chip-title-only: expose the tooltip meaning to AT via sr-only
       // text (icon is decorative → a11y-icons-not-hidden).
       <span
-        className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold bg-success/10 text-success"
+        data-status-badge
+        className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold bg-status-alive-muted text-status-alive"
         title="A live orchestrator is attached to this run"
       >
         <Wifi className="h-3 w-3" aria-hidden="true" focusable="false" /> live
@@ -81,7 +82,8 @@ export function LivenessChip({ run }: { run: LightRun }) {
   return (
     // a11y-status-chip-title-only / a11y-icons-not-hidden
     <span
-      className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold bg-error/15 text-error"
+      data-status-badge
+      className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold bg-status-stalled-muted text-status-stalled"
       title="No live orchestrator is attached — resume the run to continue it"
     >
       <AlertTriangle className="h-3 w-3" aria-hidden="true" focusable="false" /> orphaned
@@ -100,13 +102,16 @@ export function StatusDot({ run }: { run: LightRun }) {
   const failed = run.status === "failed";
   return (
     <span
+      data-status-badge
       className={cn(
         "flex items-center gap-1.5 rounded px-1.5 py-0.5 text-[10px] font-semibold",
-        failed ? "bg-error/10 text-error" : "bg-foreground-muted/10 text-foreground-muted"
+        // UX-R2 §13.3: terminal failure red (--status-failed, full strength);
+        // completed de-emphasizes with --status-aged text + a --status-ok dot.
+        failed ? "bg-status-failed-muted text-status-failed" : "bg-status-aged-muted text-status-aged"
       )}
       title={`Run ${run.status}`}
     >
-      <span className={cn("h-2 w-2 rounded-full", failed ? "bg-error" : "bg-success")} aria-hidden="true" />
+      <span className={cn("h-2 w-2 rounded-full", failed ? "bg-status-failed" : "bg-status-ok")} aria-hidden="true" />
       {/* a11y-status-chip-title-only: prefix the status word for AT context. */}
       <span className="sr-only">Run status: </span>
       {run.status}
@@ -140,7 +145,8 @@ export function ActionHint({ run }: { run: LightRun }) {
       {orphaned ? (
         // a11y-status-chip-title-only / a11y-icons-not-hidden
         <span
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-error/15 text-error border border-error/30"
+          data-status-badge
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-status-stalled-muted text-status-stalled border border-status-stalled/30"
           title="No live orchestrator is attached — an answer won't be applied until the run is resumed (babysitter run:iterate)"
         >
           <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" focusable="false" /> No live driver — resume to answer
@@ -149,7 +155,8 @@ export function ActionHint({ run }: { run: LightRun }) {
       ) : (
         // a11y-status-chip-title-only / a11y-icons-not-hidden
         <span
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-warning/15 text-warning border border-warning/30"
+          data-status-badge
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-status-attention-muted text-status-attention border border-status-attention/30"
           title="Answer this in the terminal that is driving this run"
         >
           <Terminal className="h-3.5 w-3.5" aria-hidden="true" focusable="false" /> Answer in terminal
