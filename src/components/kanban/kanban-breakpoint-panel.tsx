@@ -3,7 +3,11 @@ import { useState } from "react";
 import { ChevronDown, ChevronUp, Hand } from "lucide-react";
 import { useTaskDetail } from "@/hooks/use-run-detail";
 import { BreakpointApproval } from "@/components/breakpoint/breakpoint-approval";
-import { BREAKPOINT_NO_QUESTION_FALLBACK } from "@/lib/breakpoint-payload";
+import {
+  BREAKPOINT_NO_QUESTION_FALLBACK,
+  BREAKPOINT_ORPHANED_SEMANTICS,
+  BREAKPOINT_READONLY_CONTRACT,
+} from "@/lib/breakpoint-payload";
 import { ActionHint } from "@/components/dashboard/run-list";
 import type { BoardRun } from "@/components/kanban/column-model";
 
@@ -76,6 +80,11 @@ export function KanbanBreakpointPanel({ run }: KanbanBreakpointPanelProps) {
   const title =
     rawTitle && rawTitle.toLowerCase() !== "breakpoint" ? rawTitle : undefined;
 
+  // §13.4: no live driver attached (same predicate as run-list isOrphaned) —
+  // the honest orphaned-semantics hint renders BEFORE any interaction and the
+  // post-submit confirmation switches to the "recorded now" copy (AC-44/45).
+  const orphaned = run.driver === "orphaned" || run.driver === "none";
+
   return (
     // relative z-10 lifts the whole decision surface above the card's
     // stretched overlay link so chips/toggle/approval are interactive
@@ -93,10 +102,21 @@ export function KanbanBreakpointPanel({ run }: KanbanBreakpointPanelProps) {
           aria-hidden="true"
           focusable="false"
         />
-        <span className="text-[10px] font-bold text-status-attention uppercase tracking-wider">
+        <span
+          data-testid="kanban-bp-needsyou-label"
+          className="text-[10px] font-bold text-status-attention uppercase tracking-wider"
+        >
           Needs you
         </span>
       </div>
+      {/* §13.4/AC-43: the read-only contract line — always visible at the top
+          of the answer panel, above any input. Exact copy from the SPEC. */}
+      <p
+        data-testid="bp-readonly-contract"
+        className="text-[11px] leading-snug text-foreground-muted"
+      >
+        {BREAKPOINT_READONLY_CONTRACT}
+      </p>
       {/* Breakpoint heading from the resolved payload title (UX-R2 §13.1
           AC-33: e.g. metadata.payload.title "Gate 1 — …"). */}
       {title && (
@@ -127,6 +147,18 @@ export function KanbanBreakpointPanel({ run }: KanbanBreakpointPanelProps) {
             </span>
           ))}
         </div>
+      )}
+
+      {/* §13.4/AC-44: on an orphaned/no-driver run the honest semantics line
+          is visible BEFORE any interaction — recorded now, applied on resume.
+          Live-driver runs keep today's behavior (no extra hint). */}
+      {orphaned && (
+        <p
+          data-testid="bp-orphaned-semantics"
+          className="text-[11px] leading-snug font-medium text-status-stalled"
+        >
+          {BREAKPOINT_ORPHANED_SEMANTICS}
+        </p>
       )}
 
       {/* Driver-aware informing hint, identical to the banner/flat-list
@@ -160,7 +192,7 @@ export function KanbanBreakpointPanel({ run }: KanbanBreakpointPanelProps) {
           // input on the board only; BreakpointApproval itself (and its
           // run-detail row layout) is unchanged — still the ONLY write path.
           <div className="[&_form>div]:flex-col [&_form>div]:items-stretch [&_[data-testid=custom-answer-input]]:min-w-0">
-            <BreakpointApproval task={task} runId={run.runId} />
+            <BreakpointApproval task={task} runId={run.runId} orphaned={orphaned} />
           </div>
         ) : (
           <p className="text-xs text-foreground-muted italic">

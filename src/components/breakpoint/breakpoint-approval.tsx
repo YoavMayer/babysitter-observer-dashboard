@@ -5,14 +5,22 @@ import { cn } from "@/lib/cn";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Loader2, AlertCircle } from "lucide-react";
 import { approveBreakpoint } from "@/app/actions/approve-breakpoint";
+import { BREAKPOINT_ORPHANED_RECORDED_CONFIRMATION } from "@/lib/breakpoint-payload";
 import type { TaskDetail } from "@/types";
 
 interface BreakpointApprovalProps {
   task: TaskDetail;
   runId: string;
+  /**
+   * UX-R2 §13.4 (AC-45): the run has no live driver (driver "orphaned" or
+   * "none"). The write path is IDENTICAL either way — only the post-submit
+   * confirmation copy changes, to be honest that the recorded answer takes
+   * effect when the run is resumed.
+   */
+  orphaned?: boolean;
 }
 
-export function BreakpointApproval({ task, runId }: BreakpointApprovalProps) {
+export function BreakpointApproval({ task, runId, orphaned = false }: BreakpointApprovalProps) {
   const [customAnswer, setCustomAnswer] = useState("");
   const [isPending, startTransition] = useTransition();
   const [result, setResult] = useState<{
@@ -123,7 +131,13 @@ export function BreakpointApproval({ task, runId }: BreakpointApprovalProps) {
           {result.success ? (
             <>
               <CheckCircle2 className="h-4 w-4 shrink-0" />
-              <span>Breakpoint approved successfully. The dashboard will update automatically.</span>
+              {/* §13.4/AC-45: on an orphaned run the confirmation is honest
+                  about the deferred effect — exact copy from the SPEC. */}
+              <span>
+                {orphaned
+                  ? BREAKPOINT_ORPHANED_RECORDED_CONFIRMATION
+                  : "Breakpoint approved successfully. The dashboard will update automatically."}
+              </span>
             </>
           ) : (
             <>

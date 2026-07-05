@@ -167,6 +167,29 @@ describe("BreakpointApproval", () => {
     expect(resultEl.textContent).toContain("approved successfully");
   });
 
+  it("shows the orphaned post-submit confirmation VERBATIM when orphaned (UX-R2 §13.4 / AC-45)", async () => {
+    const user = setupUser();
+    mockApproveBreakpoint.mockResolvedValue({ success: true });
+
+    const task = makeBreakpointTask();
+    render(<BreakpointApproval task={task} runId={defaultRunId} orphaned />);
+
+    await user.type(screen.getByTestId("custom-answer-input"), "yes");
+    await user.click(screen.getByTestId("approve-btn"));
+
+    const resultEl = await screen.findByTestId("approval-result");
+    expect(resultEl.textContent).toContain(
+      "Answer recorded. It will be applied when the run is resumed."
+    );
+    expect(resultEl.textContent).not.toContain("approved successfully");
+    // The write path is unchanged — same server-action call either way.
+    expect(mockApproveBreakpoint).toHaveBeenCalledWith(
+      defaultRunId,
+      task.effectId,
+      "yes"
+    );
+  });
+
   it("shows error message on failure", async () => {
     const user = setupUser();
     mockApproveBreakpoint.mockResolvedValue({

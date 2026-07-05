@@ -80,7 +80,8 @@ function BreakpointBannerItem({ bp, stale, onDismiss }: { bp: BreakpointRunInfo;
         {orphaned ? (
           <span
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-error/15 text-error border border-error/30"
-            title="No live orchestrator is attached — an answer won't be applied until the run is resumed (babysitter run:iterate)"
+            // §13.4: honest orphaned semantics — recorded now, applied on resume.
+            title="No live orchestrator is attached. Recorded now → applied when the run is resumed (babysitter run:iterate)."
           >
             <AlertTriangle className="h-3.5 w-3.5" /> No live driver — resume to answer
           </span>

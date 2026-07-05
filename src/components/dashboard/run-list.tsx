@@ -147,10 +147,13 @@ export function ActionHint({ run }: { run: LightRun }) {
         <span
           data-status-badge
           className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-status-stalled-muted text-status-stalled border border-status-stalled/30"
-          title="No live orchestrator is attached — an answer won't be applied until the run is resumed (babysitter run:iterate)"
+          // §13.4: the orphaned-semantics line replaces the old "an answer
+          // won't be applied" wording — answers ARE recorded now, they apply
+          // when the run is resumed.
+          title="No live orchestrator is attached. Recorded now → applied when the run is resumed (babysitter run:iterate)."
         >
           <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" focusable="false" /> No live driver — resume to answer
-          <span className="sr-only">: an answer won&apos;t be applied until the run is resumed (babysitter run:iterate)</span>
+          <span className="sr-only">: recorded now → applied when the run is resumed (babysitter run:iterate)</span>
         </span>
       ) : (
         // a11y-status-chip-title-only / a11y-icons-not-hidden

@@ -29,6 +29,30 @@ import type {
 export const BREAKPOINT_NO_QUESTION_FALLBACK =
   "Approval required — this breakpoint has no question text on disk.";
 
+/**
+ * UX-R2 §13.4 read-only clarity — exact copy (these strings are spec, not
+ * suggestions). The contract line is always visible at the top of every
+ * breakpoint answer panel (board card AND run-detail): recording an answer is
+ * the observer's ONLY write path, and the panel says so out loud (AC-43).
+ */
+export const BREAKPOINT_READONLY_CONTRACT =
+  "The observer is read-only — except this single action: recording your breakpoint answer.";
+
+/**
+ * §13.4 orphaned semantics line (replaces the old "an answer won't be applied
+ * until the run is resumed" hint): with no live driver attached, the answer is
+ * recorded on disk NOW and takes effect only when the run is resumed (AC-44).
+ */
+export const BREAKPOINT_ORPHANED_SEMANTICS =
+  "Recorded now → applied when the run is resumed (babysitter run:iterate).";
+
+/**
+ * §13.4 post-submit confirmation shown after answering an orphaned run's
+ * breakpoint — honest about the deferred effect of the write (AC-45).
+ */
+export const BREAKPOINT_ORPHANED_RECORDED_CONFIRMATION =
+  "Answer recorded. It will be applied when the run is resumed.";
+
 /** Parser-resolved payload: questionSource is always present (AC-32 flag). */
 export interface ResolvedBreakpointPayload extends BreakpointPayload {
   questionSource: BreakpointQuestionSource;

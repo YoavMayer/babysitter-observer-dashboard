@@ -259,6 +259,7 @@ export default function RunDetailPage({ params }: { params: { runId: string } })
               onTabChange={setActiveTab}
               runDuration={run.duration}
               allTasks={run.tasks}
+              runDriver={run.driver}
             />
           </div>
         )}

@@ -132,3 +132,57 @@ describe("KanbanBreakpointPanel (SPEC-vibekanban §5, Wave 3)", () => {
     expect(mockUseTaskDetail).toHaveBeenCalledWith("01KTESTPANELRUN000000001", null);
   });
 });
+
+// ---------------------------------------------------------------------------
+// UX-R2 §13.4 — read-only clarity (AC-43..AC-45 component-level coverage).
+// ---------------------------------------------------------------------------
+
+describe("KanbanBreakpointPanel — UX-R2 §13.4 read-only clarity", () => {
+  const CONTRACT_LINE =
+    "The observer is read-only — except this single action: recording your breakpoint answer.";
+  const ORPHANED_SEMANTICS =
+    "Recorded now → applied when the run is resumed (babysitter run:iterate).";
+  const ORPHANED_CONFIRMATION =
+    "Answer recorded. It will be applied when the run is resumed.";
+
+  it("AC-43: renders the contract line VERBATIM, always visible while the answer input stays collapsed", () => {
+    setupTaskDetail(pendingDetail());
+    render(<KanbanBreakpointPanel run={makeNeedsYouRun({ driver: "live" })} />);
+
+    const contract = screen.getByTestId("bp-readonly-contract");
+    expect(contract).toHaveTextContent(CONTRACT_LINE);
+    // ...above any input: the input is not even mounted yet.
+    expect(screen.queryByTestId("custom-answer-input")).not.toBeInTheDocument();
+  });
+
+  it("AC-44: an orphaned (driver 'none') run shows the orphaned-semantics line VERBATIM before any interaction", () => {
+    setupTaskDetail(pendingDetail());
+    render(<KanbanBreakpointPanel run={makeNeedsYouRun({ driver: "none" })} />);
+
+    expect(screen.getByTestId("bp-orphaned-semantics")).toHaveTextContent(
+      ORPHANED_SEMANTICS
+    );
+    // The answer input is NOT in the accessible tree until the toggle expands.
+    expect(screen.queryByTestId("custom-answer-input")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("kanban-bp-answer-toggle"));
+    expect(screen.getByTestId("custom-answer-input")).toBeInTheDocument();
+  });
+
+  it("AC-44: a live-driver run gets NO orphaned-semantics line (base-branch behavior)", () => {
+    setupTaskDetail(pendingDetail());
+    render(<KanbanBreakpointPanel run={makeNeedsYouRun({ driver: "live" })} />);
+    expect(screen.queryByTestId("bp-orphaned-semantics")).not.toBeInTheDocument();
+  });
+
+  it("AC-45: submitting an answer on an orphaned run shows the post-submit confirmation VERBATIM", async () => {
+    setupTaskDetail(pendingDetail());
+    render(<KanbanBreakpointPanel run={makeNeedsYouRun({ driver: "orphaned" })} />);
+
+    fireEvent.click(screen.getByTestId("kanban-bp-answer-toggle"));
+    fireEvent.click(screen.getByTestId("option-btn-approve"));
+
+    const result = await screen.findByTestId("approval-result");
+    expect(result).toHaveTextContent(ORPHANED_CONFIRMATION);
+    expect(result).not.toHaveTextContent("approved successfully");
+  });
+});

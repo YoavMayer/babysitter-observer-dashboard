@@ -131,4 +131,42 @@ describe('BreakpointPanel', () => {
       screen.getByText('Approval required — this breakpoint has no question text on disk.'),
     ).toBeInTheDocument();
   });
+
+  // -----------------------------------------------------------------------
+  // UX-R2 §13.4 — read-only clarity on the run-detail answer panel
+  // -----------------------------------------------------------------------
+  it('AC-43: renders the read-only contract line VERBATIM above the answer input for pending breakpoints', () => {
+    const task = makeBreakpointTask({ status: 'requested' });
+    render(<BreakpointPanel task={task} runId={defaultRunId} runDriver="live" />);
+
+    const contract = screen.getByTestId('bp-readonly-contract');
+    expect(contract).toHaveTextContent(
+      'The observer is read-only — except this single action: recording your breakpoint answer.',
+    );
+    // Above any input: the contract line precedes the approval form in the DOM.
+    const input = screen.getByTestId('custom-answer-input');
+    expect(
+      contract.compareDocumentPosition(input) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it('AC-44: renders the orphaned-semantics line VERBATIM for a no-driver run, and not for a live one', () => {
+    const task = makeBreakpointTask({ status: 'requested' });
+    const { unmount } = render(
+      <BreakpointPanel task={task} runId={defaultRunId} runDriver="none" />,
+    );
+    expect(screen.getByTestId('bp-orphaned-semantics')).toHaveTextContent(
+      'Recorded now → applied when the run is resumed (babysitter run:iterate).',
+    );
+    unmount();
+
+    render(<BreakpointPanel task={task} runId={defaultRunId} runDriver="live" />);
+    expect(screen.queryByTestId('bp-orphaned-semantics')).not.toBeInTheDocument();
+  });
+
+  it('does not render the contract line for resolved breakpoints (no answer input exists)', () => {
+    const task = makeBreakpointTask({ status: 'resolved' });
+    render(<BreakpointPanel task={task} runId={defaultRunId} runDriver="none" />);
+    expect(screen.queryByTestId('bp-readonly-contract')).not.toBeInTheDocument();
+  });
 });
