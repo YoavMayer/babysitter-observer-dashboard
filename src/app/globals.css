@@ -218,8 +218,12 @@
   --pending: #a1a1aa;
   --pending-muted: rgba(161, 161, 170, 0.1);
 
-  /* Semantic STATUS tokens (light) — UX-R2 §13.3: labels verified >=4.5:1 on #ffffff. */
-  --status-attention: #8a6d00;  --status-attention-muted: rgba(212, 175, 0, 0.12);
+  /* Semantic STATUS tokens (light) — UX-R2 §13.3: labels verified >=4.5:1 on
+     #ffffff AND on every muted tint they sit on (live-verify 2026-07-05:
+     attention must clear the composited error-muted banner rgb(252,229,235),
+     where the old #8a6d00 measured only 4.12:1). #7e6400 = 4.73:1 there,
+     5.66:1 on white, same 47.6deg gold hue. */
+  --status-attention: #7e6400;  --status-attention-muted: rgba(212, 175, 0, 0.12);
   --status-alive:     #006E7A;  --status-alive-muted:     rgba(0, 200, 214, 0.10);
   --status-stalled:   #7A6431;  --status-stalled-muted:   rgba(122, 100, 49, 0.10);
   --status-failed:    #B01C47;  --status-failed-muted:    rgba(230, 41, 90, 0.12);

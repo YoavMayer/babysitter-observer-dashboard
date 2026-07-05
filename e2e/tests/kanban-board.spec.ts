@@ -1225,7 +1225,7 @@ test.describe("Kanban board — UX-R2 §13.4 read-only clarity (owner gate 2026-
 });
 
 test.describe("Kanban board — UX-R2 §13.5 carried minors & nits (owner gate 2026-07-05)", () => {
-  test("AC-46: the NEEDS YOU alarm label resolves the AA-safe attention ink in light theme (#8a6d00), never raw warning gold (#D4AF00)", async ({ page }) => {
+  test("AC-46: the NEEDS YOU alarm label resolves the AA-safe attention ink in light theme (#7e6400), never raw warning gold (#D4AF00)", async ({ page }) => {
     await gotoBoard(page);
     const card = cardFor(page, PENDING_BP_RUN_ID);
     await expect(card).toBeVisible({ timeout: 15_000 });
@@ -1238,8 +1238,10 @@ test.describe("Kanban board — UX-R2 §13.5 carried minors & nits (owner gate 2
     const label = card.getByTestId("kanban-bp-needsyou-label");
     await expect(label).toBeVisible();
     const labelColor = await label.evaluate((el) => getComputedStyle(el).color);
-    // #8a6d00 — the darkened 4.92:1 attention ink (--status-attention, light).
-    expect(labelColor).toBe("rgb(138, 109, 0)");
+    // #7e6400 — the darkened attention ink (--status-attention, light):
+    // 5.66:1 on white AND 4.73:1 on the composited error-muted banner tint
+    // (live-verify 2026-07-05 superseded #8a6d00, which hit only 4.12:1 there).
+    expect(labelColor).toBe("rgb(126, 100, 0)");
     // ...never the 1.6:1 raw gold (#D4AF00 = light-theme --warning).
     expect(labelColor).not.toBe("rgb(212, 175, 0)");
   });

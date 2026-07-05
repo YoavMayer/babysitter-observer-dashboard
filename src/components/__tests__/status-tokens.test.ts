@@ -35,7 +35,11 @@ const DARK_TOKENS: Record<string, string> = {
 
 /** §13.3 token table — light theme (labels on #ffffff). */
 const LIGHT_TOKENS: Record<string, string> = {
-  "--status-attention": "#8a6d00",
+  // Live-verify 2026-07-05 (banner-segment-contrast-light): darkened from
+  // #8a6d00 (4.12:1 on the composited error-muted banner tint) to #7e6400
+  // (4.73:1 there, 5.66:1 on white) — §13.3 requires >=4.5:1 everywhere
+  // the token labels text, including muted-tint surfaces.
+  "--status-attention": "#7e6400",
   "--status-attention-muted": "rgba(212, 175, 0, 0.12)",
   "--status-alive": "#006E7A",
   "--status-alive-muted": "rgba(0, 200, 214, 0.10)",
@@ -154,6 +158,33 @@ describe("UX-R2 §13.3 contrast guard (AC-39)", () => {
       expect(value, `light ${token} present`).toBeTruthy();
       const ratio = contrastRatio(value as string, "#ffffff");
       expect(ratio, `light ${token} = ${value} → ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
+  // Live-verify 2026-07-05 (banner-segment-contrast-light): white-only checks
+  // missed that --status-attention also labels text on composited muted tints.
+  // Guard every light-theme surface the token actually sits on:
+  //   #fce5eb = error-muted rgba(230,41,90,.12) over #fff (banner red segment)
+  //   #faf5e0 = warning-muted rgba(212,175,0,.12) over #fff (NEEDS YOU panel,
+  //             amber banner, run-list "Answer in terminal" badge)
+  //   #f5edc5 = attention-muted over the warning-muted panel (option chips)
+  //   #fbfbfb = background-secondary/40 over #fff (board column header)
+  it("§13.3 live-verify guard: light --status-attention clears 4.5:1 on every composited surface it labels", () => {
+    const block = themeBlock("light");
+    const attention = tokenValue(block, "--status-attention");
+    expect(attention, "light --status-attention present").toBeTruthy();
+    const surfaces: Record<string, string> = {
+      "error-muted banner segment": "#fce5eb",
+      "warning-muted panel/badge": "#faf5e0",
+      "attention-muted option chip on panel": "#f5edc5",
+      "board column header": "#fbfbfb",
+    };
+    for (const [surface, bg] of Object.entries(surfaces)) {
+      const ratio = contrastRatio(attention as string, bg);
+      expect(
+        ratio,
+        `light --status-attention = ${attention} on ${surface} (${bg}) → ${ratio.toFixed(2)}:1`
+      ).toBeGreaterThanOrEqual(4.5);
     }
   });
 });
