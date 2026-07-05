@@ -6,6 +6,7 @@ import type { RunDigest, Run, ProjectSummary } from "@/types";
 import { promises as fs } from "fs";
 import path from "path";
 import { getGlobal } from "./global-registry";
+import { BREAKPOINT_NO_QUESTION_FALLBACK } from "./breakpoint-payload";
 
 /** Return true when err represents a "file/directory not found" filesystem error. */
 function isNotFoundError(err: unknown): boolean {
@@ -318,7 +319,10 @@ export function getProjectSummaries(): ProjectSummary[] {
         effectId: entry.digest.breakpointEffectId || "",
         projectName,
         processId: entry.digest.processId || "unknown",
-        breakpointQuestion: entry.digest.breakpointQuestion || "Approval required",
+        // Honest last resort (UX-R2 §13.1 AC-32): no question in any on-disk
+        // source — never a bare "Approval required".
+        breakpointQuestion:
+          entry.digest.breakpointQuestion || BREAKPOINT_NO_QUESTION_FALLBACK,
         driver: entry.digest.driver,
       });
     }

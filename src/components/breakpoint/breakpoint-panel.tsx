@@ -6,6 +6,7 @@ import { BreakpointApproval } from "./breakpoint-approval";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Hand, CheckCircle2 } from "lucide-react";
 import { TruncatedId } from "@/components/shared/truncated-id";
+import { BREAKPOINT_NO_QUESTION_FALLBACK } from "@/lib/breakpoint-payload";
 import type { TaskDetail } from "@/types";
 
 interface BreakpointPanelProps {
@@ -15,7 +16,10 @@ interface BreakpointPanelProps {
 
 export function BreakpointPanel({ task, runId }: BreakpointPanelProps) {
   const breakpoint = task.breakpoint;
-  const question = breakpoint?.question || task.breakpointQuestion || "Approval required";
+  // Honest last resort (UX-R2 §13.1 AC-32): when no question exists in any
+  // on-disk source, say so — never a bare "Approval required".
+  const question =
+    breakpoint?.question || task.breakpointQuestion || BREAKPOINT_NO_QUESTION_FALLBACK;
   const title = breakpoint?.title || task.title || "Breakpoint";
   const files = breakpoint?.context?.files || [];
   const isWaiting = task.status === "requested";

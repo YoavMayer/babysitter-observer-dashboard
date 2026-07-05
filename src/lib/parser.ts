@@ -22,6 +22,7 @@ import type {
   RunCreatedPayload,
 } from "@/types";
 import { getConfig } from "@/lib/config-loader";
+import { resolveBreakpointPayload } from "@/lib/breakpoint-payload";
 
 async function fileExists(filePath: string): Promise<boolean> {
   try {
@@ -296,23 +297,34 @@ export async function parseRunDir(
     }
   }
 
-  // Batch-read all task.json files in parallel for EFFECT_REQUESTED tasks
+  // Batch-read all task.json files in parallel for EFFECT_REQUESTED tasks.
+  // For breakpoints, also read input.json — it is the highest-precedence
+  // question source (UX-R2 §13.1: input.json > taskDef.inputs > metadata.payload).
   if (requestedPayloads.length > 0) {
-    const taskDefFactories = requestedPayloads.map(
-      (p) => () =>
-        readJsonSafe<Record<string, unknown>>(
+    const taskFileFactories = requestedPayloads.map(
+      (p) => async () => ({
+        taskDef: await readJsonSafe<Record<string, unknown>>(
           path.join(runPath, "tasks", p.effectId, "task.json"),
           null
-        )
+        ),
+        input:
+          p.kind === "breakpoint"
+            ? await readJsonSafe<Record<string, unknown>>(
+                path.join(runPath, "tasks", p.effectId, "input.json"),
+                undefined
+              )
+            : undefined,
+      })
     );
-    const taskDefResults = await batchAllSettled(taskDefFactories);
+    const taskFileResults = await batchAllSettled(taskFileFactories);
 
     for (let i = 0; i < requestedPayloads.length; i++) {
       const p = requestedPayloads[i];
-      const result = taskDefResults[i];
-      const taskDef = result.status === "fulfilled" ? result.value : null;
+      const result = taskFileResults[i];
+      const files = result.status === "fulfilled" ? result.value : null;
+      const taskDef = files?.taskDef ?? null;
+      const task = taskMap.get(p.effectId)!;
       if (taskDef) {
-        const task = taskMap.get(p.effectId)!;
         task.title = (taskDef.title as string) || task.title;
         if (taskDef.agent && typeof taskDef.agent === "object") {
           const agentDef = taskDef.agent as Record<string, unknown>;
@@ -321,12 +333,15 @@ export async function parseRunDir(
             prompt: agentDef.prompt as NonNullable<TaskEffect["agent"]>["prompt"],
           };
         }
-        // Extract breakpoint question from inputs for breakpoint tasks
-        if (p.kind === "breakpoint") {
-          const inputs = taskDef.inputs as Record<string, unknown> | undefined;
-          if (inputs && typeof inputs.question === "string") {
-            task.breakpointQuestion = inputs.question;
-          }
+      }
+      // Extract the breakpoint question via the shared §13.1 resolver
+      // (input.json > taskDef.inputs > metadata.payload). Only a REAL
+      // on-disk question is stored — the honest fallback copy is a
+      // display-level concern (BreakpointPayload.questionSource).
+      if (p.kind === "breakpoint") {
+        const resolved = resolveBreakpointPayload(taskDef, files?.input);
+        if (resolved.questionSource !== "fallback") {
+          task.breakpointQuestion = resolved.question;
         }
       }
     }
@@ -542,16 +557,14 @@ export async function parseTaskDetail(
   // Use inputs from task.json if separate input.json doesn't exist
   const resolvedInput = input ?? (taskDef?.inputs as Record<string, unknown> | undefined);
 
-  // Extract breakpoint payload for breakpoint tasks
+  // Extract breakpoint payload for breakpoint tasks via the shared §13.1
+  // resolver (input.json > taskDef.inputs > metadata.payload, per field).
+  // When no source carries a question, the payload carries the honest
+  // last-resort copy flagged with questionSource: "fallback" (AC-32).
   const kind = (taskDef?.kind as TaskKind) || "agent";
   let breakpointPayload: import("@/types").BreakpointPayload | undefined;
-  if (kind === "breakpoint" && resolvedInput) {
-    breakpointPayload = {
-      question: (resolvedInput.question as string) || "Approval required",
-      title: (resolvedInput.title as string) || (taskDef?.title as string) || "Breakpoint",
-      options: Array.isArray(resolvedInput.options) ? (resolvedInput.options as string[]) : undefined,
-      context: resolvedInput.context as import("@/types").BreakpointPayload["context"],
-    };
+  if (kind === "breakpoint") {
+    breakpointPayload = resolveBreakpointPayload(taskDef, input);
   }
 
   // Determine error status from result or journal
@@ -679,23 +692,30 @@ export async function getRunDigest(runPath: string): Promise<RunDigest> {
       // Store the first pending breakpoint effectId regardless of question
       breakpointEffectId = pendingBpIds[0];
 
+      // Read task.json + input.json per pending breakpoint — both feed the
+      // shared §13.1 resolver (input.json > taskDef.inputs > metadata.payload).
       const bpFactories = pendingBpIds.map(
-        (effectId) => () =>
-          readJsonSafe<Record<string, unknown>>(
+        (effectId) => async () => ({
+          taskDef: await readJsonSafe<Record<string, unknown>>(
             path.join(runPath, "tasks", effectId, "task.json"),
             null
-          )
+          ),
+          input: await readJsonSafe<Record<string, unknown>>(
+            path.join(runPath, "tasks", effectId, "input.json"),
+            undefined
+          ),
+        })
       );
       const bpResults = await batchAllSettled(bpFactories);
 
-      // Use the first pending breakpoint question found
+      // Use the first pending breakpoint with a REAL on-disk question
       for (let i = 0; i < pendingBpIds.length; i++) {
         const result = bpResults[i];
-        const taskDef = result.status === "fulfilled" ? result.value : null;
-        if (taskDef) {
-          const inputs = taskDef.inputs as Record<string, unknown> | undefined;
-          if (inputs && typeof inputs.question === "string") {
-            breakpointQuestion = inputs.question;
+        const files = result.status === "fulfilled" ? result.value : null;
+        if (files) {
+          const resolved = resolveBreakpointPayload(files.taskDef, files.input);
+          if (resolved.questionSource !== "fallback") {
+            breakpointQuestion = resolved.question;
             breakpointEffectId = pendingBpIds[i];
             break;
           }

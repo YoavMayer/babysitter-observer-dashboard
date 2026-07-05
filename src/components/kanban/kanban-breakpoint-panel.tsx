@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ChevronDown, ChevronUp, Hand } from "lucide-react";
 import { useTaskDetail } from "@/hooks/use-run-detail";
 import { BreakpointApproval } from "@/components/breakpoint/breakpoint-approval";
+import { BREAKPOINT_NO_QUESTION_FALLBACK } from "@/lib/breakpoint-payload";
 import { ActionHint } from "@/components/dashboard/run-list";
 import type { BoardRun } from "@/components/kanban/column-model";
 
@@ -59,12 +60,21 @@ export function KanbanBreakpointPanel({ run }: KanbanBreakpointPanelProps) {
 
   // Full question, never truncated (AC-14): prefer the run-level question the
   // parser extracted, then the task effect's, then the fetched payload's.
+  // Honest last resort (UX-R2 §13.1 AC-32/AC-34): when no question exists in
+  // any on-disk source, say so — never a bare "Approval required".
   const question =
     run.breakpointQuestion ||
     pendingBreakpoint.breakpointQuestion ||
     task?.breakpoint?.question ||
-    "Approval required";
+    BREAKPOINT_NO_QUESTION_FALLBACK;
   const options = task?.breakpoint?.options ?? [];
+  // Breakpoint title (UX-R2 §13.1 / AC-33): the resolved payload title (e.g.
+  // metadata.payload.title "Gate 1 — …") renders as the panel heading when it
+  // carries real information (the parser's generic "Breakpoint" default and
+  // the SDK's literal "breakpoint" task title add nothing over the label).
+  const rawTitle = task?.breakpoint?.title;
+  const title =
+    rawTitle && rawTitle.toLowerCase() !== "breakpoint" ? rawTitle : undefined;
 
   return (
     // relative z-10 lifts the whole decision surface above the card's
@@ -85,6 +95,16 @@ export function KanbanBreakpointPanel({ run }: KanbanBreakpointPanelProps) {
           Needs you
         </span>
       </div>
+      {/* Breakpoint heading from the resolved payload title (UX-R2 §13.1
+          AC-33: e.g. metadata.payload.title "Gate 1 — …"). */}
+      {title && (
+        <p
+          data-testid="kanban-bp-title"
+          className="text-xs font-semibold text-foreground break-words"
+        >
+          {title}
+        </p>
+      )}
       <p className="text-xs text-foreground font-medium leading-relaxed whitespace-pre-wrap break-words">
         {question}
       </p>

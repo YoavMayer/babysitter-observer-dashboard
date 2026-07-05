@@ -115,7 +115,9 @@ describe('BreakpointPanel', () => {
     expect(screen.getByText('Fallback question?')).toBeInTheDocument();
   });
 
-  it('falls back to "Approval required" when no question is provided', () => {
+  // Superseded per UX-R2 §13.1 (gate-free bug fix): the bare "Approval
+  // required" fallback is replaced by the honest last-resort copy (AC-32).
+  it('falls back to the honest no-question copy when no question is provided', () => {
     const task = createMockTaskDetail({
       kind: 'breakpoint',
       status: 'requested',
@@ -125,6 +127,8 @@ describe('BreakpointPanel', () => {
 
     render(<BreakpointPanel task={task} runId={defaultRunId} />);
 
-    expect(screen.getByText('Approval required')).toBeInTheDocument();
+    expect(
+      screen.getByText('Approval required — this breakpoint has no question text on disk.'),
+    ).toBeInTheDocument();
   });
 });
