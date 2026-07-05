@@ -7,11 +7,20 @@
  * the frozen definition of done for the board waves; when a wave lands, flip
  * its tests from `test.fixme` to `test` — do NOT weaken the assertions.
  *
+ * UX-R2 SUPERSESSION (per owner gate 2026-07-05 run 01KWRR8XAHFCDEGCRBRFHFF44W:
+ * 4-column taxonomy + color map — SPEC §13.2 option (b), §13.6 register):
+ * the board renders FOUR display-level columns over the unchanged six-bucket
+ * partition. AC-12 superseded (order/presence = Needs you → Working → Stalled
+ * → Done; Stalled auto-hides when empty, Done always visible); AC-13/21/22/23
+ * amended mechanically (column keys/testids: orphaned+stale → `stalled` host,
+ * failed+completed → `done`); AC-18/AC-24 column references remapped the same
+ * mechanical way. Six-bucket predicates, pills, and card behaviors unchanged.
+ *
  * Frozen DOM contract (testids the implementation MUST render — SPEC §10
  * names `kanban-board` and `kanban-column-count-<key>` explicitly; the rest
  * are fixed by this file as the frozen contract):
  *   - [data-testid="kanban-board"]                board container (role="region", aria-label="Run board")
- *   - [data-testid="kanban-column-<key>"]         column, key ∈ needsyou|orphaned|waiting|stale|failed|completed
+ *   - [data-testid="kanban-column-<key>"]         column, key ∈ needsyou|waiting|stalled|done
  *   - [data-testid="kanban-column-count-<key>"]   header count (text = integer)
  *   - [data-testid="kanban-column-cards-<key>"]   the column's scrollable card container
  *   - [data-testid="kanban-card"][data-run-id]    a card; data-run-id = full runId
@@ -39,7 +48,10 @@ import path from "path";
 import { getManifest, runDir, FIXTURES_RUNS_DIR } from "../fixtures/test-data";
 import type { Manifest } from "../fixtures/test-data";
 
-const COLUMN_KEYS = ["needsyou", "orphaned", "waiting", "stale", "failed", "completed"] as const;
+// Display columns per owner gate 2026-07-05 run 01KWRR8XAHFCDEGCRBRFHFF44W:
+// 4-column taxonomy + color map (SPEC §13.2 option b). Stalled hosts the
+// orphaned+stale buckets; Done hosts failed+completed. Pills stay 6-bucket.
+const COLUMN_KEYS = ["needsyou", "waiting", "stalled", "done"] as const;
 type ColumnKey = (typeof COLUMN_KEYS)[number];
 
 // Existing shared fixture (read-only in this spec — see breakpoints.spec.ts).
@@ -220,10 +232,13 @@ test.describe("Kanban board — rendering & chrome (SPEC-vibekanban)", () => {
   );
 
   test(
-    `AC-12: columns render in SPEC order and Orphaned/Stale auto-hide when empty (${PENDING_IMPL})`,
+    // AC-12 SUPERSEDED per owner gate 2026-07-05 run 01KWRR8XAHFCDEGCRBRFHFF44W:
+    // 4-column taxonomy + color map (§13.6): order/presence = Needs you →
+    // Working → Stalled → Done; Stalled auto-hides when empty, Done always visible.
+    `AC-12 (superseded by §13.2b): columns render in 4-column order and Stalled auto-hides when empty (${PENDING_IMPL})`,
     async ({ page }) => {
       // Deterministic bucket population via /api/runs interception:
-      // no orphaned, no stale => those two columns must be absent from the DOM.
+      // no orphaned, no stale => the Stalled column must be absent from the DOM.
       await interceptRuns(page, [
         makeApiRun({ runId: "01KSYNTHNEEDSYOU00000001", pendingBreakpoints: 1 }),
         makeApiRun({ runId: "01KSYNTHWORKING000000002" }),
@@ -234,12 +249,10 @@ test.describe("Kanban board — rendering & chrome (SPEC-vibekanban)", () => {
 
       await expect(column(page, "needsyou")).toBeVisible();
       await expect(column(page, "waiting")).toBeVisible();
-      await expect(column(page, "failed")).toBeVisible();
-      await expect(column(page, "completed")).toBeVisible();
-      await expect(column(page, "orphaned")).toHaveCount(0); // auto-hidden, absent from DOM
-      await expect(column(page, "stale")).toHaveCount(0);
+      await expect(column(page, "done")).toBeVisible(); // Done always visible
+      await expect(column(page, "stalled")).toHaveCount(0); // auto-hidden, absent from DOM
 
-      // Now include orphaned + stale runs: all six columns, in SPEC §3.2 order.
+      // Now include orphaned + stale runs: all four columns, in §13.2b order.
       await page.unroute("**/api/runs?*");
       await interceptRuns(page, [
         makeApiRun({ runId: "01KSYNTHNEEDSYOU00000001", pendingBreakpoints: 1 }),
@@ -253,15 +266,13 @@ test.describe("Kanban board — rendering & chrome (SPEC-vibekanban)", () => {
       await expect(board(page)).toBeVisible({ timeout: 30_000 });
 
       const testids = await board(page)
-        .locator('[data-testid^="kanban-column-"]:not([data-testid^="kanban-column-count-"]):not([data-testid^="kanban-column-cards-"])')
+        .locator('[data-testid^="kanban-column-"]:not([data-testid^="kanban-column-count-"]):not([data-testid^="kanban-column-cards-"]):not([data-testid^="kanban-column-info-"]):not([data-testid^="kanban-column-tail-"]):not([data-testid^="kanban-column-label-"])')
         .evaluateAll((els) => els.map((el) => el.getAttribute("data-testid")));
       expect(testids).toEqual([
         "kanban-column-needsyou",
-        "kanban-column-orphaned",
         "kanban-column-waiting",
-        "kanban-column-stale",
-        "kanban-column-failed",
-        "kanban-column-completed",
+        "kanban-column-stalled",
+        "kanban-column-done",
       ]);
     }
   );
@@ -290,12 +301,14 @@ test.describe("Kanban board — rendering & chrome (SPEC-vibekanban)", () => {
       await interceptRuns(page, runs);
       await gotoBoard(page);
 
+      // Amended per owner gate 2026-07-05 run 01KWRR8XAHFCDEGCRBRFHFF44W
+      // (4-column taxonomy): orphaned(2) hosts under Stalled; failed(4) +
+      // completed(6) host under Done. Same runs, same math, grouped hosts.
       const expected: Partial<Record<ColumnKey, number>> = {
         needsyou: 3,
-        orphaned: 2,
         waiting: 5,
-        failed: 4,
-        completed: 6,
+        stalled: 2,
+        done: 10,
       };
       for (const key of COLUMN_KEYS) {
         if (expected[key] === undefined) continue;
@@ -507,13 +520,14 @@ test.describe("Kanban board — Needs-you cards (SPEC-vibekanban)", () => {
         // Resolve the breakpoint on disk the way the approve action does.
         createdFiles = await resolveBreakpointOnDisk(KANBAN_SSE_BP_RUN_ID, KANBAN_SSE_BP_EFFECT_ID);
 
-        // Within 10s the card leaves Needs you and appears in Working or Completed.
+        // Within 10s the card leaves Needs you and appears in Working or Done
+        // (host remap per owner gate 2026-07-05 run 01KWRR8XAHFCDEGCRBRFHFF44W).
         await expect(
           column(page, "needsyou").locator(`[data-run-id="${KANBAN_SSE_BP_RUN_ID}"]`)
         ).toHaveCount(0, { timeout: 10_000 });
         const movedTo = column(page, "waiting")
           .locator(`[data-run-id="${KANBAN_SSE_BP_RUN_ID}"]`)
-          .or(column(page, "completed").locator(`[data-run-id="${KANBAN_SSE_BP_RUN_ID}"]`));
+          .or(column(page, "done").locator(`[data-run-id="${KANBAN_SSE_BP_RUN_ID}"]`));
         await expect(movedTo).toBeVisible({ timeout: 10_000 });
 
         // No reload happened (SSE-triggered refetch only).
@@ -702,7 +716,9 @@ test.describe("Kanban board — hidden projects, junk, empty & overflow (SPEC-vi
   );
 
   test(
-    `AC-22: a 40-run Completed column scrolls independently and virtualizes (fewer DOM cards than its header count of 40) (${PENDING_IMPL})`,
+    // Column host amended per owner gate 2026-07-05 run
+    // 01KWRR8XAHFCDEGCRBRFHFF44W: completed runs render in the Done column.
+    `AC-22: a 40-run Done column scrolls independently and virtualizes (fewer DOM cards than its header count of 40) (${PENDING_IMPL})`,
     async ({ page }) => {
       const runs = Array.from({ length: 40 }, (_, i) =>
         makeApiRun({
@@ -716,15 +732,15 @@ test.describe("Kanban board — hidden projects, junk, empty & overflow (SPEC-vi
       await gotoBoard(page);
 
       // Header count is honest: 40.
-      expect(await readCount(page, "completed")).toBe(40);
+      expect(await readCount(page, "done")).toBe(40);
 
       // Virtualization active above threshold 15: fewer DOM cards than 40.
-      const domCards = await cardsIn(page, "completed").count();
+      const domCards = await cardsIn(page, "done").count();
       expect(domCards).toBeGreaterThan(0);
       expect(domCards).toBeLessThan(40);
 
       // The column's card container scrolls independently (not the page body).
-      const container = page.getByTestId("kanban-column-cards-completed");
+      const container = page.getByTestId("kanban-column-cards-done");
       const { scrollHeight, clientHeight } = await container.evaluate((el) => ({
         scrollHeight: el.scrollHeight,
         clientHeight: el.clientHeight,
@@ -745,7 +761,10 @@ test.describe("Kanban board — hidden projects, junk, empty & overflow (SPEC-vi
 
 test.describe("Kanban board — pill focus & keyboard (SPEC-vibekanban)", () => {
   test(
-    `AC-23: clicking the Failed pill focuses/highlights the Failed column and dims the others without switching to the flat list; All restores (${PENDING_IMPL})`,
+    // Pill→column mapping amended per owner gate 2026-07-05 run
+    // 01KWRR8XAHFCDEGCRBRFHFF44W: pills keep the six buckets; the Failed pill
+    // focuses its HOST column (Done). Orphaned/Stale pills map to Stalled.
+    `AC-23: clicking the Failed pill focuses/highlights its host Done column and dims the others without switching to the flat list; All restores (${PENDING_IMPL})`,
     async ({ page }) => {
       await interceptRuns(page, [
         makeApiRun({ runId: "01KSYNTHWORKING000000001" }),
@@ -760,16 +779,16 @@ test.describe("Kanban board — pill focus & keyboard (SPEC-vibekanban)", () => 
       await expect(board(page)).toBeVisible();
       await expect(page.getByTestId("run-list-flat")).toHaveCount(0);
 
-      // Failed column highlighted and in view; other columns dimmed.
-      const failedCol = column(page, "failed");
-      await expect(failedCol).toHaveAttribute("data-focused", "true");
-      await expect(failedCol).toBeInViewport();
+      // The host Done column is highlighted and in view; other columns dimmed.
+      const doneCol = column(page, "done");
+      await expect(doneCol).toHaveAttribute("data-focused", "true");
+      await expect(doneCol).toBeInViewport();
       await expect(column(page, "waiting")).toHaveAttribute("data-dimmed", "true");
-      await expect(column(page, "completed")).toHaveAttribute("data-dimmed", "true");
+      await expect(column(page, "needsyou")).toHaveAttribute("data-dimmed", "true");
 
       // "All" clears the focus.
       await page.getByTestId("filter-pill-all").click();
-      await expect(failedCol).not.toHaveAttribute("data-focused", "true");
+      await expect(doneCol).not.toHaveAttribute("data-focused", "true");
       await expect(column(page, "waiting")).not.toHaveAttribute("data-dimmed", "true");
     }
   );
@@ -808,13 +827,15 @@ test.describe("Kanban board — pill focus & keyboard (SPEC-vibekanban)", () => 
       await page.keyboard.press("ArrowDown");
       expect(await focusedRunId()).toBe(needsyouIds[1]);
 
-      // ArrowRight => same index in the adjacent column (Orphaned).
+      // ArrowRight => same index in the adjacent non-empty column (Stalled —
+      // host remap per owner gate 2026-07-05 run 01KWRR8XAHFCDEGCRBRFHFF44W;
+      // the empty Working column in between is skipped).
       await page.keyboard.press("ArrowRight");
-      const orphanedIds = await cardsIn(page, "orphaned").evaluateAll((els) =>
+      const stalledIds = await cardsIn(page, "stalled").evaluateAll((els) =>
         els.map((el) => el.getAttribute("data-run-id"))
       );
       const landedOn = await focusedRunId();
-      expect(landedOn).toBe(orphanedIds[1]);
+      expect(landedOn).toBe(stalledIds[1]);
 
       // Enter => opens the focused card's run page.
       await page.keyboard.press("Enter");

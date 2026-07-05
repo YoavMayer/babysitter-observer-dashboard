@@ -35,8 +35,10 @@ import {
   COLUMN_ORDER,
   assignColumn,
   partitionRuns,
-  orphanedOverflowTooltip,
-  staleOverflowTooltip,
+  // Amended per owner gate 2026-07-05 run 01KWRR8XAHFCDEGCRBRFHFF44W:
+  // 4-column taxonomy — the orphaned/stale tooltips merged into the Stalled
+  // host's stalledOverflowTooltip (AC-10 amended text, §13.6).
+  stalledOverflowTooltip,
   type BoardColumnKey,
 } from "@/components/kanban/column-model";
 
@@ -370,9 +372,14 @@ describe("column-model (SPEC-vibekanban §3 / §10)", () => {
   });
 
   // -------------------------------------------------------------------------
-  // AC-10
+  // AC-10 — amended per owner gate 2026-07-05 run 01KWRR8XAHFCDEGCRBRFHFF44W:
+  // 4-column taxonomy + color map (§13.6). Orphaned+stale host under the
+  // Stalled column, so the count-honesty tooltip is stalledOverflowTooltip
+  // with the amended text "+N more stalled runs are shown under Needs you"
+  // (same absorbed-into-Needs-you math; within-Stalled absorption between the
+  // orphaned and stale buckets is no longer a column-level discrepancy).
   // -------------------------------------------------------------------------
-  it('AC-10: overflow tooltip math — 2 orphaned-breakpoint runs + 1 pure orphaned run gives Orphaned count 1 with tooltip containing "2 more"', () => {
+  it('AC-10 (amended §13.6): overflow tooltip math — 2 orphaned-breakpoint runs + 1 pure orphaned run gives Stalled-host tooltip containing "2 more"', () => {
     const orphanedBp1 = makeLightRun({
       runId: "01KTESTORPHBP10000000001",
       status: "waiting",
@@ -399,14 +406,12 @@ describe("column-model (SPEC-vibekanban §3 / §10)", () => {
     expect(partition.orphaned).toHaveLength(1);
     expect(partition.orphaned[0].runId).toBe(pureOrphaned.runId);
 
-    // SPEC §3.4: '"+N more orphaned runs are shown under Needs you"'.
-    const tooltip = orphanedOverflowTooltip(partition);
-    expect(tooltip).toBeTruthy();
-    expect(tooltip).toContain("2 more");
-    expect(tooltip).toContain("Needs you");
+    // §13.6 amended AC-10 text: '"+N more stalled runs are shown under Needs you"'.
+    const tooltip = stalledOverflowTooltip(partition);
+    expect(tooltip).toBe("+2 more stalled runs are shown under Needs you");
   });
 
-  it("AC-10 (complement): no tooltip when no orphaned runs are captured by Needs you", () => {
+  it("AC-10 (complement, amended §13.6): no tooltip when no stalled-bucket runs are captured by Needs you", () => {
     const pureOrphaned = makeLightRun({
       runId: "01KTESTORPHONLY000000001",
       status: "waiting",
@@ -420,13 +425,14 @@ describe("column-model (SPEC-vibekanban §3 / §10)", () => {
       driver: "live",
     });
     const partition = partitionRuns([pureOrphaned, liveBp]);
-    expect(orphanedOverflowTooltip(partition)).toBeNull();
+    expect(stalledOverflowTooltip(partition)).toBeNull();
   });
 
-  // Design-QA round 1 (minor): the stale pill can over-count the Stale column
-  // (precedence absorbs stale runs into Needs you / Orphaned) — same §3.4
-  // count-honesty mechanism as orphanedOverflowTooltip.
-  it("staleOverflowTooltip: stale runs absorbed into Orphaned produce an explicit tooltip", () => {
+  // Design-QA round 1 (minor) carry, amended per owner gate 2026-07-05 run
+  // 01KWRR8XAHFCDEGCRBRFHFF44W: stale runs absorbed into the ORPHANED bucket
+  // now land in the same Stalled host column, so they are no longer a
+  // column-level discrepancy — only Needs-you absorption is reported.
+  it("stalledOverflowTooltip: stale runs absorbed into the orphaned bucket stay inside Stalled — no tooltip", () => {
     const orphanedStale1 = makeLightRun({
       runId: "01KTESTSTALEORPH00000001",
       status: "waiting",
@@ -444,16 +450,15 @@ describe("column-model (SPEC-vibekanban §3 / §10)", () => {
 
     const partition = partitionRuns([orphanedStale1, orphanedStale2]);
 
-    // Precedence: orphaned beats stale — the Stale column is empty (and
-    // would auto-hide) while the stale pill still counts 2.
+    // Precedence: orphaned beats stale — both live in the orphaned bucket,
+    // which hosts under Stalled anyway. Column-level honesty holds without a
+    // tooltip (the Stalled column count includes both runs).
     expect(partition.stale).toHaveLength(0);
     expect(partition.orphaned).toHaveLength(2);
-
-    const tooltip = staleOverflowTooltip(partition);
-    expect(tooltip).toBe("+2 more stale runs are shown under Orphaned");
+    expect(stalledOverflowTooltip(partition)).toBeNull();
   });
 
-  it("staleOverflowTooltip: names both absorbing columns and uses the singular noun for one run", () => {
+  it("stalledOverflowTooltip: a stale Needs-you run is reported with the singular noun; an orphaned+stale Needs-you run counts once (union math)", () => {
     const staleBp = makeLightRun({
       runId: "01KTESTSTALEBP0000000001",
       status: "waiting",
@@ -463,24 +468,26 @@ describe("column-model (SPEC-vibekanban §3 / §10)", () => {
     });
     const partition = partitionRuns([staleBp]);
     expect(partition.needsyou).toHaveLength(1);
-    expect(staleOverflowTooltip(partition)).toBe(
-      "+1 more stale run is shown under Needs you"
+    expect(stalledOverflowTooltip(partition)).toBe(
+      "+1 more stalled run is shown under Needs you"
     );
 
-    const orphanedStale = makeLightRun({
+    // A run that is BOTH orphaned and stale under Needs-you counts once.
+    const orphanedStaleBp = makeLightRun({
       runId: "01KTESTSTALEORPH00000003",
       status: "waiting",
-      pendingBreakpoints: 0,
+      pendingBreakpoints: 1,
       driver: "orphaned",
       isStale: true,
     });
-    const both = partitionRuns([staleBp, orphanedStale]);
-    expect(staleOverflowTooltip(both)).toBe(
-      "+2 more stale runs are shown under Needs you and Orphaned"
+    const both = partitionRuns([staleBp, orphanedStaleBp]);
+    expect(both.needsyou).toHaveLength(2);
+    expect(stalledOverflowTooltip(both)).toBe(
+      "+2 more stalled runs are shown under Needs you"
     );
   });
 
-  it("staleOverflowTooltip: null when every stale run sits in the Stale column (pill count === column count)", () => {
+  it("stalledOverflowTooltip: null when every stalled-bucket run sits in the Stalled column (pill count === column count)", () => {
     const pureStale = makeLightRun({
       runId: "01KTESTSTALEPURE00000001",
       status: "waiting",
@@ -490,6 +497,6 @@ describe("column-model (SPEC-vibekanban §3 / §10)", () => {
     });
     const partition = partitionRuns([pureStale]);
     expect(partition.stale).toHaveLength(1);
-    expect(staleOverflowTooltip(partition)).toBeNull();
+    expect(stalledOverflowTooltip(partition)).toBeNull();
   });
 });

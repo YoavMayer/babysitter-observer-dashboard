@@ -15,6 +15,8 @@ import {
   type BoardColumnRuns,
 } from "@/components/kanban/use-board-keyboard";
 
+// Column keys amended per owner gate 2026-07-05 run 01KWRR8XAHFCDEGCRBRFHFF44W:
+// 4-column taxonomy (needsyou | waiting | stalled | done).
 /** Shorthand: a visible column with n synthetic runIds. */
 function col(key: BoardColumnRuns["key"], ids: string[]): BoardColumnRuns {
   return { key, runIds: ids };
@@ -22,9 +24,9 @@ function col(key: BoardColumnRuns["key"], ids: string[]): BoardColumnRuns {
 
 const columns: BoardColumnRuns[] = [
   col("needsyou", ["bp-1", "bp-2", "bp-3"]),
-  col("orphaned", ["orph-1", "orph-2"]),
+  col("stalled", ["orph-1", "orph-2"]),
   col("waiting", ["work-1"]),
-  col("completed", ["done-1", "done-2", "done-3", "done-4"]),
+  col("done", ["done-1", "done-2", "done-3", "done-4"]),
 ];
 
 describe("moveBoardFocus (SPEC-vibekanban §8)", () => {
@@ -53,7 +55,7 @@ describe("moveBoardFocus (SPEC-vibekanban §8)", () => {
   });
 
   it("ArrowRight clamps the index to the target column's length", () => {
-    // needsyou index 2 -> orphaned has only 2 cards -> lands on index 1.
+    // needsyou index 2 -> stalled has only 2 cards -> lands on index 1.
     expect(moveBoardFocus(columns, { column: 0, index: 2 }, "ArrowRight")).toEqual({
       column: 1,
       index: 1,
@@ -72,8 +74,8 @@ describe("moveBoardFocus (SPEC-vibekanban §8)", () => {
   it("ArrowRight/ArrowLeft skip EMPTY columns so focus always lands on a card", () => {
     const withEmpty: BoardColumnRuns[] = [
       col("needsyou", ["bp-1", "bp-2"]),
-      col("failed", []),
-      col("completed", ["done-1"]),
+      col("stalled", []),
+      col("done", ["done-1"]),
     ];
     expect(moveBoardFocus(withEmpty, { column: 0, index: 1 }, "ArrowRight")).toEqual({
       column: 2,

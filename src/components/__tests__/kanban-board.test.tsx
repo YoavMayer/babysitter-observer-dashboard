@@ -80,7 +80,10 @@ describe("KanbanBoard (SPEC-vibekanban Wave 2)", () => {
     expect(screen.queryByTestId("kanban-board")).not.toBeInTheDocument();
   });
 
-  it("auto-hides the Orphaned/Stale columns when empty and keeps the four always-visible columns (§3.2)", () => {
+  // Amended per owner gate 2026-07-05 run 01KWRR8XAHFCDEGCRBRFHFF44W:
+  // 4-column taxonomy + color map (§13.2b) — Stalled (orphaned+stale hosts)
+  // auto-hides when empty; Needs you / Working / Done are always visible.
+  it("auto-hides the Stalled column when empty and keeps the three always-visible columns (§13.2b)", () => {
     setupPolling({
       runs: [lightRun({ runId: "01KBOARDTESTWORKING00001", status: "waiting", driver: "live" })],
       totalCount: 1,
@@ -90,13 +93,13 @@ describe("KanbanBoard (SPEC-vibekanban Wave 2)", () => {
     expect(screen.getByTestId("kanban-board")).toBeInTheDocument();
     expect(screen.getByTestId("kanban-column-needsyou")).toBeInTheDocument();
     expect(screen.getByTestId("kanban-column-waiting")).toBeInTheDocument();
-    expect(screen.getByTestId("kanban-column-failed")).toBeInTheDocument();
-    expect(screen.getByTestId("kanban-column-completed")).toBeInTheDocument();
-    expect(screen.queryByTestId("kanban-column-orphaned")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("kanban-column-stale")).not.toBeInTheDocument();
+    expect(screen.getByTestId("kanban-column-done")).toBeInTheDocument();
+    expect(screen.queryByTestId("kanban-column-stalled")).not.toBeInTheDocument();
   });
 
-  it("renders all six columns in SPEC §3.2 order when every bucket is populated", () => {
+  // Amended per owner gate 2026-07-05 run 01KWRR8XAHFCDEGCRBRFHFF44W: the six
+  // buckets render grouped under four display columns in §13.2b order.
+  it("renders all four columns in §13.2b order when every bucket is populated", () => {
     setupPolling({
       runs: [
         lightRun({ runId: "01KBOARDTESTNEEDSYOU0001", status: "waiting", pendingBreakpoints: 1 }),
@@ -118,15 +121,16 @@ describe("KanbanBoard (SPEC-vibekanban Wave 2)", () => {
         (id) =>
           id !== null &&
           !id.startsWith("kanban-column-count-") &&
-          !id.startsWith("kanban-column-cards-")
+          !id.startsWith("kanban-column-cards-") &&
+          !id.startsWith("kanban-column-info-") &&
+          !id.startsWith("kanban-column-label-") &&
+          !id.startsWith("kanban-column-tail-")
       );
     expect(columns).toEqual([
       "kanban-column-needsyou",
-      "kanban-column-orphaned",
       "kanban-column-waiting",
-      "kanban-column-stale",
-      "kanban-column-failed",
-      "kanban-column-completed",
+      "kanban-column-stalled",
+      "kanban-column-done",
     ]);
   });
 
@@ -192,11 +196,12 @@ describe("KanbanBoard (SPEC-vibekanban Wave 4 — a11y & polish)", () => {
       "Showing the 500 most relevant runs — open List view for everything"
     );
     // Every rendered column gets the tail (the truncated window may be hiding
-    // runs from any of them).
-    const tail = screen.getByTestId("kanban-column-tail-completed");
+    // runs from any of them). Column key amended per owner gate 2026-07-05 run
+    // 01KWRR8XAHFCDEGCRBRFHFF44W: completed hosts under Done.
+    const tail = screen.getByTestId("kanban-column-tail-done");
     expect(tail).toHaveTextContent("View all in list");
     fireEvent.click(tail);
-    expect(onViewAllInList).toHaveBeenCalledWith("completed");
+    expect(onViewAllInList).toHaveBeenCalledWith("done");
   });
 
   it("renders NO fetch-window notice or tails when every run fits the window (§7)", () => {
@@ -246,7 +251,8 @@ describe("KanbanBoard (SPEC-vibekanban Wave 4 — a11y & polish)", () => {
       "01KBOARDKBDBPB0000000002"
     );
 
-    // ArrowRight => same index in the adjacent (Orphaned) column.
+    // ArrowRight => same index in the adjacent non-empty (Stalled) column —
+    // host remap per owner gate 2026-07-05 run 01KWRR8XAHFCDEGCRBRFHFF44W.
     fireEvent.keyDown(document.activeElement!, { key: "ArrowRight" });
     expect(document.activeElement?.getAttribute("data-run-id")).toBe(
       "01KBOARDKBDORPHB00000004"

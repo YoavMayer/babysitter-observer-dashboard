@@ -72,15 +72,17 @@ describe("KanbanColumn (SPEC-vibekanban Wave 2)", () => {
     expect(screen.queryAllByTestId("kanban-card")).toHaveLength(0);
   });
 
+  // Amended per owner gate 2026-07-05 run 01KWRR8XAHFCDEGCRBRFHFF44W: the
+  // count-honesty tooltip now lives on the Stalled host column (AC-10 text).
   it("surfaces the count-honesty tooltip on the header (§3.4 — no silent mismatch)", () => {
     render(
       <KanbanColumn
-        columnKey="orphaned"
+        columnKey="stalled"
         runs={[boardRun({ runId: "01KCOLTESTRUNAAAAAAAAAA4", status: "waiting", driver: "none" })]}
-        countTooltip="+2 more orphaned runs are shown under Needs you"
+        countTooltip="+2 more stalled runs are shown under Needs you"
       />
     );
-    const header = screen.getByTitle("+2 more orphaned runs are shown under Needs you");
+    const header = screen.getByTitle("+2 more stalled runs are shown under Needs you");
     expect(header).toBeInTheDocument();
   });
 });
