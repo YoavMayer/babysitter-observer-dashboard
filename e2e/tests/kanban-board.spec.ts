@@ -1026,3 +1026,348 @@ test.describe("Kanban board — UX-R2 §13.2b/§13.3 taxonomy & color (owner gat
     }
   });
 });
+
+// ---------------------------------------------------------------------------
+// UX-R2 §13.4 read-only clarity + §13.5 folded-in design-QA carries
+// (AC-43..AC-49). NEW acceptance criteria — taxonomy-independent per §13.6,
+// implemented in the wave-3 pass (owner gate 2026-07-05 run
+// 01KWRR8XAHFCDEGCRBRFHFF44W). New testids introduced by this wave:
+//   - [data-testid="bp-readonly-contract"]           §13.4 contract line (board panel + run-detail)
+//   - [data-testid="bp-orphaned-semantics"]          §13.4 orphaned semantics line
+//   - [data-testid="kanban-bp-needsyou-label"]       the panel's NEEDS YOU alarm label (AC-46)
+//   - [data-testid="kanban-card-project-name"]       inner truncating project-name span (AC-48)
+//   - [data-testid="kanban-absorbed-<key>"]   sr-only absorbed-count disclosure (AC-49)
+// ---------------------------------------------------------------------------
+
+// §13.4 exact copy — these strings are spec, not suggestions (frozen VERBATIM).
+const READONLY_CONTRACT_LINE =
+  "The observer is read-only — except this single action: recording your breakpoint answer.";
+const ORPHANED_SEMANTICS_LINE =
+  "Recorded now → applied when the run is resumed (babysitter run:iterate).";
+const ORPHANED_RECORDED_CONFIRMATION =
+  "Answer recorded. It will be applied when the run is resumed.";
+
+// The pending breakpoint effect inside 01KTESTPENDINGBPFIXTURE0 (see
+// breakpoints.spec.ts — the shared fixture is read-only in this spec).
+const PENDING_BP_EFFECT_ID = "01KTEST_BP_EFFECT_001";
+
+/** Intercept BOTH /api/runs consumers: mode=projects (pill counts) and the
+ *  board's list fetch — needed when a test asserts pills AND columns (AC-47). */
+async function interceptRunsAndProjects(
+  page: Page,
+  runs: Record<string, unknown>[],
+  projects: Record<string, unknown>[]
+) {
+  await page.route("**/api/runs?*", (route) => {
+    const url = new URL(route.request().url());
+    if (url.searchParams.get("mode") === "projects") {
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ projects, recentCompletionWindowMs: 14_400_000 }),
+      });
+    }
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ runs, totalCount: runs.length }),
+    });
+  });
+}
+
+test.describe("Kanban board — UX-R2 §13.4 read-only clarity (owner gate 2026-07-05)", () => {
+  test("AC-43: every breakpoint answer panel — board card AND run-detail — renders the contract line verbatim above any input", async ({ page }) => {
+    // Board card: the contract line is visible while the Answer section is
+    // still collapsed (above any input by construction).
+    await gotoBoard(page);
+    const card = cardFor(page, PENDING_BP_RUN_ID);
+    await expect(card).toBeVisible({ timeout: 15_000 });
+    const boardContract = card.getByTestId("bp-readonly-contract");
+    await expect(boardContract).toBeVisible();
+    await expect(boardContract).toHaveText(READONLY_CONTRACT_LINE);
+    await expect(card.getByTestId("custom-answer-input")).toHaveCount(0);
+
+    // Run-detail: open the pending breakpoint task's Approval panel.
+    await page.goto(`/runs/${PENDING_BP_RUN_ID}`, { waitUntil: "domcontentloaded" });
+    const stepCard = page.locator(`[data-testid="step-card-${PENDING_BP_EFFECT_ID}"]`);
+    await expect(stepCard).toBeVisible({ timeout: 15_000 });
+    await stepCard.locator("button").first().click();
+
+    const panel = page.getByTestId("breakpoint-panel");
+    await expect(panel).toBeVisible({ timeout: 15_000 });
+    const detailContract = panel.getByTestId("bp-readonly-contract");
+    await expect(detailContract).toHaveText(READONLY_CONTRACT_LINE);
+    // ...above any input: the contract line precedes the answer input in DOM order.
+    const contractBeforeInput = await panel.evaluate((el) => {
+      const contract = el.querySelector('[data-testid="bp-readonly-contract"]');
+      const input = el.querySelector('[data-testid="custom-answer-input"]');
+      if (!contract || !input) return false;
+      return Boolean(
+        contract.compareDocumentPosition(input) & Node.DOCUMENT_POSITION_FOLLOWING
+      );
+    });
+    expect(contractBeforeInput, "contract line renders above the answer input").toBe(true);
+  });
+
+  test("AC-44: orphaned card shows the semantics line before any interaction and keeps the input out of the accessible tree until expanded; live-driver cards get no new collapse", async ({ page }) => {
+    // Orphaned/no-driver fixture (01KTESTPENDINGBPFIXTURE0 has no run.lock).
+    await gotoBoard(page);
+    const card = cardFor(page, PENDING_BP_RUN_ID);
+    await expect(card).toBeVisible({ timeout: 15_000 });
+
+    // Honest hint FIRST — visible before ANY interaction, exact copy.
+    const semantics = card.getByTestId("bp-orphaned-semantics");
+    await expect(semantics).toBeVisible();
+    await expect(semantics).toHaveText(ORPHANED_SEMANTICS_LINE);
+
+    // The answer input is NOT in the accessible tree until the toggle expands.
+    await expect(card.getByTestId("custom-answer-input")).toHaveCount(0);
+    const toggle = card.getByTestId("kanban-bp-answer-toggle");
+    await expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await toggle.click();
+    await expect(card.getByTestId("custom-answer-input")).toBeAttached({ timeout: 15_000 });
+
+    // Live-driver fixture (synthesized): base-branch behavior — the collapsed
+    // Answer toggle as before, and NO orphaned-semantics line.
+    await interceptRuns(page, [
+      makeApiRun({
+        runId: "01KSYNTHLIVEBPRUN0000001",
+        pendingBreakpoints: 1,
+        driver: "live",
+        breakpointQuestion: "Deploy the synthesized live-driver fixture?",
+        tasks: [
+          {
+            effectId: "01KSYNTH_LIVE_BP_EFFECT1",
+            kind: "breakpoint",
+            status: "requested",
+            title: "breakpoint",
+            label: "breakpoint",
+          },
+        ],
+      }),
+    ]);
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await expect(board(page)).toBeVisible({ timeout: 30_000 });
+    const liveCard = cardFor(page, "01KSYNTHLIVEBPRUN0000001");
+    await expect(liveCard).toBeVisible();
+    await expect(liveCard.getByTestId("bp-readonly-contract")).toBeVisible();
+    await expect(liveCard.getByTestId("bp-orphaned-semantics")).toHaveCount(0);
+    await expect(liveCard.getByTestId("kanban-bp-answer-toggle")).toHaveAttribute(
+      "aria-expanded",
+      "false"
+    );
+  });
+
+  test("AC-45: answering an orphaned run shows the post-submit confirmation verbatim, and the write is the same approve-flow write (result.json + EFFECT_RESOLVED) with no other write", async ({ page }) => {
+    // Same dedicated fixture + restore discipline as AC-15 — the fixture has
+    // no run.lock, so the board classifies it orphaned (driver "none").
+    const dir = runDir(KANBAN_APPROVE_BP_RUN_ID);
+    const resultPath = path.join(dir, "tasks", KANBAN_APPROVE_BP_EFFECT_ID, "result.json");
+    const journalDir = path.join(dir, "journal");
+    const journalBefore = await fs.readdir(journalDir);
+
+    const nonGetRequests: string[] = [];
+    page.on("request", (req) => {
+      if (req.method() !== "GET") nonGetRequests.push(`${req.method()} ${req.url()}`);
+    });
+
+    try {
+      await gotoBoard(page);
+      const card = cardFor(page, KANBAN_APPROVE_BP_RUN_ID);
+      await expect(card).toBeVisible({ timeout: 15_000 });
+
+      // §13.4 order on an orphaned card: contract line, semantics line, THEN
+      // the collapsed Answer toggle.
+      await expect(card.getByTestId("bp-readonly-contract")).toBeVisible();
+      await expect(card.getByTestId("bp-orphaned-semantics")).toBeVisible();
+
+      await card.getByTestId("kanban-bp-answer-toggle").click();
+      const approval = card.getByTestId("breakpoint-approval");
+      await expect(approval).toBeVisible();
+      await approval.getByTestId("option-btn-approve").click();
+
+      // Post-submit confirmation, exact §13.4 copy — never the generic
+      // "approved successfully" line on an orphaned run.
+      const result = card.getByTestId("approval-result");
+      await expect(result).toBeVisible({ timeout: 15_000 });
+      await expect(result).toContainText(ORPHANED_RECORDED_CONFIRMATION);
+      await expect(result).not.toContainText("approved successfully");
+
+      // Byte-identical write effect to the run-detail approve (AC-15 shape):
+      // result.json in the SDK-compatible D1 shape...
+      const resultJson = JSON.parse(await fs.readFile(resultPath, "utf-8"));
+      expect(resultJson.status).toBe("ok");
+      expect(resultJson.value.approved).toBe(true);
+      expect(resultJson.value.answer).toBe("approve");
+
+      // ...plus exactly one EFFECT_RESOLVED journal entry.
+      const journalAfter = await fs.readdir(journalDir);
+      const newEntries = journalAfter.filter((f) => !journalBefore.includes(f));
+      expect(newEntries.length).toBe(1);
+      const entry = JSON.parse(await fs.readFile(path.join(journalDir, newEntries[0]), "utf-8"));
+      expect(entry.type).toBe("EFFECT_RESOLVED");
+      expect(entry.data.effectId).toBe(KANBAN_APPROVE_BP_EFFECT_ID);
+
+      // No other write occurs: every non-GET request is the server-action POST.
+      expect(nonGetRequests.length).toBeGreaterThanOrEqual(1);
+      for (const req of nonGetRequests) {
+        expect(req, "only the server-action POST may write").toMatch(/^POST http:\/\/localhost:\d+\/(?:$|\?)/);
+      }
+    } finally {
+      // Restore the fixture to its pending state for other tests/workers.
+      const journalAfter = await fs.readdir(journalDir).catch(() => [] as string[]);
+      for (const f of journalAfter) {
+        if (!journalBefore.includes(f)) await fs.unlink(path.join(journalDir, f)).catch(() => {});
+      }
+      await fs.unlink(resultPath).catch(() => {});
+    }
+  });
+});
+
+test.describe("Kanban board — UX-R2 §13.5 carried minors & nits (owner gate 2026-07-05)", () => {
+  test("AC-46: the NEEDS YOU alarm label resolves the AA-safe attention ink in light theme (#8a6d00), never raw warning gold (#D4AF00)", async ({ page }) => {
+    await gotoBoard(page);
+    const card = cardFor(page, PENDING_BP_RUN_ID);
+    await expect(card).toBeVisible({ timeout: 15_000 });
+
+    // Flip to light theme (the CSS tokens key off html[data-theme="light"]).
+    await page.evaluate(() => {
+      document.documentElement.setAttribute("data-theme", "light");
+    });
+
+    const label = card.getByTestId("kanban-bp-needsyou-label");
+    await expect(label).toBeVisible();
+    const labelColor = await label.evaluate((el) => getComputedStyle(el).color);
+    // #8a6d00 — the darkened 4.92:1 attention ink (--status-attention, light).
+    expect(labelColor).toBe("rgb(138, 109, 0)");
+    // ...never the 1.6:1 raw gold (#D4AF00 = light-theme --warning).
+    expect(labelColor).not.toBe("rgb(212, 175, 0)");
+  });
+
+  test("AC-47: Working column count honesty — a breakpoint run counted by the waiting pill is disclosed by the Working header's absorbed-into tooltip", async ({ page }) => {
+    // Fixture per the AC: one plain working run + one non-stale breakpoint
+    // run absorbed into Needs-you. The waiting PILL counts both (pill counts
+    // overlap); the Working COLUMN renders only the plain run.
+    await interceptRunsAndProjects(
+      page,
+      [
+        makeApiRun({
+          runId: "01KSYNTHWORKBPRUN0000001",
+          pendingBreakpoints: 1,
+          driver: "live",
+        }),
+        makeApiRun({ runId: "01KSYNTHWORKPLAIN0000002" }),
+      ],
+      [
+        {
+          projectName: "synthetic-project",
+          totalRuns: 2,
+          activeRuns: 2, // = the waiting pill (non-stale in-progress runs)
+          completedRuns: 0,
+          failedRuns: 0,
+          staleRuns: 0,
+          totalTasks: 8,
+          completedTasksAggregate: 4,
+          latestUpdate: new Date().toISOString(),
+          pendingBreakpoints: 1,
+          orphanedRuns: 0,
+          breakpointRuns: [],
+        },
+      ]
+    );
+    await gotoBoard(page);
+
+    // Waiting pill reads 2; the Working column reads 1.
+    await expect(page.getByTestId("filter-pill-waiting")).toContainText("2");
+    expect(await readCount(page, "waiting")).toBe(1);
+    await expect(cardsIn(page, "waiting")).toHaveCount(1);
+    await expect(cardsIn(page, "needsyou")).toHaveCount(1);
+
+    // The Working header discloses where the difference went — same absorbed
+    // tooltip mechanism as Orphaned/Stale, exact AC-47 text.
+    const workingHeader = column(page, "waiting").locator(
+      '[title="+1 more working run is shown under Needs you"]'
+    );
+    await expect(workingHeader).toBeVisible();
+    await expect(page.getByTestId("kanban-absorbed-waiting")).toHaveText(
+      "+1 more working run is shown under Needs you"
+    );
+  });
+
+  test("AC-48: a 60-char project name ellipsizes on the inner text node without clipping the Tag icon or breaking the card layout", async ({ page }) => {
+    const LONG_PROJECT = "a-very-long-project-name-that-should-ellipsize-cleanly-01234"; // 60 chars
+    expect(LONG_PROJECT).toHaveLength(60);
+    await interceptRuns(page, [
+      makeApiRun({ runId: "01KSYNTHLONGPROJRUN00001", projectName: LONG_PROJECT }),
+    ]);
+    await gotoBoard(page);
+
+    const card = cardFor(page, "01KSYNTHLONGPROJRUN00001");
+    await expect(card).toBeVisible();
+
+    // The INNER text node truncates (real ellipsis: overflow beyond clientWidth).
+    const name = card.getByTestId("kanban-card-project-name");
+    await expect(name).toBeVisible();
+    const metrics = await name.evaluate((el) => ({
+      overflow: el.scrollWidth > el.clientWidth,
+      textOverflow: getComputedStyle(el).textOverflow,
+    }));
+    expect(metrics.textOverflow).toBe("ellipsis");
+    expect(metrics.overflow, "long name actually overflows into the ellipsis").toBe(true);
+
+    // The Tag icon is excluded from truncation — still rendered at full size.
+    const iconWidth = await name.evaluate((el) => {
+      const icon = el.parentElement?.querySelector("svg");
+      return icon ? icon.getBoundingClientRect().width : 0;
+    });
+    expect(iconWidth).toBeGreaterThan(0);
+
+    // Card layout intact: the card never grows past its 280px column.
+    const cardBox = await card.boundingBox();
+    const columnBox = await column(page, "waiting").boundingBox();
+    expect(cardBox).not.toBeNull();
+    expect(columnBox).not.toBeNull();
+    expect(cardBox!.width).toBeLessThanOrEqual(columnBox!.width);
+  });
+
+  test("AC-49: every absorbed-count disclosure is aria-describedby-associated with its column header (accessible description = tooltip text)", async ({ page }) => {
+    // One absorbed run per mechanism: an orphaned breakpoint run (Stalled
+    // disclosure) + a live breakpoint run (Working disclosure), plus one
+    // plain run in each host column.
+    await interceptRuns(page, [
+      makeApiRun({
+        runId: "01KSYNTHA11YORPHBP000001",
+        pendingBreakpoints: 1,
+        driver: "none",
+      }),
+      makeApiRun({
+        runId: "01KSYNTHA11YLIVEBP000002",
+        pendingBreakpoints: 1,
+        driver: "live",
+      }),
+      makeApiRun({ runId: "01KSYNTHA11YPLAINWK00003" }),
+      makeApiRun({ runId: "01KSYNTHA11YPLAINORPH004", driver: "orphaned" }),
+    ]);
+    await gotoBoard(page);
+
+    // Working header: described by the working absorbed disclosure.
+    const workingLabel = page.getByTestId("kanban-column-label-waiting");
+    await expect(workingLabel).toHaveAttribute(
+      "aria-describedby",
+      "kanban-absorbed-waiting"
+    );
+    await expect(workingLabel).toHaveAccessibleDescription(
+      "+1 more working run is shown under Needs you"
+    );
+
+    // Stalled header: described by the stalled absorbed disclosure.
+    const stalledLabel = page.getByTestId("kanban-column-label-stalled");
+    await expect(stalledLabel).toHaveAttribute(
+      "aria-describedby",
+      "kanban-absorbed-stalled"
+    );
+    await expect(stalledLabel).toHaveAccessibleDescription(
+      "+1 more stalled run is shown under Needs you"
+    );
+  });
+});
