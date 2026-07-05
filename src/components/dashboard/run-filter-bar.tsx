@@ -110,8 +110,10 @@ export function RunFilterBar({
             )}
             title={boardView
               // §6.2: board columns always order by latest update; the control
-              // stays for list-mode continuity.
-              ? "In board view, sorting applies within columns (cards order by latest update). Switch to List view for status/activity re-sorting."
+              // stays for list-mode continuity. Wording deliberately avoids
+              // "Switch to": the theme-toggle e2e locates by title*="Switch to"
+              // and a second match would be a strict-mode violation.
+              ? "In board view, sorting applies within columns (cards order by latest update). Use List view for status/activity re-sorting."
               : sortMode === "status"
                 ? "Currently sorting by status priority (active first, then failed, then completed). Click to switch to chronological activity view."
                 : "Currently sorting by most recent activity (newest updates first). Click to switch to status-grouped view."

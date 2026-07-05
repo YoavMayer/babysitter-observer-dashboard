@@ -81,7 +81,13 @@ export class DashboardPage {
     this.loadingSkeletons = page.locator(".animate-pulse");
     this.errorBanner = page.getByTestId("error-banner");
     this.emptyState = page.getByTestId("empty-state");
-    this.settingsButton = page.getByRole("button", { name: "Settings" });
+    // Scoped to the header: the shared EmptyState renders its own "Settings"
+    // button ("No runs found" → open Settings), and an unscoped role locator
+    // becomes a strict-mode violation whenever that state flashes mid-test —
+    // one of the settings-modal flake causes.
+    this.settingsButton = page
+      .locator("header")
+      .getByRole("button", { name: "Settings" });
     this.themeToggle = page.locator("button").filter({ hasText: /Switch to/ });
     this.connectionDot = page.locator("[title*='Live updates']");
     // Flat run-list locators (e2e-no-flatlist-locator).
