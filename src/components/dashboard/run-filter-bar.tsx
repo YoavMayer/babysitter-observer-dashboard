@@ -24,6 +24,12 @@ export interface RunFilterBarProps {
   hiddenProjectCount?: number;
   /** Board/list view toggle slot (SPEC-vibekanban §6.1) — rendered next to the sort toggle. */
   viewToggle?: React.ReactNode;
+  /**
+   * SPEC-vibekanban §6.2: in board view the sort toggle only affects
+   * within-column ordering (status/activity order cards identically there) —
+   * the tooltip says so instead of promising a list re-sort.
+   */
+  boardView?: boolean;
 }
 
 export function RunFilterBar({
@@ -35,6 +41,7 @@ export function RunFilterBar({
   filteredProjectCount,
   hiddenProjectCount = 0,
   viewToggle,
+  boardView = false,
 }: RunFilterBarProps) {
   return (
     <div className="mb-5">
@@ -101,9 +108,13 @@ export function RunFilterBar({
                 ? "bg-warning/10 border border-warning/30 text-warning hover:bg-warning/15 hover:border-warning/40 shadow-sm"
                 : "bg-primary/10 border border-primary/30 text-primary hover:bg-primary/15 hover:border-primary/40 shadow-sm"
             )}
-            title={sortMode === "status"
-              ? "Currently sorting by status priority (active first, then failed, then completed). Click to switch to chronological activity view."
-              : "Currently sorting by most recent activity (newest updates first). Click to switch to status-grouped view."
+            title={boardView
+              // §6.2: board columns always order by latest update; the control
+              // stays for list-mode continuity.
+              ? "In board view, sorting applies within columns (cards order by latest update). Switch to List view for status/activity re-sorting."
+              : sortMode === "status"
+                ? "Currently sorting by status priority (active first, then failed, then completed). Click to switch to chronological activity view."
+                : "Currently sorting by most recent activity (newest updates first). Click to switch to status-grouped view."
             }
           >
             {/* a11y-icons-not-hidden: decorative sort icons hidden from AT. */}

@@ -85,6 +85,16 @@ export default function DashboardPage() {
     [view, statusFilter, setStatusFilter]
   );
 
+  // §7 fetch-window tails: "View all in list →" switches to list view with
+  // that column's status filter pre-applied (column keys = pill values 1:1).
+  const handleViewAllInList = useCallback(
+    (key: BoardColumnKey) => {
+      setStatusFilter(key);
+      setView("list");
+    },
+    [setStatusFilter, setView]
+  );
+
   const showBanners = !loading && !error && projects.length > 0;
 
   return (
@@ -153,6 +163,7 @@ export default function DashboardPage() {
           filteredProjectCount={filteredProjects.length}
           hiddenProjectCount={hiddenProjectCount}
           viewToggle={<ViewToggle view={view} onViewChange={setView} />}
+          boardView={view === "board"}
         />
 
         {/* Content: board view (default), or the unchanged list view —
@@ -163,6 +174,7 @@ export default function DashboardPage() {
               hiddenProjects={hiddenProjectNames}
               suppressSseRefetch={catchUp.active}
               focusColumnKey={focusColumnKey}
+              onViewAllInList={handleViewAllInList}
             />
           </ErrorBoundary>
         ) : statusFilter === "all" ? (

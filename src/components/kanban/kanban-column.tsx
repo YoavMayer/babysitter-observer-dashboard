@@ -1,9 +1,11 @@
 "use client";
 import { useEffect, useRef } from "react";
+import { ArrowRight } from "lucide-react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { cn } from "@/lib/cn";
 import { KanbanCard } from "@/components/kanban/kanban-card";
 import { VIRTUALIZATION_THRESHOLD } from "@/components/dashboard/virtualized-run-list";
+import type { UseBoardKeyboardResult } from "@/components/kanban/use-board-keyboard";
 import type { BoardColumnKey, BoardRun } from "@/components/kanban/column-model";
 
 /**
@@ -87,6 +89,13 @@ export interface KanbanColumnProps {
   focused?: boolean;
   /** §6.2 pill focus: another column is focused — dim this one. */
   dimmed?: boolean;
+  /** §8 roving tabindex wiring (from useBoardKeyboard), passed to every card. */
+  keyboard?: UseBoardKeyboardResult;
+  /**
+   * §7 fetch-window tail: when set, render a "View all in list →" row that
+   * switches to list view with this column's status filter pre-applied.
+   */
+  onViewAllInList?: () => void;
 }
 
 export function KanbanColumn({
@@ -95,6 +104,8 @@ export function KanbanColumn({
   countTooltip,
   focused = false,
   dimmed = false,
+  keyboard,
+  onViewAllInList,
 }: KanbanColumnProps) {
   const spec = COLUMN_SPECS[columnKey];
   const sectionRef = useRef<HTMLElement>(null);
@@ -176,7 +187,9 @@ export function KanbanColumn({
             {spec.emptyText}
           </p>
         ) : !virtualize ? (
-          runs.map((run) => <KanbanCard key={run.runId} run={run} />)
+          runs.map((run) => (
+            <KanbanCard key={run.runId} run={run} keyboard={keyboard} />
+          ))
         ) : (
           // Virtualized card list (pattern from virtualized-run-list.tsx):
           // only visible cards + overscan render; header count stays honest.
@@ -204,7 +217,7 @@ export function KanbanColumn({
                   }}
                 >
                   <div style={{ paddingBottom: 8 }}>
-                    <KanbanCard run={run} />
+                    <KanbanCard run={run} keyboard={keyboard} />
                   </div>
                 </div>
               );
@@ -212,6 +225,20 @@ export function KanbanColumn({
           </div>
         )}
       </div>
+
+      {/* §7 fetch-window tail: the 500-run window may be hiding runs from any
+          column — offer the complete flat list with this filter pre-applied. */}
+      {onViewAllInList && (
+        <button
+          type="button"
+          data-testid={`kanban-column-tail-${columnKey}`}
+          onClick={onViewAllInList}
+          className="flex items-center justify-center gap-1 border-t border-border px-3 py-1.5 text-xs font-medium text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary transition-colors rounded-b-lg"
+        >
+          View all in list
+          <ArrowRight className="h-3 w-3" aria-hidden="true" focusable="false" />
+        </button>
+      )}
     </section>
   );
 }

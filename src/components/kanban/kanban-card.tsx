@@ -11,6 +11,7 @@ import {
 } from "@/components/dashboard/run-list";
 import { assignColumn, type BoardRun } from "@/components/kanban/column-model";
 import { KanbanBreakpointPanel } from "@/components/kanban/kanban-breakpoint-panel";
+import type { UseBoardKeyboardResult } from "@/components/kanban/use-board-keyboard";
 import type { Run } from "@/types";
 
 /**
@@ -59,9 +60,11 @@ function displayProgress(run: BoardRun): number {
 
 export interface KanbanCardProps {
   run: BoardRun;
+  /** §8 roving tabindex wiring (from useBoardKeyboard, via the column). */
+  keyboard?: UseBoardKeyboardResult;
 }
 
-export function KanbanCard({ run }: KanbanCardProps) {
+export function KanbanCard({ run, keyboard }: KanbanCardProps) {
   const nonTerminal = isNonTerminal(run);
   const column = assignColumn(run);
   // Stale time chip text, as run-card.tsx formatStaleTime.
@@ -82,9 +85,27 @@ export function KanbanCard({ run }: KanbanCardProps) {
       role="listitem"
       data-testid="kanban-card"
       data-run-id={run.runId}
+      // §8 roving tabindex: exactly one card on the board is the tab stop;
+      // the rest are focusable programmatically (arrow-key moves) only.
+      tabIndex={
+        keyboard ? (keyboard.tabStopRunId === run.runId ? 0 : -1) : undefined
+      }
+      onFocus={
+        keyboard
+          ? (e) => {
+              // Adopt only focus on the card itself, not on inner controls.
+              if (e.target === e.currentTarget) keyboard.onCardFocus(run.runId);
+            }
+          : undefined
+      }
+      onKeyDown={
+        keyboard ? (e) => keyboard.onCardKeyDown(e, run.runId) : undefined
+      }
       className={cn(
         "group relative flex flex-col gap-1.5 px-3 py-2 rounded-md",
         "border border-border bg-card hover:bg-background-secondary transition-colors",
+        // §8 keyboard focus: a visible ring for the roving tab stop.
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60",
         // Column tones (§3.2): stale cards get the 50% opacity treatment,
         // completed cards are the most muted.
         column === "stale" && "opacity-50",

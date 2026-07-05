@@ -132,4 +132,18 @@ describe('RunFilterBar', () => {
       }
     });
   });
+  describe('board-view sort tooltip (SPEC-vibekanban §6.2)', () => {
+    it('says sorting applies within columns when boardView is set', () => {
+      render(<RunFilterBar {...defaultProps} boardView />);
+      const title = screen.getByTestId('sort-toggle').getAttribute('title') ?? '';
+      expect(title.toLowerCase()).toContain('sorting applies within columns');
+    });
+
+    it('keeps the list-mode status/activity tooltips when boardView is off', () => {
+      render(<RunFilterBar {...defaultProps} />);
+      const title = screen.getByTestId('sort-toggle').getAttribute('title') ?? '';
+      expect(title).toContain('status priority');
+      expect(title.toLowerCase()).not.toContain('within columns');
+    });
+  });
 });

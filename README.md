@@ -20,6 +20,7 @@ Babysitter Observer Dashboard is a real-time browser-based monitoring UI for [ba
 ## Features
 
 - **Multi-project dashboard** -- auto-discovers `.a5c/runs/` directories across multiple projects and groups runs by project
+- **Board view (default)** -- a kanban-style command center on the dashboard root: one column per triage bucket (Needs you / Orphaned / Working / Stale / Failed / Completed), cards moving between columns live as run state changes, and the full breakpoint question + answer flow directly on Needs-you cards. Strictly a *view*: columns are derived from run state and never assignable, there is no drag-and-drop, and the only write path remains the existing breakpoint approve action. Toggle Board/List per browser (persisted); full keyboard navigation -- arrow keys move between cards and columns, Enter opens the run
 - **Smart layout** -- active runs shown prominently; recently completed projects stay visible for a configurable recency window before moving to collapsible "Recent History"
 - **Health cards** -- at-a-glance status cards showing active, completed, and failed runs per project with KPI metrics
 - **Expanded project mini-dashboard** -- drill into any project to see runs organized into Active, Failed, and Completed sections with mini KPI pills
