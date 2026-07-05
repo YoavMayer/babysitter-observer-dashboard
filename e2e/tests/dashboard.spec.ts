@@ -185,18 +185,15 @@ test.describe("Project Health Cards", () => {
   });
 
   test("project cards show progress bar when tasks exist", async ({ dashboardPage }) => {
-    // At least one project card should have a progress bar (tasks text)
+    // At least one project card should have a progress bar (tasks text).
+    // Same intent as before, but auto-retrying: the previous one-shot
+    // count()+innerText() loop raced grid hydration and read 0 cards (the
+    // trace showed the locator query resolving before any card mounted while
+    // the failure screenshot, ms later, had fully hydrated "N/M tasks" rows).
+    // Same flake class — and same cure — as "display total run count" above.
     const cards = dashboardPage.getProjectCards();
-    const count = await cards.count();
-    let foundProgress = false;
-    for (let i = 0; i < count; i++) {
-      const text = await cards.nth(i).innerText();
-      if (text.includes("tasks")) {
-        foundProgress = true;
-        break;
-      }
-    }
-    expect(foundProgress).toBe(true);
+    const cardWithProgress = cards.filter({ hasText: "tasks" }).first();
+    await expect(cardWithProgress).toBeVisible({ timeout: 15_000 });
   });
 
   test("expanding a project card reveals run cards", async ({ dashboardPage, page }) => {
