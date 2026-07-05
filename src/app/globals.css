@@ -422,9 +422,13 @@
   --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
 }
 
-/* Base */
-* {
-  border-color: var(--border);
+/* Base — layered so Tailwind border-color utilities (@layer utilities) can
+   override the reset; an unlayered `*` rule would defeat border-error/30,
+   border-status-stalled/30 etc. site-wide. */
+@layer base {
+  * {
+    border-color: var(--border);
+  }
 }
 
 body {
