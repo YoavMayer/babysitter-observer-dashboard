@@ -151,6 +151,32 @@ describe('config-loader', () => {
       expect(matches[0].label).toBe('cli');
     });
 
+    it('depth:0 auto-added runs-dir WINS over a stale registry depth>0 entry for the same path (empty-WORKING fix)', async () => {
+      // Live regression: ~/.a5c/observer.json listed /home/user/.a5c/runs at
+      // depth:3 (so discovery scanned it as a projects-parent and found none of
+      // its direct child run dirs). getConfig also auto-adds that SAME path at
+      // depth:0. A first-wins dedup dropped the depth:0 entry, so home runs
+      // were never discovered and the WORKING column stayed empty. The dedup
+      // must now let the depth:0 (direct runs-dir) reading win.
+      const homeRuns = path.join(os.homedir(), '.a5c', 'runs');
+      mockReadFile.mockResolvedValue(
+        JSON.stringify({
+          sources: [{ path: homeRuns, depth: 3, label: 'cli' }],
+        }),
+      );
+      invalidateConfigCache();
+
+      const config = await getConfig();
+
+      // Exactly one entry for ~/.a5c/runs, and it must be the direct runs-dir.
+      const matches = config.sources.filter(
+        (s) => path.resolve(s.path) === path.resolve(homeRuns),
+      );
+      expect(matches).toHaveLength(1);
+      expect(matches[0].depth).toBe(0);
+      expect(matches[0].label).toBe('home');
+    });
+
     it('OBSERVER_WATCH_EXCLUSIVE keeps explicit sources exclusive — registry is NOT merged', async () => {
       // The e2e isolation escape hatch: fixture-only sources, no leakage.
       mockReadFile.mockResolvedValue(

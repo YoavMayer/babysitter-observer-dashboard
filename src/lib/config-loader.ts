@@ -223,13 +223,35 @@ export async function getConfig(): Promise<ObserverConfig> {
         ...chosen,
         { path: path.join(os.homedir(), ".a5c", "runs"), depth: 0, label: "home" },
       ];
-  const seen = new Set<string>();
-  const sources = rawSources.filter((s) => {
+  // Dedup by normalized path, but with a precedence rule that fixes the empty
+  // WORKING column: when the SAME path is present both as a direct runs-dir
+  // (depth 0) and as a projects-parent (depth>0), the depth:0 (direct
+  // runs-dir) reading MUST win. This happens whenever a stale registry lists
+  // ~/.a5c/runs at depth>0 (so discovery scans it for nested
+  // <project>/.a5c/runs and finds none) while we auto-add the very same path at
+  // depth:0 (which enumerates its direct child run dirs — the actual runs).
+  // A plain first-wins Set silently dropped the auto-added depth:0 entry and
+  // left ~/.a5c/runs mis-scanned, so home runs were never discovered. Here a
+  // depth:0 entry UPGRADES an already-seen depth>0 entry for the same path;
+  // otherwise first occurrence wins (preserving all other dedup behavior).
+  const byPath = new Map<string, WatchSource>();
+  const order: string[] = [];
+  for (const s of rawSources) {
     const normalized = path.resolve(s.path);
-    if (seen.has(normalized)) return false;
-    seen.add(normalized);
-    return true;
-  });
+    const existing = byPath.get(normalized);
+    if (!existing) {
+      byPath.set(normalized, s);
+      order.push(normalized);
+      continue;
+    }
+    // Same path already seen: only upgrade existing(depth>0) -> candidate
+    // (depth 0) so the path's immediate child run dirs get enumerated. Never
+    // downgrade a direct runs-dir back to a projects-parent scan.
+    if (s.depth === 0 && existing.depth !== 0) {
+      byPath.set(normalized, s);
+    }
+  }
+  const sources = order.map((n) => byPath.get(n)!);
 
   // Priority: registry file > env vars > defaults
   const envPollInterval = process.env.OBSERVER_POLL_INTERVAL || process.env.POLL_INTERVAL;
