@@ -1,6 +1,7 @@
 "use client";
 import { ArrowUpDown, Clock, EyeOff } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { HIDE_AFFORDANCE_MICROCOPY } from "@/lib/utils";
 import type { DashboardSortMode, DashboardStatusFilter } from "@/hooks/use-run-dashboard";
 import type { PillStatus, ReconciledCounts } from "@/lib/counting/run-classification";
 
@@ -177,6 +178,19 @@ export function RunFilterBar({
           </span>
         </div>
       </div>
+      {/* §15.1 AC-87: one explanatory line for the grid hide affordance —
+          hiding is quiet, NOT silent (approvals + live/scheduled still surface
+          with the 👁 marker and a "(N from hidden)" count). Shown only when
+          something is actually hidden. */}
+      {hiddenProjectCount > 0 && (
+        <p
+          data-testid="hide-affordance-microcopy"
+          className="mt-2 inline-flex items-start gap-1.5 text-[11px] leading-snug text-foreground-muted"
+        >
+          <EyeOff className="mt-px h-3 w-3 shrink-0" aria-hidden="true" focusable="false" />
+          {HIDE_AFFORDANCE_MICROCOPY}
+        </p>
+      )}
     </div>
   );
 }

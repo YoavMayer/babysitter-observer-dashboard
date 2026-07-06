@@ -1,9 +1,10 @@
 "use client";
 import Link from "next/link";
-import { EyeOff, AlertCircle, MoonStar, Tag } from "lucide-react";
+import { EyeOff, AlertCircle, AlarmClock, MoonStar, Tag } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { friendlyProcessName, formatRelativeTime } from "@/lib/utils";
+import { friendlyProcessName, formatRelativeTime, formatWakeRelative } from "@/lib/utils";
 import { ProgressBar } from "@/components/shared/progress-bar";
+import { RunIterateCommand } from "@/components/breakpoint/run-iterate-command";
 import {
   LivenessChip,
   StatusDot,
@@ -177,6 +178,46 @@ export function KanbanCard({ run, keyboard }: KanbanCardProps) {
           <ActionHint run={run} />
         </div>
       )}
+      {column === "scheduled" && (() => {
+        // §15.1 (AC-84/85): idle-healthy sleeping forever-run. Future wake reads
+        // calm ("next run in <rel>"); an overdue wake gets a DISTINCT amber
+        // "wake overdue — resume" sub-state with a copyable INERT
+        // `babysitter run:iterate` command (the observer never runs it, AC-88).
+        const wake = formatWakeRelative(run.sleepWakeAt);
+        const overdue = wake.overdue && !!run.sleepWakeAt;
+        return (
+          <div className="flex flex-col gap-1.5">
+            <span
+              data-testid="kanban-scheduled-badge"
+              data-status-badge
+              data-scheduled-overdue={overdue ? "true" : undefined}
+              className={cn(
+                "inline-flex self-start items-center gap-1 rounded-full px-2 py-0.5 text-xs leading-tight font-medium border",
+                overdue
+                  ? "bg-status-attention-muted border-status-attention/30 text-status-attention"
+                  : "bg-status-aged-muted border-status-aged/30 text-status-aged"
+              )}
+              title={
+                overdue
+                  ? "Scheduled forever-run — wake time passed; resume it to continue"
+                  : "Scheduled forever-run — sleeping between ticks; it wakes on its own"
+              }
+            >
+              <AlarmClock className="h-3 w-3 shrink-0" aria-hidden="true" focusable="false" />
+              {overdue
+                ? `Scheduled — wake overdue${wake.text ? ` ${wake.text}` : ""} — resume`
+                : run.sleepWakeAt
+                  ? `Scheduled — next run ${wake.text}`
+                  : "Scheduled — sleeping between ticks"}
+            </span>
+            {overdue && (
+              // AC-85/88: copyable INERT resume command — selectable text, runs
+              // nothing. Reuses the §14.5 run:iterate affordance.
+              <RunIterateCommand runId={run.runId} />
+            )}
+          </div>
+        );
+      })()}
       {column === "stale" && (
         // §13.2b/AC-36 "quiet" recoverability badge (the stale-bucket half of
         // the Stalled column; the orphaned half keeps the ActionHint above).

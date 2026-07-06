@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Activity,
+  AlarmClock,
   ArrowRight,
   BellRing,
   CheckCircle2,
@@ -92,6 +93,15 @@ export const COLUMN_SPECS: Record<BoardGroupKey, ColumnSpec> = {
     headerClass: "text-status-alive",
     icon: Activity,
   },
+  scheduled: {
+    label: "Scheduled",
+    subLabel: "sleeping / next tick",
+    // §15.1: idle-HEALTHY (a forever-run between ticks) — a calm, de-emphasized
+    // neutral header (AlarmClock). The overdue amber "resume" attention lives on
+    // the card, never on the whole column (a scheduled run is not "attention").
+    headerClass: "text-status-aged",
+    icon: AlarmClock,
+  },
   stalled: {
     label: "Stalled",
     subLabel: "no driver / quiet",
@@ -116,6 +126,8 @@ export const COLUMN_SPECS: Record<BoardGroupKey, ColumnSpec> = {
 export const COLUMN_DEFINITIONS: Record<BoardGroupKey, string> = {
   needsyou: "Needs you — a run is waiting for YOUR answer.",
   waiting: "Working — a live driver is attached and making progress.",
+  scheduled:
+    "Scheduled — a forever-run sleeping between ticks; healthy, not stalled. Overdue wakes show an amber resume hint.",
   stalled:
     "Stalled — recoverable: no live driver or quiet >1h; resume to continue.",
   done: "Done — terminal: completed or failed; failed runs carry a red failed badge.",

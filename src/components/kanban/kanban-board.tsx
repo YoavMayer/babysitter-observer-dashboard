@@ -43,10 +43,15 @@ const BOARD_FETCH_LIMIT = 500;
 const LIVE_REGION_DEBOUNCE_MS = 5_000;
 
 /**
- * Columns that auto-hide when empty (§13.6 amended AC-12): only Stalled —
- * Needs you / Working / Done are always visible.
+ * Columns that auto-hide when empty (§13.6 amended AC-12, extended by §15.1):
+ * Stalled and Scheduled — Needs you / Working / Done are always visible. The
+ * Scheduled column only appears when a sleeping forever-run exists, so it never
+ * adds noise to the common case.
  */
-const AUTO_HIDE_WHEN_EMPTY: ReadonlySet<BoardGroupKey> = new Set(["stalled"]);
+const AUTO_HIDE_WHEN_EMPTY: ReadonlySet<BoardGroupKey> = new Set([
+  "stalled",
+  "scheduled",
+]);
 
 /** The visible columns for the grouped board: GROUP_ORDER minus auto-hidden. */
 function visibleColumnKeys(groups: BoardGroups): BoardGroupKey[] {

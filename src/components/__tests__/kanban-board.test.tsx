@@ -134,7 +134,11 @@ describe("KanbanBoard (SPEC-vibekanban Wave 2)", () => {
     ]);
   });
 
-  it("excludes hidden-project runs from grid-parity columns but keeps Needs-you (§6.3)", () => {
+  it("surfaces hidden-project needs-you AND live runs (model A §15.1, owner gate 2026-07-06b), collapses the rest", () => {
+    // SUPERSEDES the wave-1 §6.3 "hidden excluded from all columns except
+    // Needs-you" assertion: under hidden model A, hidden LIVE runs surface into
+    // Working (AC-75) alongside the always-surfaced needs-you approvals, each
+    // flagged with the EyeOff marker; only orphaned/stale/done stay collapsed.
     setupPolling({
       runs: [
         lightRun({
@@ -150,13 +154,80 @@ describe("KanbanBoard (SPEC-vibekanban Wave 2)", () => {
           pendingBreakpoints: 0,
           projectName: "hidden-project",
         }),
+        // A hidden STALE run stays collapsed (not a surfaced column).
+        lightRun({
+          runId: "01KBOARDTESTHIDDENST0009",
+          status: "waiting",
+          driver: "none",
+          isStale: true,
+          pendingBreakpoints: 0,
+          projectName: "hidden-project",
+        }),
       ],
-      totalCount: 2,
+      totalCount: 3,
     });
     render(<KanbanBoard hiddenProjects={new Set(["hidden-project"])} />);
 
+    // Needs-you approval surfaced (1); live run surfaced into Working (1).
     expect(screen.getByTestId("kanban-column-count-needsyou")).toHaveTextContent("1");
+    expect(screen.getByTestId("kanban-column-count-waiting")).toHaveTextContent("1");
+    // The stale hidden run is collapsed → Stalled column auto-hides (0).
+    expect(screen.queryByTestId("kanban-column-stalled")).not.toBeInTheDocument();
+    // Both surfaced cards carry the hidden-project EyeOff marker (sr-only text).
+    const surfaced = screen.getAllByText("project hidden from grid");
+    expect(surfaced.length).toBe(2);
+  });
+
+  it("§15.1 (AC-84/86): a future-wake scheduled run renders in its OWN Scheduled column, calm, not Working/Stalled", () => {
+    const wakeFuture = new Date(Date.now() + 6 * 3_600_000).toISOString();
+    setupPolling({
+      runs: [
+        lightRun({
+          runId: "01KSCHEDFUTURE00000000001",
+          status: "waiting",
+          driver: "scheduled",
+          sleepWakeAt: wakeFuture,
+          pendingBreakpoints: 0,
+        }),
+      ],
+      totalCount: 1,
+    });
+    render(<KanbanBoard />);
+
+    // Its own column, count 1; Working + Stalled auto-hide (empty).
+    expect(screen.getByTestId("kanban-column-count-scheduled")).toHaveTextContent("1");
+    expect(screen.queryByTestId("kanban-column-stalled")).not.toBeInTheDocument();
     expect(screen.getByTestId("kanban-column-count-waiting")).toHaveTextContent("0");
+    // Calm "next run" affordance (not overdue/resume).
+    expect(screen.getByTestId("kanban-scheduled-badge")).toHaveTextContent(/next run/i);
+    expect(screen.getByTestId("kanban-scheduled-badge")).not.toHaveAttribute(
+      "data-scheduled-overdue"
+    );
+  });
+
+  it("§15.1 (AC-85/88): an overdue scheduled run renders the amber wake-overdue state with a copyable INERT run:iterate", () => {
+    const wakePast = new Date(Date.now() - 17 * 3_600_000).toISOString();
+    setupPolling({
+      runs: [
+        lightRun({
+          runId: "01KSCHEDOVERDUE0000000001",
+          status: "waiting",
+          driver: "scheduled",
+          sleepWakeAt: wakePast,
+          pendingBreakpoints: 0,
+        }),
+      ],
+      totalCount: 1,
+    });
+    render(<KanbanBoard />);
+
+    const badge = screen.getByTestId("kanban-scheduled-badge");
+    expect(badge).toHaveAttribute("data-scheduled-overdue", "true");
+    expect(badge).toHaveTextContent(/wake overdue/i);
+    // The copyable resume command is present as inert selectable text (AC-88).
+    expect(screen.getByTestId("kanban-bp-run-iterate-text")).toHaveTextContent(
+      "babysitter run:iterate 01KSCHEDOVERDUE0000000001"
+    );
   });
 });
 

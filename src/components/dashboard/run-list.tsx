@@ -1,9 +1,9 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { Wifi, AlertTriangle, Terminal, Copy, Tag } from "lucide-react";
+import { Wifi, AlertTriangle, AlarmClock, Terminal, Copy, Tag } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { friendlyProcessName, formatRelativeTime } from "@/lib/utils";
+import { friendlyProcessName, formatRelativeTime, formatWakeRelative } from "@/lib/utils";
 import { useSmartPolling } from "@/hooks/use-smart-polling";
 import { EmptyState } from "@/components/shared/empty-state";
 import type { DashboardStatusFilter } from "@/hooks/use-run-dashboard";
@@ -65,6 +65,44 @@ function rank(run: LightRun): number {
  * same sr-only expansions, not a reimplementation). */
 export function LivenessChip({ run }: { run: LightRun }) {
   if (!run.driver) return null;
+  if (run.driver === "scheduled") {
+    // §15.1 (AC-84/85): a sleeping forever-run between ticks. Future wake =
+    // calm/idle-healthy ("next run in <rel>"); past wake = a DISTINCT amber
+    // "wake overdue — resume" soft-attention indicator (never the dead-orphaned
+    // chip). Both stay off the alarm surface; the copyable resume command lives
+    // on the card body.
+    const wake = formatWakeRelative(run.sleepWakeAt);
+    const overdue = wake.overdue && !!run.sleepWakeAt;
+    return (
+      <span
+        data-status-badge
+        data-scheduled-overdue={overdue ? "true" : undefined}
+        className={cn(
+          "flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold",
+          overdue
+            ? "bg-status-attention-muted text-status-attention"
+            : "bg-status-aged-muted text-status-aged"
+        )}
+        title={
+          overdue
+            ? "Scheduled forever-run — wake time passed; resume to continue (babysitter run:iterate)"
+            : "Scheduled forever-run — sleeping between ticks; wakes on its own"
+        }
+      >
+        <AlarmClock className="h-3 w-3" aria-hidden="true" focusable="false" />
+        {overdue
+          ? `wake overdue${wake.text ? ` ${wake.text}` : ""}`
+          : run.sleepWakeAt
+            ? `next run ${wake.text}`
+            : "scheduled"}
+        <span className="sr-only">
+          {overdue
+            ? ": scheduled forever-run, wake time passed — resume to continue"
+            : ": scheduled forever-run, sleeping between ticks — wakes on its own"}
+        </span>
+      </span>
+    );
+  }
   if (run.driver === "live") {
     return (
       // a11y-status-chip-title-only: expose the tooltip meaning to AT via sr-only
