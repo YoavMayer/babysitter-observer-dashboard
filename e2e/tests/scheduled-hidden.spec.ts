@@ -103,8 +103,14 @@ test.describe("§15.1 scheduled (sleeping forever-run) column", () => {
     await expect(
       scheduledColumn(page).locator('[data-run-id="01KSCHEDFUTURE00000000001"]')
     ).toHaveCount(1);
-    // Calm affordance: "next run …", NOT an overdue/resume amber state.
-    await expect(cardFor(page, "01KSCHEDFUTURE00000000001").getByText(/next run/i)).toBeVisible();
+    // Calm affordance: the detailed "next run …" label lives on the body badge
+    // (the row-1 chip is the compact status glance) — target the badge testid.
+    const futureBadge = cardFor(page, "01KSCHEDFUTURE00000000001").getByTestId(
+      "kanban-scheduled-badge"
+    );
+    await expect(futureBadge).toBeVisible();
+    await expect(futureBadge).toContainText(/next run/i);
+    await expect(futureBadge).not.toHaveAttribute("data-scheduled-overdue", "true");
     // Never pooled with Stalled/Working (AC-86).
     await expect(
       page.getByTestId("kanban-column-stalled").locator('[data-run-id="01KSCHEDFUTURE00000000001"]')
@@ -129,12 +135,11 @@ test.describe("§15.1 scheduled (sleeping forever-run) column", () => {
 
     const card = cardFor(page, "01KSCHEDOVERDUE0000000001");
     await expect(card).toBeVisible();
-    // Amber overdue sub-state (AC-85).
-    await expect(card.getByTestId("kanban-scheduled-badge")).toHaveAttribute(
-      "data-scheduled-overdue",
-      "true"
-    );
-    await expect(card.getByText(/wake overdue/i)).toBeVisible();
+    // Amber overdue sub-state (AC-85) — the detailed "wake overdue …" label is
+    // on the body badge (the row-1 chip shows the compact "overdue" glance).
+    const overdueBadge = card.getByTestId("kanban-scheduled-badge");
+    await expect(overdueBadge).toHaveAttribute("data-scheduled-overdue", "true");
+    await expect(overdueBadge).toContainText(/wake overdue/i);
     // Copyable INERT resume command (AC-88): the exact babysitter run:iterate
     // text is present as selectable code, not a server action.
     await expect(card.getByTestId("kanban-bp-run-iterate-text")).toHaveText(

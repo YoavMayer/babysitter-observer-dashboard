@@ -66,11 +66,12 @@ function rank(run: LightRun): number {
 export function LivenessChip({ run }: { run: LightRun }) {
   if (!run.driver) return null;
   if (run.driver === "scheduled") {
-    // §15.1 (AC-84/85): a sleeping forever-run between ticks. Future wake =
-    // calm/idle-healthy ("next run in <rel>"); past wake = a DISTINCT amber
-    // "wake overdue — resume" soft-attention indicator (never the dead-orphaned
-    // chip). Both stay off the alarm surface; the copyable resume command lives
-    // on the card body.
+    // §15.1 (AC-84/85): a sleeping forever-run between ticks. This row-1 chip is
+    // the compact STATUS GLANCE (one word, like the "orphaned" chip) — calm
+    // "scheduled" for a future wake, DISTINCT amber "overdue" once the wake has
+    // passed (never the dead-orphaned chip). The DETAILED "next run <rel>" /
+    // "wake overdue <rel> — resume" affordance + copyable command live on the
+    // card body (kanban-scheduled-badge), so the phrase renders exactly once.
     const wake = formatWakeRelative(run.sleepWakeAt);
     const overdue = wake.overdue && !!run.sleepWakeAt;
     return (
@@ -90,11 +91,7 @@ export function LivenessChip({ run }: { run: LightRun }) {
         }
       >
         <AlarmClock className="h-3 w-3" aria-hidden="true" focusable="false" />
-        {overdue
-          ? `wake overdue${wake.text ? ` ${wake.text}` : ""}`
-          : run.sleepWakeAt
-            ? `next run ${wake.text}`
-            : "scheduled"}
+        {overdue ? "overdue" : "scheduled"}
         <span className="sr-only">
           {overdue
             ? ": scheduled forever-run, wake time passed — resume to continue"
