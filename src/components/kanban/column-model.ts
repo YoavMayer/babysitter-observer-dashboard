@@ -59,6 +59,10 @@ function isNonTerminal(run: LightRun): boolean {
  */
 function isNeedsYou(run: LightRun): boolean {
   if (!isNonTerminal(run)) return false;
+  // UX-R3 §14.5 (AC-59): an observer-recorded-but-unapplied breakpoint keeps the
+  // run in Needs-you (amber-gray recorded state) until a resume consumes it,
+  // even though pendingBreakpoints has already dropped to 0 on disk.
+  if (run.recordedAwaitingResume) return true;
   if (run.pendingBreakpoints !== undefined) return run.pendingBreakpoints > 0;
   return run.waitingKind === "breakpoint";
 }

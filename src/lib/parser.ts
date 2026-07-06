@@ -434,6 +434,50 @@ export async function parseRunDir(
     }
   }
 
+  // Driver liveness (run.lock + pid) — needed for both the return payload and
+  // the answered-but-unapplied derivation below.
+  const driver = await getDriverLiveness(runPath);
+
+  // UX-R3 §14.5 (AC-59): answered-but-unapplied detection. The observer's
+  // approve action writes result.json (value.approvedBy "observer-dashboard")
+  // + one EFFECT_RESOLVED, but never runs the driver. So on a non-terminal run
+  // with no live driver, an observer-recorded breakpoint sits on disk "awaiting
+  // resume": keep the card in Needs-you (amber-gray recorded state) instead of
+  // letting it slide silently to Stalled. Derived from disk so a page refresh
+  // still shows it, until a real resume consumes it (driver goes live or the
+  // run terminates → this clears). Only the FIRST such breakpoint is surfaced.
+  let recordedAwaitingResume = false;
+  let recordedBreakpointEffectId: string | undefined;
+  const runNonTerminal = !runCompleted && !runFailed;
+  const noLiveDriver = driver === "orphaned" || driver === "none";
+  if (runNonTerminal && noLiveDriver) {
+    const resolvedBreakpointIds = tasks
+      .filter((t) => t.kind === "breakpoint" && t.status === "resolved")
+      .map((t) => t.effectId);
+    if (resolvedBreakpointIds.length > 0) {
+      const recordedChecks = await Promise.all(
+        resolvedBreakpointIds.map((id) =>
+          readJsonSafe<Record<string, unknown>>(
+            path.join(runPath, "tasks", id, "result.json"),
+            null
+          )
+        )
+      );
+      for (let i = 0; i < resolvedBreakpointIds.length; i++) {
+        const r = recordedChecks[i];
+        const value =
+          r && typeof r === "object"
+            ? (r.value as Record<string, unknown> | undefined)
+            : undefined;
+        if (value?.approvedBy === "observer-dashboard") {
+          recordedAwaitingResume = true;
+          recordedBreakpointEffectId = resolvedBreakpointIds[i];
+          break;
+        }
+      }
+    }
+  }
+
   const createdAt = runCreated?.ts || "";
   const lastEvent = events[events.length - 1];
 
@@ -488,7 +532,9 @@ export async function parseRunDir(
     pendingBreakpoints,
     isStale,
     waitingKind,
-    driver: await getDriverLiveness(runPath),
+    driver,
+    recordedAwaitingResume,
+    recordedBreakpointEffectId,
     _journalFileCount: journalResult.fileCount,
   };
 }

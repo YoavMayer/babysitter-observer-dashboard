@@ -137,6 +137,9 @@ export function filterByStatus(runs: Run[], status: string): Run[] {
     if (status === "needsyou") {
       const nonTerminal = r.status === "waiting" || r.status === "pending";
       if (!nonTerminal) return false;
+      // UX-R3 §14.5 (AC-59): an observer-recorded-but-unapplied breakpoint keeps
+      // the run in Needs-you (amber-gray recorded state) until it is resumed.
+      if (r.recordedAwaitingResume) return true;
       if (r.pendingBreakpoints !== undefined) return r.pendingBreakpoints > 0;
       // Fall back to the waiting-at-a-breakpoint heuristic only for older cached
       // run shapes that predate pendingBreakpoints.
