@@ -1426,3 +1426,224 @@ test.describe("Kanban board — UX-R2 §13.5 carried minors & nits (owner gate 2
     );
   });
 });
+
+// ---------------------------------------------------------------------------
+// UX-R3 §14.5 — write-path truth (owner gate 2026-07-06 ruling, option a).
+// NEW acceptance criteria AC-58..AC-63: the observer RECORDS an answer; it
+// never performs/publishes it. Testids introduced by this wave:
+//   - [data-testid="kanban-bp-recorded-chip"]     amber-gray "answer recorded — awaiting resume"
+//   - [data-testid="kanban-bp-recorded-body"]     honest "nothing published yet" body
+//   - [data-testid="kanban-bp-recorded-answer"]   the existing recorded answer (AC-62)
+//   - [data-testid="kanban-bp-run-iterate"]       copyable, INERT run:iterate command (AC-60)
+//   - [data-testid="kanban-bp-overwrite-toggle"]  overwrite control (AC-62)
+// ---------------------------------------------------------------------------
+
+// §14.5 frozen copy (verbatim).
+const RECORDED_CHIP_TEXT = "Answer recorded — awaiting resume";
+const RECORDED_CONFIRMATION = "Answer recorded. It will be applied when the run is resumed.";
+const FORBIDDEN_CONFIRMATION_WORDS = ["published", "approved successfully", "done"];
+
+// A synthetic run whose breakpoint the observer already answered (result on
+// disk, run not yet resumed): driver "none", pending 0, recordedAwaitingResume.
+const RECORDED_RUN_ID = "01KSYNTHRECORDEDBP000001";
+const RECORDED_EFFECT_ID = "01KSYNTH_RECORDED_EFF_01";
+const RECORDED_ANSWER = "approve";
+
+/** Intercept the board list AND the panel's task-detail GET so a synthetic
+ *  "recorded, awaiting resume" card renders without touching disk. */
+async function interceptRecordedRun(page: Page) {
+  await interceptRuns(page, [
+    makeApiRun({
+      runId: RECORDED_RUN_ID,
+      status: "pending",
+      driver: "none",
+      pendingBreakpoints: 0,
+      recordedAwaitingResume: true,
+      recordedBreakpointEffectId: RECORDED_EFFECT_ID,
+      breakpointQuestion: "Approve the staging deploy?",
+      tasks: [
+        {
+          effectId: RECORDED_EFFECT_ID,
+          kind: "breakpoint",
+          status: "resolved",
+          title: "breakpoint",
+          label: "breakpoint",
+        },
+      ],
+    }),
+  ]);
+  await page.route("**/api/runs/*/tasks/*", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        task: {
+          effectId: RECORDED_EFFECT_ID,
+          kind: "breakpoint",
+          title: "breakpoint",
+          label: "breakpoint",
+          status: "resolved",
+          invocationKey: "",
+          stepId: "",
+          taskId: "",
+          requestedAt: new Date().toISOString(),
+          breakpoint: {
+            question: "Approve the staging deploy?",
+            title: "Approval",
+            options: ["approve", "reject"],
+            context: { files: [] },
+          },
+          result: {
+            status: "ok",
+            value: {
+              approved: true,
+              answer: RECORDED_ANSWER,
+              approvedBy: "observer-dashboard",
+            },
+          },
+        },
+      }),
+    })
+  );
+}
+
+test.describe("Kanban board — UX-R3 §14.5 write-path truth (owner gate 2026-07-06)", () => {
+  test("AC-58: every answer submit reads 'Record answer' — never 'Approve'/'Approving' (board + run-detail)", async ({
+    page,
+  }) => {
+    // Board card (real pending fixture).
+    await gotoBoard(page);
+    const card = cardFor(page, PENDING_BP_RUN_ID);
+    await expect(card).toBeVisible({ timeout: 15_000 });
+    await card.getByTestId("kanban-bp-answer-toggle").click();
+    const submit = card.getByTestId("approve-btn");
+    await expect(submit).toBeVisible();
+    await expect(submit).toHaveText("Record answer");
+    await expect(card.getByTestId("breakpoint-approval")).not.toContainText(/Approv(e|ing)/);
+
+    // Run-detail submit control — same relabel.
+    await page.goto(`/runs/${PENDING_BP_RUN_ID}`, { waitUntil: "domcontentloaded" });
+    const stepCard = page.locator(`[data-testid="step-card-${PENDING_BP_EFFECT_ID}"]`);
+    await expect(stepCard).toBeVisible({ timeout: 15_000 });
+    await stepCard.locator("button").first().click();
+    const panel = page.getByTestId("breakpoint-panel");
+    await expect(panel).toBeVisible({ timeout: 15_000 });
+    await expect(panel.getByTestId("approve-btn")).toHaveText("Record answer");
+  });
+
+  test("AC-59: an answered-but-unapplied run stays in Needs-you with the amber-gray recorded chip (NOT green)", async ({
+    page,
+  }) => {
+    await interceptRecordedRun(page);
+    await gotoBoard(page);
+
+    const card = cardFor(page, RECORDED_RUN_ID);
+    await expect(card).toBeVisible({ timeout: 15_000 });
+    // Stays in Needs-you (never slid to Stalled).
+    await expect(
+      column(page, "needsyou").locator(`[data-run-id="${RECORDED_RUN_ID}"]`)
+    ).toBeVisible();
+
+    const chip = card.getByTestId("kanban-bp-recorded-chip");
+    await expect(chip).toHaveText(RECORDED_CHIP_TEXT);
+
+    // Amber-gray (--status-stalled), asserted computed — and NOT green (--status-ok).
+    const chipColor = await chip.evaluate((el) => getComputedStyle(el).color);
+    expect(chipColor).toBe(await resolveCssColor(page, "var(--status-stalled)"));
+    expect(chipColor).not.toBe(await resolveCssColor(page, "var(--status-ok)"));
+
+    // Honest body — nothing was published yet.
+    await expect(card.getByTestId("kanban-bp-recorded-body")).toContainText(
+      "Nothing was published yet"
+    );
+  });
+
+  test("AC-60: the recorded card exposes a copyable, INERT run:iterate command (Copy invokes no server action)", async ({
+    page,
+    context,
+  }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+
+    // Any non-GET request would be an illegal write from a read-only affordance.
+    const nonGetRequests: string[] = [];
+    page.on("request", (req) => {
+      if (req.method() !== "GET") nonGetRequests.push(`${req.method()} ${req.url()}`);
+    });
+
+    await interceptRecordedRun(page);
+    await gotoBoard(page);
+    const card = cardFor(page, RECORDED_RUN_ID);
+    await expect(card).toBeVisible({ timeout: 15_000 });
+
+    const cmd = card.getByTestId("kanban-bp-run-iterate-text");
+    await expect(cmd).toHaveText(`babysitter run:iterate ${RECORDED_RUN_ID}`);
+
+    // Copy writes the command to the clipboard...
+    await card.getByTestId("kanban-bp-run-iterate-copy").click();
+    const clip = await page.evaluate(() => navigator.clipboard.readText());
+    expect(clip).toBe(`babysitter run:iterate ${RECORDED_RUN_ID}`);
+    // ...and performs NO server action / network write (read-only contract).
+    expect(nonGetRequests, `copy must not write: ${nonGetRequests.join(", ")}`).toHaveLength(0);
+  });
+
+  test("AC-61: the post-submit confirmation on an orphaned run is honest — 'recorded' + 'resumed', never 'published/approved successfully/done'", async ({
+    page,
+  }) => {
+    // Real record on the dedicated orphaned fixture (driver "none"), restored.
+    const dir = runDir(KANBAN_APPROVE_BP_RUN_ID);
+    const resultPath = path.join(dir, "tasks", KANBAN_APPROVE_BP_EFFECT_ID, "result.json");
+    const journalDir = path.join(dir, "journal");
+    const journalBefore = await fs.readdir(journalDir);
+
+    try {
+      await gotoBoard(page);
+      const card = cardFor(page, KANBAN_APPROVE_BP_RUN_ID);
+      await expect(card).toBeVisible({ timeout: 15_000 });
+      await card.getByTestId("kanban-bp-answer-toggle").click();
+      await card.getByTestId("option-btn-approve").click();
+
+      const result = card.getByTestId("approval-result");
+      await expect(result).toBeVisible({ timeout: 15_000 });
+      const text = (await result.textContent()) ?? "";
+      expect(text).toContain(RECORDED_CONFIRMATION);
+      expect(text.toLowerCase()).toContain("recorded");
+      expect(text.toLowerCase()).toContain("resumed");
+      for (const forbidden of FORBIDDEN_CONFIRMATION_WORDS) {
+        expect(text.toLowerCase(), `confirmation must not claim "${forbidden}"`).not.toContain(
+          forbidden
+        );
+      }
+    } finally {
+      const journalAfter = await fs.readdir(journalDir).catch(() => [] as string[]);
+      for (const f of journalAfter) {
+        if (!journalBefore.includes(f)) await fs.unlink(path.join(journalDir, f)).catch(() => {});
+      }
+      await fs.unlink(resultPath).catch(() => {});
+    }
+  });
+
+  test("AC-62: re-opening a recorded card shows the existing answer once and offers Overwrite (never a stacked second answer)", async ({
+    page,
+  }) => {
+    await interceptRecordedRun(page);
+    await gotoBoard(page);
+    const card = cardFor(page, RECORDED_RUN_ID);
+    await expect(card).toBeVisible({ timeout: 15_000 });
+
+    // The existing recorded answer is shown exactly once, before any overwrite.
+    const recorded = card.getByTestId("kanban-bp-recorded-answer");
+    await expect(recorded).toHaveCount(1);
+    await expect(recorded).toContainText(RECORDED_ANSWER);
+
+    // Overwrite control (not a plain re-answer) mounts the approval in
+    // overwrite mode — the submit relabels to "Overwrite answer".
+    const overwrite = card.getByTestId("kanban-bp-overwrite-toggle");
+    await expect(overwrite).toHaveText("Overwrite answer");
+    await overwrite.click();
+    const approval = card.getByTestId("breakpoint-approval");
+    await expect(approval).toBeVisible();
+    await expect(approval.getByTestId("approve-btn")).toHaveText("Overwrite answer");
+    // Still exactly one recorded answer on the card (overwrite, never stack).
+    await expect(card.getByTestId("kanban-bp-recorded-answer")).toHaveCount(1);
+  });
+});
