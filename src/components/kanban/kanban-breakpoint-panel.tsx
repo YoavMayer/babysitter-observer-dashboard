@@ -1,12 +1,15 @@
 "use client";
 import { useState } from "react";
-import { ChevronDown, ChevronUp, Hand } from "lucide-react";
+import { ChevronDown, ChevronUp, Hand, CheckCircle2 } from "lucide-react";
 import { useTaskDetail } from "@/hooks/use-run-detail";
 import { BreakpointApproval } from "@/components/breakpoint/breakpoint-approval";
+import { RunIterateCommand } from "@/components/breakpoint/run-iterate-command";
 import {
   BREAKPOINT_NO_QUESTION_FALLBACK,
   BREAKPOINT_ORPHANED_SEMANTICS,
   BREAKPOINT_READONLY_CONTRACT,
+  BREAKPOINT_RECORDED_AWAITING_RESUME_CHIP,
+  BREAKPOINT_RECORDED_AWAITING_RESUME_BODY,
 } from "@/lib/breakpoint-payload";
 import { ActionHint } from "@/components/dashboard/run-list";
 import type { BoardRun } from "@/components/kanban/column-model";
@@ -52,14 +55,128 @@ export function KanbanBreakpointPanel({ run }: KanbanBreakpointPanelProps) {
     (t) => t.kind === "breakpoint" && t.status === "requested"
   );
 
-  // Full BreakpointPayload (question/options) from the existing task-detail
-  // endpoint. Enabled only when a pending breakpoint task actually exists.
-  const { task } = useTaskDetail(run.runId, pendingBreakpoint?.effectId ?? null);
+  // UX-R3 §14.5 (AC-59): answered-but-unapplied mode — the observer recorded an
+  // answer (disk-derived on the run) but the run is not yet resumed, so there
+  // is no longer a "requested" breakpoint task. The card stays in Needs-you and
+  // shows the amber-gray recorded state (never green, never gone).
+  const recordedMode =
+    !pendingBreakpoint && run.recordedAwaitingResume === true;
 
-  if (!pendingBreakpoint) {
+  // Full BreakpointPayload (question/options + recorded result) from the
+  // existing task-detail endpoint. Enabled for the pending breakpoint OR, in
+  // recorded mode, the recorded breakpoint effect.
+  const activeEffectId =
+    pendingBreakpoint?.effectId ??
+    (recordedMode ? run.recordedBreakpointEffectId ?? null : null);
+  const { task } = useTaskDetail(run.runId, activeEffectId);
+
+  if (!pendingBreakpoint && !recordedMode) {
     // Legacy run shapes (pendingBreakpoints heuristics) without a visible
-    // breakpoint task: nothing actionable to show on-card.
+    // breakpoint task, and no observer-recorded answer awaiting resume:
+    // nothing actionable to show on-card.
     return null;
+  }
+
+  // -------------------------------------------------------------------------
+  // UX-R3 §14.5 (AC-59/AC-60/AC-62) — answered-but-unapplied recorded state.
+  // The card stays in Needs-you but flips to the amber-gray recorded chip
+  // (NOT green): the answer is on disk, applied to nothing until a resume.
+  // -------------------------------------------------------------------------
+  if (recordedMode) {
+    const recordedQuestion =
+      run.breakpointQuestion ||
+      task?.breakpoint?.question ||
+      BREAKPOINT_NO_QUESTION_FALLBACK;
+    const recordedValue = task?.result?.value as
+      | { answer?: unknown }
+      | undefined;
+    const recordedAnswer =
+      typeof recordedValue?.answer === "string" ? recordedValue.answer : "";
+
+    return (
+      <div
+        data-testid="kanban-bp-panel"
+        data-recorded="true"
+        className="relative z-10 mt-1 flex flex-col gap-2 rounded-md border border-status-stalled/30 bg-status-stalled-muted p-2"
+      >
+        {/* Amber-gray recorded chip — never green: the run is not done until a
+            resume applies the answer (AC-59). */}
+        <div className="flex items-center gap-1.5" data-status-badge>
+          <CheckCircle2
+            className="h-3.5 w-3.5 text-status-stalled"
+            aria-hidden="true"
+            focusable="false"
+          />
+          <span
+            data-testid="kanban-bp-recorded-chip"
+            className="text-[10px] font-bold text-status-stalled uppercase tracking-wider"
+          >
+            {BREAKPOINT_RECORDED_AWAITING_RESUME_CHIP}
+          </span>
+        </div>
+
+        {/* Honest body copy — nothing was published yet. */}
+        <p
+          data-testid="kanban-bp-recorded-body"
+          className="text-[11px] leading-snug text-foreground-muted"
+        >
+          {BREAKPOINT_RECORDED_AWAITING_RESUME_BODY}
+        </p>
+
+        {/* The question that was answered (context). */}
+        <p className="text-xs text-foreground font-medium leading-relaxed whitespace-pre-wrap break-words">
+          {recordedQuestion}
+        </p>
+
+        {/* The recorded answer (AC-62: shown before any overwrite). */}
+        {recordedAnswer && (
+          <p
+            data-testid="kanban-bp-recorded-answer"
+            className="text-[11px] leading-snug text-foreground-muted"
+          >
+            Recorded answer:{" "}
+            <span className="font-semibold text-foreground break-words">
+              {recordedAnswer}
+            </span>
+          </p>
+        )}
+
+        {/* Copyable, inert resume command (AC-60) — the observer never runs it. */}
+        <RunIterateCommand runId={run.runId} />
+
+        {/* Overwrite control (AC-62): re-answering overwrites the single
+            result.json (no second answer/journal entry), never stacks. */}
+        <button
+          type="button"
+          data-testid="kanban-bp-overwrite-toggle"
+          aria-expanded={expanded}
+          onClick={() => setExpanded((prev) => !prev)}
+          className="inline-flex items-center gap-1 self-start rounded-md border border-border bg-background px-2 py-1 text-xs font-medium text-foreground-secondary hover:text-foreground hover:bg-background-secondary transition-colors"
+        >
+          {expanded ? (
+            <ChevronUp className="h-3 w-3" aria-hidden="true" focusable="false" />
+          ) : (
+            <ChevronDown className="h-3 w-3" aria-hidden="true" focusable="false" />
+          )}
+          Overwrite answer
+        </button>
+        {expanded &&
+          (task ? (
+            <div className="[&_form>div]:flex-col [&_form>div]:items-stretch [&_[data-testid=custom-answer-input]]:min-w-0">
+              <BreakpointApproval
+                task={task}
+                runId={run.runId}
+                orphaned
+                recordedAnswer={recordedAnswer}
+              />
+            </div>
+          ) : (
+            <p className="text-xs text-foreground-muted italic">
+              Loading breakpoint details…
+            </p>
+          ))}
+      </div>
+    );
   }
 
   // Full question, never truncated (AC-14): prefer the run-level question the
@@ -68,7 +185,7 @@ export function KanbanBreakpointPanel({ run }: KanbanBreakpointPanelProps) {
   // any on-disk source, say so — never a bare "Approval required".
   const question =
     run.breakpointQuestion ||
-    pendingBreakpoint.breakpointQuestion ||
+    pendingBreakpoint?.breakpointQuestion ||
     task?.breakpoint?.question ||
     BREAKPOINT_NO_QUESTION_FALLBACK;
   // UX-R3 §14.3 (AC-55): options are no longer rendered as informative chips

@@ -200,3 +200,98 @@ describe("KanbanBreakpointPanel — UX-R2 §13.4 read-only clarity", () => {
     expect(result).not.toHaveTextContent("approved successfully");
   });
 });
+
+// ---------------------------------------------------------------------------
+// UX-R3 §14.5 — answered-but-unapplied recorded state (AC-59/AC-60/AC-62).
+// ---------------------------------------------------------------------------
+
+describe("KanbanBreakpointPanel — recorded, awaiting resume (UX-R3 §14.5)", () => {
+  const RUN_ID = "01KTESTPANELRUN000000001";
+  const EFFECT_ID = "eff-bp-1";
+
+  // A run whose only breakpoint has been RESOLVED by the observer (result on
+  // disk) but not yet consumed by a resume: no requested task, but the parser
+  // flagged it recordedAwaitingResume with the effect id.
+  function makeRecordedRun(overrides: Partial<BoardRun> = {}): BoardRun {
+    const bpTask = createMockTaskEffect({
+      effectId: EFFECT_ID,
+      kind: "breakpoint",
+      status: "resolved",
+      breakpointQuestion: QUESTION,
+    });
+    const run = createMockRun({
+      runId: RUN_ID,
+      status: "pending",
+      tasks: [bpTask],
+      breakpointQuestion: QUESTION,
+    });
+    return {
+      ...run,
+      events: [],
+      totalEvents: 5,
+      pendingBreakpoints: 0,
+      driver: "none",
+      recordedAwaitingResume: true,
+      recordedBreakpointEffectId: EFFECT_ID,
+      ...overrides,
+    } as BoardRun;
+  }
+
+  function recordedDetail(answer: string): TaskDetail {
+    return createMockTaskDetail({
+      effectId: EFFECT_ID,
+      kind: "breakpoint",
+      status: "resolved",
+      breakpoint: { question: QUESTION, title: "Approval", options: OPTIONS },
+      result: {
+        status: "ok",
+        value: { approved: true, answer, approvedBy: "observer-dashboard" },
+      },
+    });
+  }
+
+  it("AC-59: renders the amber-gray recorded chip (not green), stays visible, and fetches the recorded effect", () => {
+    setupTaskDetail(recordedDetail("approve"));
+    render(<KanbanBreakpointPanel run={makeRecordedRun()} />);
+
+    // The panel fetches the RECORDED breakpoint effect, not a pending one.
+    expect(mockUseTaskDetail).toHaveBeenCalledWith(RUN_ID, EFFECT_ID);
+
+    const chip = screen.getByTestId("kanban-bp-recorded-chip");
+    expect(chip).toHaveTextContent("Answer recorded — awaiting resume");
+    // Amber-gray stalled token, never the green ok token.
+    expect(chip.className).toContain("status-stalled");
+    expect(chip.className).not.toContain("status-ok");
+    // Honest body copy — nothing published yet.
+    expect(screen.getByTestId("kanban-bp-recorded-body").textContent).toContain(
+      "Nothing was published yet"
+    );
+  });
+
+  it("AC-60: exposes the copyable, inert run:iterate command with the real runId", () => {
+    setupTaskDetail(recordedDetail("approve"));
+    render(<KanbanBreakpointPanel run={makeRecordedRun()} />);
+
+    expect(screen.getByTestId("kanban-bp-run-iterate-text")).toHaveTextContent(
+      `babysitter run:iterate ${RUN_ID}`
+    );
+  });
+
+  it("AC-62: shows the existing answer and mounts an Overwrite control (never a second stacked answer)", () => {
+    setupTaskDetail(recordedDetail("first choice"));
+    render(<KanbanBreakpointPanel run={makeRecordedRun()} />);
+
+    // The recorded answer is shown exactly once before any overwrite.
+    expect(screen.getAllByTestId("kanban-bp-recorded-answer")).toHaveLength(1);
+    expect(screen.getByTestId("kanban-bp-recorded-answer").textContent).toContain(
+      "first choice"
+    );
+
+    // Overwrite toggle mounts the approval in overwrite mode.
+    const toggle = screen.getByTestId("kanban-bp-overwrite-toggle");
+    expect(toggle).toHaveTextContent("Overwrite answer");
+    fireEvent.click(toggle);
+    expect(screen.getByTestId("breakpoint-approval")).toBeInTheDocument();
+    expect(screen.getByTestId("approve-btn")).toHaveTextContent("Overwrite answer");
+  });
+});

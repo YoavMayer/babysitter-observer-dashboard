@@ -58,6 +58,22 @@ export const BREAKPOINT_ORPHANED_SEMANTICS =
 export const BREAKPOINT_ORPHANED_RECORDED_CONFIRMATION =
   "Answer recorded. It will be applied when the run is resumed.";
 
+/**
+ * UX-R3 §14.5 (AC-59) — the amber-gray (--status-stalled) chip shown on a
+ * no-live-driver run after the answer is recorded but not yet applied. NOT
+ * green (--status-ok = done); the run is not done until it is resumed.
+ */
+export const BREAKPOINT_RECORDED_AWAITING_RESUME_CHIP =
+  "Answer recorded — awaiting resume";
+
+/**
+ * UX-R3 §14.5 (AC-59) — body copy under the recorded chip on the board's
+ * answered-but-unapplied card. Honest about the deferred effect: nothing was
+ * published; the publish step runs when the orchestrator resumes.
+ */
+export const BREAKPOINT_RECORDED_AWAITING_RESUME_BODY =
+  "Written to the run; the publish step runs when the orchestrator resumes. Nothing was published yet.";
+
 /** Parser-resolved payload: questionSource is always present (AC-32 flag). */
 export interface ResolvedBreakpointPayload extends BreakpointPayload {
   questionSource: BreakpointQuestionSource;
