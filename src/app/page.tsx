@@ -50,6 +50,7 @@ export default function DashboardPage() {
     bannerFingerprint,
     bannerDismissed,
     filterCounts,
+    reconciledCounts,
     filteredProjects,
     activeProjects,
     historyProjects,
@@ -173,6 +174,7 @@ export default function DashboardPage() {
           statusFilter={statusFilter}
           onStatusFilterChange={handleStatusFilterChange}
           filterCounts={filterCounts}
+          reconciledCounts={reconciledCounts}
           sortMode={sortMode}
           onSortModeToggle={() => setSortMode((prev) => prev === "status" ? "activity" : "status")}
           filteredProjectCount={filteredProjects.length}

@@ -1,10 +1,16 @@
 "use client";
 import { useState, useMemo, useCallback, useRef } from "react";
 import { useProjects } from "./use-projects";
+import { useAllRuns } from "./use-all-runs";
 import { useBatchedUpdates, type CatchUpState } from "./use-batched-updates";
 import { usePersistedState } from "./use-persisted-state";
 import type { RunStatus, ProjectSummary, BreakpointRunInfo } from "@/types";
 import type { ExecutiveSummaryMetrics } from "@/components/dashboard/executive-summary-banner";
+import {
+  computeReconciledCounts,
+  metricsFromReconciled,
+  type ReconciledCounts,
+} from "@/lib/counting/run-classification";
 
 /** Aggregated KPI metrics across all projects. */
 export interface DashboardMetrics {
@@ -31,6 +37,12 @@ export interface UseRunDashboardReturn {
   bannerFingerprint: string;
   bannerDismissed: boolean;
   filterCounts: Record<DashboardStatusFilter, number>;
+  /**
+   * §15.4 reconciled per-status breakdown (pill === column + underNeedsYou +
+   * fromHidden + hiddenCollapsed). Lets the pills/tiles disclose the deltas so
+   * a bare number never contradicts a column.
+   */
+  reconciledCounts: ReconciledCounts;
   filteredProjects: ProjectSummary[];
   activeProjects: ProjectSummary[];
   historyProjects: ProjectSummary[];
@@ -79,6 +91,10 @@ export function useRunDashboard(): UseRunDashboardReturn {
   );
   refreshRef.current = refresh;
 
+  // §15.4 SINGLE counting source: the tiles/banner/pills reconcile against the
+  // SAME full runs the board sees (not the digest), so no surface can diverge.
+  const { runs: allRuns } = useAllRuns(catchUp.active);
+
   const [statusFilter, setStatusFilter] = useState<DashboardStatusFilter>("all");
   const [sortMode, setSortMode] = usePersistedState<DashboardSortMode>("observer:sort-mode", "status");
   const [dismissedFingerprint, setDismissedFingerprint] = usePersistedState<string | null>("banner-dismissed-fingerprint", null);
@@ -103,17 +119,39 @@ export function useRunDashboard(): UseRunDashboardReturn {
   );
   const hiddenProjectCount = projects.length - visibleProjects.length;
 
-  // Aggregate metrics across visible projects (grid-level KPIs).
+  // §6.3: registry-hidden project NAMES — the single scope declaration the
+  // counting source uses so tiles/pills/banner apply hiding exactly like the
+  // board (no more three-different-scopes divergence, §15.1).
+  const hiddenProjectNames = useMemo(
+    () => new Set(projects.filter((p) => p.hidden).map((p) => p.projectName)),
+    [projects]
+  );
+
+  // §15.4 THE single counting source: classify the full runs ONCE and let every
+  // surface read the reconciled result. Guarantees pill === column + disclosed
+  // deltas (AC-70..AC-77).
+  const reconciledCounts = useMemo<ReconciledCounts>(
+    () => computeReconciledCounts(allRuns, { hiddenProjects: hiddenProjectNames }),
+    [allRuns, hiddenProjectNames]
+  );
+
+  // Task-level aggregates stay digest-sourced (they are not a per-run bucket
+  // count and never appear on the board columns). Run counts come from the
+  // single source above.
   const metrics = useMemo<DashboardMetrics>(() => {
-    const totalRuns = visibleProjects.reduce((s, p) => s + p.totalRuns, 0);
-    const activeRuns = visibleProjects.reduce((s, p) => s + p.activeRuns, 0);
-    const completedRuns = visibleProjects.reduce((s, p) => s + p.completedRuns, 0);
-    const failedRuns = visibleProjects.reduce((s, p) => s + p.failedRuns, 0);
-    const staleRuns = visibleProjects.reduce((s, p) => s + p.staleRuns, 0);
+    const m = metricsFromReconciled(reconciledCounts);
     const totalTasks = visibleProjects.reduce((s, p) => s + p.totalTasks, 0);
     const completedTasks = visibleProjects.reduce((s, p) => s + p.completedTasksAggregate, 0);
-    return { totalRuns, activeRuns, completedRuns, failedRuns, staleRuns, totalTasks, completedTasks };
-  }, [visibleProjects]);
+    return {
+      totalRuns: m.totalRuns,
+      activeRuns: m.activeRuns,
+      completedRuns: m.completedRuns,
+      failedRuns: m.failedRuns,
+      staleRuns: m.staleRuns,
+      totalTasks,
+      completedTasks,
+    };
+  }, [reconciledCounts, visibleProjects]);
 
   // Collect all breakpoint runs across ALL projects — including hidden ones.
   // The needs-you banner is an alarm surface, not a grid view (QA F4).
@@ -121,40 +159,37 @@ export function useRunDashboard(): UseRunDashboardReturn {
     return projects.flatMap((p) => p.breakpointRuns ?? []);
   }, [projects]);
 
-  // Executive summary metrics for the banner. pendingBreakpoints intentionally
-  // sums over ALL projects (hidden included) — see the alarm-surface note above.
+  // Executive summary metrics for the banner — same reconciled source as the
+  // tiles/pills. pendingBreakpoints is the full-run needs-you count (incl.
+  // recordedAwaitingResume + hidden approvals), so the banner === the needs-you
+  // pill === the needs-you column (§15.3 GAP-1 closed, AC-70).
   const summaryMetrics = useMemo<ExecutiveSummaryMetrics>(() => ({
     totalProjects: visibleProjects.length,
     activeRuns: metrics.activeRuns,
     failedRuns: metrics.failedRuns,
     completedRuns: metrics.completedRuns,
     staleRuns: metrics.staleRuns,
-    pendingBreakpoints: projects.reduce((s, p) => s + p.pendingBreakpoints, 0),
-  }), [projects, visibleProjects, metrics]);
+    pendingBreakpoints: reconciledCounts.needsyou.pill,
+  }), [reconciledCounts, visibleProjects, metrics]);
 
   // Fingerprint for banner dismiss
   const bannerFingerprint = `${summaryMetrics.failedRuns}-${summaryMetrics.staleRuns}-${summaryMetrics.pendingBreakpoints}`;
   const bannerDismissed = dismissedFingerprint === bannerFingerprint;
 
+  // Pills read the SAME reconciled source — pill(S) === board column(S) + the
+  // disclosed hidden/absorbed deltas (AC-70..AC-77).
   const filterCounts = useMemo(() => {
     return {
-      all: metrics.totalRuns,
-      waiting: metrics.activeRuns,
-      stale: metrics.staleRuns,
-      completed: metrics.completedRuns,
-      failed: metrics.failedRuns,
+      all: reconciledCounts.all.pill,
+      waiting: reconciledCounts.waiting.pill,
+      stale: reconciledCounts.stale.pill,
+      completed: reconciledCounts.completed.pill,
+      failed: reconciledCounts.failed.pill,
       pending: 0,
-      // Runs paused at a breakpoint waiting for a human decision. Sums over
-      // ALL projects (hidden included): the badge must equal the flat
-      // needs-you LIST length, and /api/runs never filters hiddenProjects.
-      needsyou: projects.reduce((s, p) => s + (p.pendingBreakpoints ?? 0), 0),
-      // Non-terminal runs whose orchestrator is no longer attached. Uses the
-      // per-project orphanedRuns aggregate so the badge equals the flat orphaned
-      // LIST length (filterByStatus "orphaned"), including task-wait orphans that
-      // breakpointRuns would miss.
-      orphaned: visibleProjects.reduce((s, p) => s + (p.orphanedRuns ?? 0), 0),
+      needsyou: reconciledCounts.needsyou.pill,
+      orphaned: reconciledCounts.orphaned.pill,
     } as Record<DashboardStatusFilter, number>;
-  }, [metrics, projects, visibleProjects]);
+  }, [reconciledCounts]);
 
   // Filter projects by status counts. The grid excludes hidden projects,
   // EXCEPT under the "needsyou" alarm filter where a hidden project with a
@@ -221,6 +256,7 @@ export function useRunDashboard(): UseRunDashboardReturn {
     bannerFingerprint,
     bannerDismissed,
     filterCounts,
+    reconciledCounts,
     filteredProjects,
     activeProjects,
     historyProjects,

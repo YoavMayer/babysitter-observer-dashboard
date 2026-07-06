@@ -2,6 +2,7 @@
 import { ArrowUpDown, Clock, EyeOff } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { DashboardSortMode, DashboardStatusFilter } from "@/hooks/use-run-dashboard";
+import type { PillStatus, ReconciledCounts } from "@/lib/counting/run-classification";
 
 const filters: { label: string; value: DashboardStatusFilter }[] = [
   { label: "All", value: "all" },
@@ -13,10 +14,34 @@ const filters: { label: string; value: DashboardStatusFilter }[] = [
   { label: "Failed", value: "failed" },
 ];
 
+/**
+ * §15.4 count reconciliation disclosure: a pill count may exceed its board
+ * column because some runs are surfaced from hidden projects ("(N from
+ * hidden)") or absorbed up into Needs-you ("(N under Needs you)"). Surface the
+ * disclosed delta VISIBLY (never a bare number that contradicts the column) —
+ * this is the disclosure text, not a second counting model.
+ */
+function pillDisclosure(
+  value: DashboardStatusFilter,
+  reconciled: ReconciledCounts | undefined
+): string | null {
+  if (!reconciled) return null;
+  const key = value as PillStatus;
+  const c = reconciled[key];
+  if (!c) return null;
+  const parts: string[] = [];
+  if (c.fromHidden > 0) parts.push(`${c.fromHidden} from hidden`);
+  if (c.underNeedsYou > 0) parts.push(`${c.underNeedsYou} under Needs you`);
+  return parts.length > 0 ? parts.join(", ") : null;
+}
+
 export interface RunFilterBarProps {
   statusFilter: DashboardStatusFilter;
   onStatusFilterChange: (value: DashboardStatusFilter) => void;
   filterCounts: Record<DashboardStatusFilter, number>;
+  /** §15.4 reconciled breakdown — drives the visible "(N from hidden)" /
+   *  "(N under Needs you)" disclosure so a pill never contradicts its column. */
+  reconciledCounts?: ReconciledCounts;
   sortMode: DashboardSortMode;
   onSortModeToggle: () => void;
   filteredProjectCount: number;
@@ -36,6 +61,7 @@ export function RunFilterBar({
   statusFilter,
   onStatusFilterChange,
   filterCounts,
+  reconciledCounts,
   sortMode,
   onSortModeToggle,
   filteredProjectCount,
@@ -50,12 +76,18 @@ export function RunFilterBar({
           const count = filterCounts[f.value] ?? 0;
           // Hide Stale / Orphaned filter pills when there are no matching runs
           if ((f.value === "stale" || f.value === "orphaned") && count === 0) return null;
+          const disclosure = pillDisclosure(f.value, reconciledCounts);
           return (
             <button
               key={f.value}
               data-testid={`filter-pill-${f.value}`}
               aria-pressed={statusFilter === f.value}
               onClick={() => onStatusFilterChange(f.value)}
+              title={
+                disclosure
+                  ? `${count} total — ${disclosure} (the rest render in the board column)`
+                  : undefined
+              }
               className={cn(
                 "rounded-md px-3 py-1.5 min-h-[44px] text-xs transition-all inline-flex items-center gap-1.5",
                 // UX-R3 §14.2 (owner gate 2026-07-06, option a): active-nav is
@@ -76,6 +108,16 @@ export function RunFilterBar({
                     : "bg-background-secondary text-foreground-muted"
                 )}>
                   {count}
+                </span>
+              )}
+              {/* §15.4 VISIBLE reconciliation delta — a bare pill number never
+                  contradicts the board column; the difference is disclosed. */}
+              {disclosure && (
+                <span
+                  data-testid={`filter-pill-${f.value}-disclosure`}
+                  className="text-[10px] leading-tight text-foreground-muted/80 tabular-nums"
+                >
+                  ({disclosure})
                 </span>
               )}
             </button>
