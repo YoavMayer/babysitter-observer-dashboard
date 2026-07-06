@@ -245,8 +245,9 @@ test.describe("Filter Pills", () => {
   test("All filter pill is active by default", async ({ dashboardPage }) => {
     const allPill = dashboardPage.getFilterPill("all");
     await expect(allPill).toBeVisible();
-    // The active pill has bg-primary/10 class (visually highlighted)
-    await expect(allPill).toHaveClass(/bg-primary/);
+    // UX-R3 §14.2 (owner gate 2026-07-06, option a): the active pill is neutral
+    // (foreground ink + subtle fill + 2px underline), not magenta.
+    await expect(allPill).toHaveClass(/bg-foreground/);
   });
 
   test("filter pills display correct labels", async ({ dashboardPage }) => {
@@ -326,7 +327,7 @@ test.describe("Filter Pills", () => {
     await dashboardPage.clickFilterByValue("waiting");
 
     // The Waiting pill becomes the active (highlighted) pill.
-    await expect(dashboardPage.getFilterPill("waiting")).toHaveClass(/bg-primary/);
+    await expect(dashboardPage.getFilterPill("waiting")).toHaveClass(/bg-foreground/); // UX-R3 §14.2 (owner gate 2026-07-06, option a): active pill is neutral (foreground ink + fill + underline), not magenta
 
     // The project grid / cards are replaced by the flat list (or the shared
     // empty state when there are no waiting runs).
@@ -345,7 +346,7 @@ test.describe("Filter Pills", () => {
     }
 
     await dashboardPage.clickFilterByValue("completed");
-    await expect(dashboardPage.getFilterPill("completed")).toHaveClass(/bg-primary/);
+    await expect(dashboardPage.getFilterPill("completed")).toHaveClass(/bg-foreground/); // UX-R3 §14.2 (owner gate 2026-07-06, option a): active pill is neutral (foreground ink + fill + underline), not magenta
 
     // Flat list is visible with at least one run row, and no project cards.
     await dashboardPage.waitForRunList();
@@ -358,7 +359,7 @@ test.describe("Filter Pills", () => {
     dashboardPage,
   }) => {
     await dashboardPage.clickFilterByValue("failed");
-    await expect(dashboardPage.getFilterPill("failed")).toHaveClass(/bg-primary/);
+    await expect(dashboardPage.getFilterPill("failed")).toHaveClass(/bg-foreground/); // UX-R3 §14.2 (owner gate 2026-07-06, option a): active pill is neutral (foreground ink + fill + underline), not magenta
 
     // Flat list (or empty state) replaces the grid; cards are gone. If there
     // are failed runs, at least one row is present.
@@ -377,7 +378,7 @@ test.describe("Filter Pills", () => {
     await expect(dashboardPage.getProjectCards()).toHaveCount(0);
 
     await dashboardPage.clickFilterByValue("all");
-    await expect(dashboardPage.getFilterPill("all")).toHaveClass(/bg-primary/);
+    await expect(dashboardPage.getFilterPill("all")).toHaveClass(/bg-foreground/); // UX-R3 §14.2 (owner gate 2026-07-06, option a): active pill is neutral (foreground ink + fill + underline), not magenta
 
     // Grid comes back with every project card.
     await expect(dashboardPage.projectGrid).toBeVisible({ timeout: 15_000 });

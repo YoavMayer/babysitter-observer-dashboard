@@ -25,7 +25,8 @@
  *   - [data-testid="kanban-column-cards-<key>"]   the column's scrollable card container
  *   - [data-testid="kanban-card"][data-run-id]    a card; data-run-id = full runId
  *   - [data-testid="view-toggle-board"] / [data-testid="view-toggle-list"]  segmented control (aria-pressed)
- *   - [data-testid="kanban-bp-option-chip"]       one per BreakpointPayload option on a Needs-you card
+ *   - [data-testid="kanban-bp-option-chip"]       REMOVED by UX-R3 §14.3/AC-55 (de-dup); options now render
+ *                                                 exactly once as option-btn-<option> buttons in the answer panel
  *   - [data-testid="kanban-bp-answer-toggle"]     expands the Answer section (mounts existing BreakpointApproval)
  *   - focus/dim (AC-23): focused column gets [data-focused="true"], dimmed columns get [data-dimmed="true"]
  * Reused existing testids: breakpoint-approval, option-btn-<option>,
@@ -389,11 +390,15 @@ test.describe("Kanban board — Needs-you cards (SPEC-vibekanban)", () => {
       // Full question, verbatim, not truncated.
       await expect(card).toContainText(LONG_BP_QUESTION);
 
-      // One chip per option from BreakpointPayload.options, with matching text.
-      const chips = card.getByTestId("kanban-bp-option-chip");
-      await expect(chips).toHaveCount(LONG_BP_OPTIONS.length);
-      for (let i = 0; i < LONG_BP_OPTIONS.length; i++) {
-        await expect(chips.nth(i)).toHaveText(LONG_BP_OPTIONS[i]);
+      // UX-R3 §14.3 / AC-55 (owner gate 2026-07-06 ruling, option a): the gold
+      // informative option chips are REMOVED (de-dup). Options render exactly
+      // ONCE — as the neutral buttons inside the expandable answer panel.
+      await expect(card.getByTestId("kanban-bp-option-chip")).toHaveCount(0);
+      await card.getByTestId("kanban-bp-answer-toggle").click();
+      const approval = card.getByTestId("breakpoint-approval");
+      await expect(approval).toBeVisible();
+      for (const option of LONG_BP_OPTIONS) {
+        await expect(approval.getByTestId(`option-btn-${option}`)).toHaveCount(1);
       }
     }
   );
@@ -586,7 +591,7 @@ test.describe("Kanban board — UX-R2 §13.1 breakpoint question shape", () => {
   );
 
   test(
-    "AC-35: an SDK 6.0.2 (.breakpoint) breakpoint card shows the task-def title, full question and option chips — never the fallback copy",
+    "AC-35: an SDK 6.0.2 (.breakpoint) breakpoint card shows the task-def title, full question and options (as answer-panel buttons, de-duped) — never the fallback copy",
     async ({ page }) => {
       await gotoBoard(page);
 
@@ -606,9 +611,15 @@ test.describe("Kanban board — UX-R2 §13.1 breakpoint question shape", () => {
       // the pre-fix resolver never read off disk).
       await expect(card).toContainText(TASKDEF_BP_QUESTION_MARKER);
 
-      // The .breakpoint options render as chips (same source, same resolver).
-      const chips = card.getByTestId("kanban-bp-option-chip");
-      await expect(chips).toHaveText(TASKDEF_BP_OPTIONS, { timeout: 15_000 });
+      // UX-R3 §14.3 / AC-55: options are de-duped — no gold chips; they render
+      // exactly once as the neutral buttons in the expandable answer panel.
+      await expect(card.getByTestId("kanban-bp-option-chip")).toHaveCount(0);
+      await card.getByTestId("kanban-bp-answer-toggle").click();
+      const approval = card.getByTestId("breakpoint-approval");
+      await expect(approval).toBeVisible();
+      for (const option of TASKDEF_BP_OPTIONS) {
+        await expect(approval.getByTestId(`option-btn-${option}`)).toHaveCount(1);
+      }
 
       // The fallback copy ("Approval required …") appears nowhere on this card.
       const cardText = (await card.textContent()) ?? "";

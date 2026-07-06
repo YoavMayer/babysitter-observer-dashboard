@@ -67,7 +67,11 @@ beforeEach(() => {
 });
 
 describe("KanbanBreakpointPanel (SPEC-vibekanban §5, Wave 3)", () => {
-  it("renders the NEEDS YOU label, the FULL question (>120 chars, verbatim) and one chip per option", () => {
+  // UX-R3 §14.3 / AC-55 (owner gate 2026-07-06 ruling, option a): the gold
+  // informative option chips are REMOVED (de-dup). Options render exactly once
+  // as the neutral buttons inside the expandable answer panel — the collapsed
+  // card shows the NEEDS YOU label + full question only.
+  it("renders the NEEDS YOU label + FULL question (>120 chars, verbatim); options are NOT chips and appear once as buttons on expand", () => {
     setupTaskDetail(pendingDetail());
     render(<KanbanBreakpointPanel run={makeNeedsYouRun({ driver: "none" })} />);
 
@@ -75,8 +79,18 @@ describe("KanbanBreakpointPanel (SPEC-vibekanban §5, Wave 3)", () => {
     expect(screen.getByText("Needs you")).toBeInTheDocument();
     expect(screen.getByText(QUESTION)).toBeInTheDocument();
 
-    const chips = screen.getAllByTestId("kanban-bp-option-chip");
-    expect(chips.map((c) => c.textContent)).toEqual(OPTIONS);
+    // No gold chips anywhere (superseded §13.3 chip rule).
+    expect(screen.queryAllByTestId("kanban-bp-option-chip")).toHaveLength(0);
+    // Options are not on the collapsed card at all.
+    for (const option of OPTIONS) {
+      expect(screen.queryByTestId(`option-btn-${option}`)).not.toBeInTheDocument();
+    }
+
+    // Expand the answer panel — each option now appears exactly once, as a button.
+    fireEvent.click(screen.getByTestId("kanban-bp-answer-toggle"));
+    for (const option of OPTIONS) {
+      expect(screen.getAllByTestId(`option-btn-${option}`)).toHaveLength(1);
+    }
   });
 
   it("asks the task-detail endpoint for the pending breakpoint effect (GET-only data source)", () => {
