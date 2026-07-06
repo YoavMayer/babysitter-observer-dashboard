@@ -2,7 +2,13 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { promises as fs } from "fs";
 import path from "path";
 import os from "os";
-import { getDriverLiveness, deriveLivenessFromActivity } from "../liveness";
+import {
+  getDriverLiveness,
+  deriveLivenessFromActivity,
+  parseSleepWakeAt,
+  isSleepingScheduled,
+  deriveScheduledLiveness,
+} from "../liveness";
 
 describe("getDriverLiveness", () => {
   let dir: string;
@@ -95,5 +101,57 @@ describe("deriveLivenessFromActivity", () => {
 
   it("a non-positive freshness window disables activity promotion", () => {
     expect(deriveLivenessFromActivity("none", iso(1), 0, NOW)).toBe("none");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// §15.1 (owner gate 2026-07-06b, model A) — scheduled (sleeping forever-run)
+// detection. Pure helpers, now-injectable (AC-83).
+// ---------------------------------------------------------------------------
+
+describe("parseSleepWakeAt (§15.1 AC-83)", () => {
+  it("parses sleep:<ISO> out of the label", () => {
+    expect(parseSleepWakeAt("sleep:2026-07-06T03:00:00.000Z", undefined)).toBe(
+      "2026-07-06T03:00:00.000Z"
+    );
+  });
+  it("parses sleep:<ISO> out of the stepId when the label lacks it", () => {
+    expect(parseSleepWakeAt("nightly-finalize", "sleep:2026-07-06T03:00:00.000Z")).toBe(
+      "2026-07-06T03:00:00.000Z"
+    );
+  });
+  it("returns null when no field carries a parseable sleep token", () => {
+    expect(parseSleepWakeAt("just a label", "step-1")).toBeNull();
+    expect(parseSleepWakeAt(undefined, undefined)).toBeNull();
+    expect(parseSleepWakeAt("sleep:not-a-date", undefined)).toBeNull();
+  });
+});
+
+describe("isSleepingScheduled (§15.1 AC-83)", () => {
+  it("true only when the newest event is an EFFECT_REQUESTED of kind sleep", () => {
+    expect(isSleepingScheduled({ type: "EFFECT_REQUESTED", kind: "sleep" })).toBe(true);
+  });
+  it("false for a resolved sleep (newest event is EFFECT_RESOLVED)", () => {
+    expect(isSleepingScheduled({ type: "EFFECT_RESOLVED", kind: "sleep" })).toBe(false);
+  });
+  it("false for a non-sleep requested effect and for undefined", () => {
+    expect(isSleepingScheduled({ type: "EFFECT_REQUESTED", kind: "agent" })).toBe(false);
+    expect(isSleepingScheduled(undefined)).toBe(false);
+  });
+});
+
+describe("deriveScheduledLiveness (§15.1 AC-83/86)", () => {
+  const sleeping = { type: "EFFECT_REQUESTED", kind: "sleep" };
+  it("returns 'scheduled' over the no-lock 'none' fallback", () => {
+    expect(deriveScheduledLiveness("none", sleeping)).toBe("scheduled");
+  });
+  it("returns 'scheduled' over a dead-lock 'orphaned' verdict", () => {
+    expect(deriveScheduledLiveness("orphaned", sleeping)).toBe("scheduled");
+  });
+  it("a genuinely live lock still wins (attached orchestrator mid-sleep)", () => {
+    expect(deriveScheduledLiveness("live", sleeping)).toBeNull();
+  });
+  it("returns null when the newest event is not a sleep effect", () => {
+    expect(deriveScheduledLiveness("none", { type: "EFFECT_RESOLVED", kind: "sleep" })).toBeNull();
   });
 });

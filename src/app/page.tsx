@@ -35,6 +35,8 @@ const BOARD_COLUMN_KEYS: ReadonlySet<string> = new Set([
 const TAIL_LIST_FILTER: Record<BoardGroupKey, DashboardStatusFilter> = {
   needsyou: "needsyou",
   waiting: "waiting",
+  // §15.1: no dedicated "scheduled" list filter/pill — open the full list.
+  scheduled: "all",
   stalled: "orphaned",
   done: "completed",
 };

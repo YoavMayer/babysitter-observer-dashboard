@@ -135,8 +135,9 @@ describe("computeReconciledCounts — the invariant holds by construction", () =
       // Hidden needs-you → surfaced (fromHidden).
       makeRun({ projectName: "home", pendingBreakpoints: 1 }),
       makeRun({ projectName: "home", recordedAwaitingResume: true, pendingBreakpoints: 0 }),
-      // Hidden live working run → NOT surfaced in wave 1 (hiddenCollapsed for
-      // needs-you scope it is not; it is simply out of the visible working pill).
+      // §15.1 model A: a hidden live working run now SURFACES into Working
+      // (fromHidden), disclosed via "(N from hidden)" (AC-75). SUPERSEDES the
+      // wave-1 "hidden live run excluded from the visible Working pill".
       makeRun({ projectName: "home", status: "waiting", driver: "live" }),
       // Visible completed.
       makeRun({ projectName: "visible", status: "completed" }),
@@ -148,12 +149,13 @@ describe("computeReconciledCounts — the invariant holds by construction", () =
     expect(counts.needsyou.pill).toBe(3);
     expect(counts.needsyou.column).toBe(1);
     expect(counts.needsyou.fromHidden).toBe(2);
-    // waiting (visible-scope): the hidden live run is excluded; the visible
-    // needs-you run matches the non-stale-in-progress predicate but is absorbed
-    // UP into Needs-you (column 0, underNeedsYou 1) — the workingOverflow case.
-    expect(counts.waiting.pill).toBe(1);
+    // waiting: the visible needs-you run is absorbed UP into Needs-you
+    // (underNeedsYou 1); the hidden live run surfaces into Working (fromHidden
+    // 1). pill = 0 column + 1 underNeedsYou + 1 fromHidden = 2.
+    expect(counts.waiting.pill).toBe(2);
     expect(counts.waiting.column).toBe(0);
     expect(counts.waiting.underNeedsYou).toBe(1);
+    expect(counts.waiting.fromHidden).toBe(1);
     // total (visible-scope): visible needs-you + visible completed = 2.
     expect(counts.all.pill).toBe(2);
     // completed (visible-scope): 1.
@@ -205,5 +207,89 @@ describe("computeReconciledCounts — the invariant holds by construction", () =
     expect(counts.needsyou.fromHidden).toBe(7);
     // 4 visible surface in the needs-you column.
     expect(counts.needsyou.column).toBe(4);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// §15.1 (owner gate 2026-07-06b, model A) — scheduled (sleeping forever-run)
+// classification (AC-84/85/86) + reconciliation with hidden-live surfaced.
+// A run whose newest journal event is an unresolved sleep effect is parsed with
+// driver "scheduled" (see parser/liveness); the classifier here consumes that.
+// ---------------------------------------------------------------------------
+
+describe("classifyRun — scheduled (sleeping forever-run) §15.1", () => {
+  it("AC-86: wc26-nightly-finalize (driver scheduled, no lock) classifies scheduled, absent from Working and dead-orphaned", () => {
+    const c = classifyRun(
+      makeRun({
+        runId: "01KW7VKP20HJ6AJXFBWDR75PN2",
+        projectName: "wc26-pool",
+        status: "waiting",
+        driver: "scheduled",
+      })
+    );
+    expect(c.scheduled).toBe(true);
+    expect(c.column).toBe("scheduled");
+    // Its own treatment — NEITHER Working NOR dead-orphaned NOR stale.
+    expect(c.working).toBe(false);
+    expect(c.orphaned).toBe(false);
+    expect(c.stale).toBe(false);
+    expect(c.needsYou).toBe(false);
+  });
+
+  it("AC-84: a scheduled run does NOT inflate orphaned/stale/waiting counts", () => {
+    const runs = [
+      makeRun({ projectName: "wc26-pool", status: "waiting", driver: "scheduled" }),
+      // A genuinely stalled run (stale + no lock) — the ONLY thing that should
+      // register on the orphaned/stale pills.
+      makeRun({ projectName: "vis", status: "waiting", driver: "none", isStale: true }),
+    ];
+    const counts = assertInvariant(runs);
+    expect(counts.orphaned.pill).toBe(1); // only the genuine stalled run
+    expect(counts.stale.pill).toBe(1);
+    expect(counts.waiting.pill).toBe(0); // scheduled run is NOT "working"
+    // And the scheduled run is not needs-you either.
+    expect(counts.needsyou.pill).toBe(0);
+  });
+
+  it("AC-85: an overdue scheduled run (isStale flagged upstream would still) stays scheduled, never stale", () => {
+    // Even if a stale flag leaked in, scheduled precedence keeps it off Stalled.
+    const c = classifyRun(
+      makeRun({ status: "waiting", driver: "scheduled", isStale: true })
+    );
+    expect(c.column).toBe("scheduled");
+    expect(c.stale).toBe(false);
+    expect(c.scheduled).toBe(true);
+  });
+});
+
+describe("computeReconciledCounts — hidden-live surfaced into Working + scheduled (§15.1 model A)", () => {
+  it("AC-75: hidden live runs surface into the Working pill via fromHidden; the invariant holds", () => {
+    const hidden = new Set(["home"]);
+    const runs = [
+      // 1 visible working (column) + 2 hidden live working (fromHidden).
+      makeRun({ projectName: "vis", status: "waiting", driver: "live" }),
+      makeRun({ projectName: "home", status: "waiting", driver: "live" }),
+      makeRun({ projectName: "home", status: "waiting", driver: "live" }),
+      // A hidden scheduled run stays OUT of the Working pill (its own column).
+      makeRun({ projectName: "home", status: "waiting", driver: "scheduled" }),
+    ];
+    const counts = assertInvariant(runs, hidden);
+    // Working pill = 1 visible + 2 surfaced hidden = 3, with 2 disclosed as from-hidden.
+    expect(counts.waiting.pill).toBe(3);
+    expect(counts.waiting.column).toBe(1);
+    expect(counts.waiting.fromHidden).toBe(2);
+    // The hidden scheduled run never inflates the Working pill.
+    expect(counts.waiting.underNeedsYou).toBe(0);
+  });
+
+  it("AC-76: Total tile stays visible-scope — hidden surfaced runs do NOT inflate it", () => {
+    const hidden = new Set(["home"]);
+    const runs = [
+      makeRun({ projectName: "vis", status: "completed" }),
+      makeRun({ projectName: "home", status: "waiting", driver: "live" }), // surfaced, not in Total
+      makeRun({ projectName: "home", pendingBreakpoints: 1 }), // surfaced needs-you, not in Total
+    ];
+    const counts = assertInvariant(runs, hidden);
+    expect(counts.all.pill).toBe(1); // only the visible completed run
   });
 });

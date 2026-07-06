@@ -39,11 +39,25 @@ export type RunLiveness = "live" | "orphaned" | "none" | "scheduled";
  */
 export type BoardColumnKey =
   | "needsyou"
+  | "scheduled"
   | "orphaned"
   | "waiting"
   | "stale"
   | "failed"
   | "completed";
+
+/**
+ * §15.1 (owner gate 2026-07-06b, model A): the board columns that STILL surface
+ * runs from grid-hidden projects (with an EyeOff marker + a "(N from hidden)"
+ * disclosure). Hidden approvals are never dropped (needsyou), hidden live runs
+ * surface into Working (AC-75), and hidden sleeping runs surface as scheduled
+ * (AC-87 microcopy). Every OTHER column stays collapsed for hidden projects.
+ */
+export const HIDDEN_SURFACED_COLUMNS: ReadonlySet<BoardColumnKey> = new Set<BoardColumnKey>([
+  "needsyou",
+  "waiting",
+  "scheduled",
+]);
 
 /**
  * Per-run classification — §15.4. `flags` are OVERLAPPING predicates (a run can
@@ -136,9 +150,12 @@ export function classifyRun(
   const hidden = options.hiddenProjects?.has(run.projectName ?? "") === true;
   const terminal = run.status === "completed" || run.status === "failed";
   const needsYou = isNeedsYou(run);
-  const orphaned = !terminal && isOrphanedBucket(run, liveness) && !needsYou;
-  const stale = isStaleBucket(run) && !needsYou && !orphaned;
+  // §15.1 (AC-86): a scheduled (sleeping) run is its OWN idle-healthy state —
+  // neither orphaned/dead nor working. It takes precedence over orphaned/stale/
+  // working so a healthy forever-run is never misread (AC-84/85).
   const scheduled = !terminal && liveness === "scheduled" && !needsYou;
+  const orphaned = !terminal && isOrphanedBucket(run, liveness) && !needsYou && !scheduled;
+  const stale = isStaleBucket(run) && !needsYou && !orphaned && !scheduled;
   const working =
     !terminal &&
     run.isStale !== true &&
@@ -148,9 +165,10 @@ export function classifyRun(
   const live = liveness === "live";
 
   // Disjoint column: first match in precedence order. Total (never unassigned):
-  // a non-terminal run always matches one of rows 1–4; terminal rows 5–6.
+  // a non-terminal run always matches one of rows 1–5; terminal rows 6–7.
   let column: BoardColumnKey;
   if (needsYou) column = "needsyou";
+  else if (scheduled) column = "scheduled";
   else if (isOrphanedBucket(run, liveness) && !terminal) column = "orphaned";
   else if (!terminal && run.isStale !== true) column = "waiting";
   else if (run.isStale === true) column = "stale";
@@ -228,7 +246,10 @@ interface PillSpec {
 const PILL_SPECS: Record<PillStatus, PillSpec> = {
   all: { predicate: () => true, scope: "visible", hostColumn: null },
   waiting: {
-    predicate: (r) => isNonTerminal(r) && r.isStale !== true,
+    // §15.1: a scheduled (sleeping) run is non-terminal + non-stale but is NOT
+    // "working" (AC-86) — exclude it from the Working pill so it never inflates
+    // in-progress counts.
+    predicate: (r, l) => isNonTerminal(r) && r.isStale !== true && l !== "scheduled",
     scope: "visible",
     hostColumn: "waiting",
   },
@@ -292,15 +313,21 @@ export function computeReconciledCounts(
 
     for (const { run, c } of classified) {
       if (!spec.predicate(run, liveness(run))) continue;
-      // Scope gate — visible-scope pills exclude hidden runs entirely (AC-76).
-      if (spec.scope === "visible" && c.hidden) continue;
 
       if (c.hidden) {
-        // Only reachable for all-scope pills (needs-you). A hidden run is
-        // "surfaced" on the board iff its disjoint column is one the board
-        // keeps for hidden projects — wave 1: only Needs-you (§6.3 / model A).
-        if (c.column === "needsyou") fromHidden += 1;
-        else hiddenCollapsed += 1;
+        // §15.1 model A (AC-71/75/87): a hidden-project run is SURFACED on the
+        // board — counting into this pill's "(N from hidden)" delta — iff this
+        // pill's host column is one the board keeps for hidden projects AND the
+        // run actually lands there (needsyou approvals, working live, scheduled
+        // sleeping). Otherwise it stays collapsed: disclosed for all-scope
+        // pills, silently excluded for visible-scope pills (AC-76).
+        const surfaced =
+          spec.hostColumn !== null &&
+          HIDDEN_SURFACED_COLUMNS.has(spec.hostColumn) &&
+          c.column === spec.hostColumn;
+        if (surfaced) fromHidden += 1;
+        else if (spec.scope === "all") hiddenCollapsed += 1;
+        // visible-scope, non-surfaced hidden run → excluded entirely.
       } else if (status !== "needsyou" && c.column === "needsyou") {
         // Visible run absorbed UP into Needs-you by precedence (AC-72).
         underNeedsYou += 1;

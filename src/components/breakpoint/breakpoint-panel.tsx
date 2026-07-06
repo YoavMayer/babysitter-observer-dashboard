@@ -21,7 +21,7 @@ interface BreakpointPanelProps {
    * down from the run-detail page. Drives the honest orphaned-semantics line
    * and the post-submit confirmation copy (AC-44/AC-45).
    */
-  runDriver?: "live" | "orphaned" | "none";
+  runDriver?: "live" | "orphaned" | "none" | "scheduled";
 }
 
 export function BreakpointPanel({ task, runId, runDriver }: BreakpointPanelProps) {

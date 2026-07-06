@@ -346,6 +346,51 @@ describe('parser', () => {
       expect(run.failedTasks).toBe(0);
     });
 
+    it('§15.1 AC-83: a run whose newest event is an unresolved sleep effect parses as driver "scheduled", never stale, with the wake time', async () => {
+      // Real shape: RUN_CREATED then an unresolved sleep EFFECT_REQUESTED whose
+      // label carries `sleep:<ISO>` (wc26 nightly-finalize). recordedAt is very
+      // old so, absent the scheduled guard, it WOULD be flagged stale.
+      mockReadFile.mockImplementation(async (filePath: any) => {
+        const p = filePath.toString();
+        if (p.endsWith('run.json')) return JSON.stringify({ processId: 'nightly-finalize' });
+        if (p.includes('000001')) {
+          return JSON.stringify(
+            makeRunCreatedRaw('run-sleep', 'nightly-finalize', '2024-01-15T10:00:00Z'),
+          );
+        }
+        if (p.includes('000002')) {
+          return JSON.stringify(
+            makeEffectRequestedRaw(
+              'sleep-1',
+              'sleep',
+              'sleep:2024-01-15T11:00:00.000Z',
+              '2024-01-15T10:00:01Z',
+            ),
+          );
+        }
+        if (p.includes(path.join('tasks', 'sleep-1', 'task.json'))) {
+          return JSON.stringify({ title: 'sleep', kind: 'sleep' });
+        }
+        throw new Error('ENOENT');
+      });
+      mockAccess.mockImplementation(async (p: any) => {
+        if (p.toString().includes('journal')) return undefined;
+        throw new Error('ENOENT');
+      });
+      mockReaddir.mockImplementation(async (dir: any) => {
+        const d = typeof dir === 'string' ? dir : dir.toString();
+        if (d.includes('journal')) return ['000001.A.json', '000002.B.json'] as any;
+        return [];
+      });
+
+      const run = await parseRunDir('/runs/run-sleep');
+
+      expect(run.status).toBe('waiting');
+      expect(run.driver).toBe('scheduled');
+      expect(run.isStale).toBeFalsy();
+      expect(run.sleepWakeAt).toBe('2024-01-15T11:00:00.000Z');
+    });
+
     it('computes duration from created to completed event', async () => {
       setupCompleteRun();
 

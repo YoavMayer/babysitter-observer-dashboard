@@ -57,7 +57,7 @@ interface TaskDetailPanelProps {
   runDuration?: number;
   allTasks?: import("@/types").TaskEffect[];
   /** UX-R2 §13.4: run driver liveness, threaded to the breakpoint panel. */
-  runDriver?: "live" | "orphaned" | "none";
+  runDriver?: "live" | "orphaned" | "none" | "scheduled";
 }
 
 export function TaskDetailPanel({ runId, effectId, activeTab, onTabChange, runDuration, allTasks, runDriver }: TaskDetailPanelProps) {

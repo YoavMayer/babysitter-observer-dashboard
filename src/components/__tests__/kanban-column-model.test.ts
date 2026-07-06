@@ -75,8 +75,12 @@ function makeLightRun(overrides: Partial<LightRun> = {}): LightRun {
   } as LightRun;
 }
 
+// §15.1 (owner gate 2026-07-06b, model A): a first-class "scheduled" bucket for
+// sleeping forever-runs is inserted after needsyou (its own idle-healthy column,
+// never pooled with Stalled). SUPERSEDES the wave-1 six-bucket order.
 const EXPECTED_ORDER: BoardColumnKey[] = [
   "needsyou",
+  "scheduled",
   "orphaned",
   "waiting",
   "stale",
@@ -297,7 +301,7 @@ describe("column-model (SPEC-vibekanban §3 / §10)", () => {
   // -------------------------------------------------------------------------
   // AC-9
   // -------------------------------------------------------------------------
-  it("AC-9: hiddenProjects rule — hidden runs excluded from all columns EXCEPT needsyou, where they are retained and flagged hiddenProject:true", () => {
+  it("AC-9 (§15.1 model A, owner gate 2026-07-06b): hidden runs surface into needsyou + Working (live) flagged hiddenProject, collapse elsewhere", () => {
     const hidden = new Set(["secret-project"]);
     const hiddenBreakpoint = makeLightRun({
       runId: "01KTESTHIDDENBP000000001",
@@ -366,15 +370,22 @@ describe("column-model (SPEC-vibekanban §3 / §10)", () => {
     expect(partition.needsyou.map((r) => r.runId)).toEqual([hiddenBreakpoint.runId]);
     expect(partition.needsyou[0].hiddenProject).toBe(true);
 
-    // Every other column excludes hidden-project runs.
+    // §15.1 model A: the hidden LIVE run now SURFACES into Working alongside the
+    // visible one (both present; order by updatedAt DESC then runId).
+    expect(new Set(partition.waiting.map((r) => r.runId))).toEqual(
+      new Set([visibleWorking.runId, hiddenWorking.runId])
+    );
+    const surfacedWorking = partition.waiting.find((r) => r.runId === hiddenWorking.runId);
+    expect(surfacedWorking?.hiddenProject).toBe(true);
+    const visibleInWorking = partition.waiting.find((r) => r.runId === visibleWorking.runId);
+    expect(visibleInWorking?.hiddenProject).not.toBe(true);
+
+    // The non-surfaced columns still collapse hidden orphaned/stale/done runs.
+    expect(partition.scheduled).toEqual([]);
     expect(partition.orphaned).toEqual([]);
     expect(partition.stale).toEqual([]);
     expect(partition.failed).toEqual([]);
     expect(partition.completed).toEqual([]);
-    expect(partition.waiting.map((r) => r.runId)).toEqual([visibleWorking.runId]);
-
-    // Visible runs are not flagged.
-    expect(partition.waiting[0].hiddenProject).not.toBe(true);
   });
 
   // -------------------------------------------------------------------------
@@ -518,10 +529,12 @@ describe("groupColumns (UX-R2 §13.2b / AC-35)", () => {
   const T1 = "2026-07-02T10:00:00.000Z";
   const T2 = "2026-07-03T10:00:00.000Z";
 
-  it("GROUP_ORDER is the §13.6 amended AC-12 order and GROUP_HOST maps every bucket to its host", () => {
-    expect(GROUP_ORDER).toEqual(["needsyou", "waiting", "stalled", "done"]);
+  it("GROUP_ORDER is the §13.6/§15.1 order and GROUP_HOST maps every bucket to its host", () => {
+    // §15.1: Scheduled is its own display column between Working and Stalled.
+    expect(GROUP_ORDER).toEqual(["needsyou", "waiting", "scheduled", "stalled", "done"]);
     expect(GROUP_HOST).toEqual({
       needsyou: "needsyou",
+      scheduled: "scheduled",
       orphaned: "stalled",
       waiting: "waiting",
       stale: "stalled",

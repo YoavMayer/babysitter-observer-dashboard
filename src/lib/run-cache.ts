@@ -270,7 +270,13 @@ export function getProjectSummaries(): ProjectSummary[] {
     existing.totalTasks += entry.digest.taskCount || 0;
     existing.completedTasksAggregate += entry.digest.completedTasks || 0;
 
-    if ((entry.digest.status === "waiting" || entry.digest.status === "pending") && !entry.digest.isStale) {
+    if (
+      (entry.digest.status === "waiting" || entry.digest.status === "pending") &&
+      !entry.digest.isStale &&
+      // §15.1 (AC-84): a sleeping "scheduled" run is idle-healthy, not actively
+      // progressing — keep it out of the active-runs aggregate.
+      entry.digest.driver !== "scheduled"
+    ) {
       existing.activeRuns++;
     } else if (entry.digest.status === "completed") {
       existing.completedRuns++;

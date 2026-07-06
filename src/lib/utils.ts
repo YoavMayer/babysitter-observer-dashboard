@@ -46,6 +46,41 @@ export function formatRelativeTime(iso: string | undefined): string {
   }
 }
 
+/**
+ * §15.1 AC-87 (owner gate 2026-07-06b, model A): the ONE explanatory line the
+ * hide affordance shows — on the grid EyeOff control AND the settings-modal
+ * hidden-projects section — so a user knows hiding is quiet-but-not-silent.
+ * Verbatim intent; single source so both surfaces stay identical.
+ */
+export const HIDE_AFFORDANCE_MICROCOPY =
+  "Hidden projects are removed from the grid but still alarm you for approvals and surface live/scheduled runs (shown with the 👁 marker and a '(N from hidden)' count).";
+
+/**
+ * §15.1 (AC-84/85): relative wake-time phrasing for a scheduled (sleeping)
+ * forever-run. Returns whether the wake time has PASSED (overdue) and a short
+ * magnitude string ("3h", "17h", "2d"). Pure — `now` is injectable for tests.
+ */
+export function formatWakeRelative(
+  iso: string | undefined,
+  now: number = Date.now()
+): { overdue: boolean; text: string } {
+  if (!iso) return { overdue: false, text: "" };
+  const t = new Date(iso).getTime();
+  if (!Number.isFinite(t)) return { overdue: false, text: "" };
+  const diff = t - now; // > 0 future wake; <= 0 overdue
+  const overdue = diff <= 0;
+  const abs = Math.abs(diff);
+  const magnitude =
+    abs < 60000
+      ? "<1m"
+      : abs < 3600000
+        ? `${Math.floor(abs / 60000)}m`
+        : abs < 86400000
+          ? `${Math.floor(abs / 3600000)}h`
+          : `${Math.floor(abs / 86400000)}d`;
+  return { overdue, text: overdue ? `${magnitude} ago` : `in ${magnitude}` };
+}
+
 export function truncateId(id: string, len: number = 12): string {
   if (!id) return "\u2014";
   if (id.length <= len) return id;

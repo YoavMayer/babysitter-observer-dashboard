@@ -130,8 +130,16 @@ export interface Run {
   projectName?: string;
   isStale?: boolean;
   waitingKind?: 'breakpoint' | 'task';
-  /** Orchestrator attachment (read from run.lock + pid liveness). */
-  driver?: 'live' | 'orphaned' | 'none';
+  /** Orchestrator attachment (read from run.lock + pid liveness).
+   *  §15.1: "scheduled" = a sleeping forever-run between ticks (newest journal
+   *  event is an unresolved `sleep` effect) — idle-healthy, not orphaned. */
+  driver?: 'live' | 'orphaned' | 'none' | 'scheduled';
+  /**
+   * §15.1 (AC-84/85): when `driver === "scheduled"`, the parsed wake time
+   * (`sleep:<ISO>`) from the sleep effect. Future → calm "next run <rel>";
+   * past → amber "wake overdue <rel> — resume". Absent otherwise.
+   */
+  sleepWakeAt?: string;
   /**
    * UX-R3 §14.5 (AC-59): the observer recorded an answer for a breakpoint
    * (result.json written by "observer-dashboard") but the run has NOT been
@@ -162,8 +170,9 @@ export interface RunDigest {
   projectName?: string;
   isStale?: boolean;
   waitingKind?: 'breakpoint' | 'task';
-  /** Orchestrator attachment (read from run.lock + pid liveness). */
-  driver?: 'live' | 'orphaned' | 'none';
+  /** Orchestrator attachment (read from run.lock + pid liveness).
+   *  §15.1: "scheduled" = sleeping forever-run between ticks (idle-healthy). */
+  driver?: 'live' | 'orphaned' | 'none' | 'scheduled';
 }
 
 // Project grouping for dashboard
@@ -191,7 +200,7 @@ export interface BreakpointRunInfo {
    */
   breakpointQuestion?: string;
   /** Orchestrator attachment — whether an answer can actually be applied now. */
-  driver?: 'live' | 'orphaned' | 'none';
+  driver?: 'live' | 'orphaned' | 'none' | 'scheduled';
 }
 
 // Project summary (lightweight, no run payloads)

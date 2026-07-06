@@ -7,7 +7,24 @@ import {
   getStatusBg,
   formatShortId,
   friendlyProcessName,
+  formatWakeRelative,
 } from '../utils';
+
+describe('formatWakeRelative (§15.1 AC-84/85)', () => {
+  const now = Date.UTC(2026, 6, 6, 12, 0, 0); // 2026-07-06T12:00:00Z
+  it('a future wake reads "in <rel>" and is not overdue', () => {
+    const iso = new Date(now + 3 * 3_600_000).toISOString();
+    expect(formatWakeRelative(iso, now)).toEqual({ overdue: false, text: 'in 3h' });
+  });
+  it('a past wake reads "<rel> ago" and is overdue', () => {
+    const iso = new Date(now - 17 * 3_600_000).toISOString();
+    expect(formatWakeRelative(iso, now)).toEqual({ overdue: true, text: '17h ago' });
+  });
+  it('undefined / unparseable input yields an empty, non-overdue result', () => {
+    expect(formatWakeRelative(undefined, now)).toEqual({ overdue: false, text: '' });
+    expect(formatWakeRelative('not-a-date', now)).toEqual({ overdue: false, text: '' });
+  });
+});
 
 describe('formatDuration', () => {
   it('returns dash for null/undefined', () => {

@@ -1,6 +1,13 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { getDriverLiveness, deriveLivenessFromActivity } from "./liveness";
+import {
+  getDriverLiveness,
+  deriveLivenessFromActivity,
+  deriveScheduledLiveness,
+  isSleepingScheduled,
+  parseSleepWakeAt,
+  type DriverLiveness,
+} from "./liveness";
 
 /** Return true when err represents a "file/directory not found" filesystem error. */
 function isNotFoundError(err: unknown): boolean {
@@ -442,13 +449,33 @@ export async function parseRunDir(
 
   const runNonTerminal = !runCompleted && !runFailed;
 
+  // §15.1 (AC-83): sleeping forever-run detection. A never-ending run parks
+  // between ticks by REQUESTING a `sleep` effect and not resolving it, so its
+  // NEWEST journal event is that unresolved sleep — the on-disk signal for a
+  // first-class idle-healthy "scheduled" state (not orphaned/stale). The wake
+  // time is encoded in the effect's label/stepId as `sleep:<ISO>`.
+  const newestPayload = (lastEvent?.payload ?? {}) as Record<string, unknown>;
+  const newestEvent = {
+    type: lastEvent?.type,
+    kind: newestPayload.kind as string | undefined,
+  };
+  const scheduledDetected = runNonTerminal && isSleepingScheduled(newestEvent);
+  const sleepWakeAt = scheduledDetected
+    ? parseSleepWakeAt(
+        newestPayload.label as string | undefined,
+        newestPayload.stepId as string | undefined
+      ) ?? undefined
+    : undefined;
+
   // Load config once — its staleThresholdMs bounds BOTH staleness and the
   // in-progress liveness window (one documented, env-overridable source).
   const config = await getConfig();
 
-  // Detect staleness for waiting or pending runs.
+  // Detect staleness for waiting or pending runs. §15.1 (AC-84): a scheduled
+  // (sleeping) run is idle-HEALTHY — never flag it stale, so it can never
+  // inflate the stale/orphaned counts nor land in the Stalled column.
   let isStale: boolean | undefined;
-  if (runNonTerminal && updatedAt) {
+  if (runNonTerminal && updatedAt && !scheduledDetected) {
     const timeSinceUpdate = Date.now() - new Date(updatedAt).getTime();
     if (timeSinceUpdate > config.staleThresholdMs) {
       isStale = true;
@@ -466,10 +493,17 @@ export async function parseRunDir(
   // deriveLivenessFromActivity). Gated on !isStale so the all-resolved-orphan
   // rule above still reads as no-live-driver; terminal runs keep the lock verdict.
   const lockLiveness = await getDriverLiveness(runPath);
-  const driver =
-    runNonTerminal && isStale !== true
+  // §15.1 (AC-83/86): "scheduled" takes precedence over the no-live-driver
+  // fallback AND over activity-derived "live" (a sleeping run is not actively
+  // progressing) — but a genuinely live lock still wins (deriveScheduledLiveness).
+  const scheduledLiveness = scheduledDetected
+    ? deriveScheduledLiveness(lockLiveness, newestEvent)
+    : null;
+  const driver: DriverLiveness =
+    scheduledLiveness ??
+    (runNonTerminal && isStale !== true
       ? deriveLivenessFromActivity(lockLiveness, updatedAt, config.activeThresholdMs ?? config.staleThresholdMs)
-      : lockLiveness;
+      : lockLiveness);
 
   // UX-R3 §14.5 (AC-59): answered-but-unapplied detection. The observer's
   // approve action writes result.json (value.approvedBy "observer-dashboard")
@@ -543,6 +577,7 @@ export async function parseRunDir(
     isStale,
     waitingKind,
     driver,
+    sleepWakeAt,
     recordedAwaitingResume,
     recordedBreakpointEffectId,
     _journalFileCount: journalResult.fileCount,
@@ -666,6 +701,9 @@ export async function getRunDigest(runPath: string): Promise<RunDigest> {
   const breakpointEffectIds = new Set<string>();
   // Track requested effects and their kinds for waitingKind determination
   const requestedEffects: Array<{ effectId: string; kind: string }> = [];
+  // §15.1: newest journal event type/kind for sleeping-forever-run detection.
+  let newestType: string | undefined;
+  let newestKind: string | undefined;
 
   if (await fileExists(journalPath)) {
     const files = await fs.readdir(journalPath);
@@ -687,6 +725,9 @@ export async function getRunDigest(runPath: string): Promise<RunDigest> {
       const event = normalizeJournalEvent(raw, jsonFiles[i]);
       if (!event) continue;
       updatedAt = event.ts;
+      // Files are sorted ascending, so the last processed event is the newest.
+      newestType = event.type;
+      newestKind = (event.payload as Record<string, unknown>).kind as string | undefined;
       if (event.type === "EFFECT_REQUESTED") {
         taskCount++;
         const data = event.payload as Record<string, unknown>;
@@ -797,8 +838,15 @@ export async function getRunDigest(runPath: string): Promise<RunDigest> {
   // bounds the in-progress liveness window below (one documented source).
   const nonTerminal = status === "waiting" || status === "pending";
   const config = await getConfig();
+
+  // §15.1 (AC-83/84): sleeping forever-run — newest event is an unresolved
+  // `sleep` effect → idle-healthy "scheduled", never flagged stale (mirrors
+  // parseRunDir so the board full-run and the digest badges agree).
+  const newestEvent = { type: newestType, kind: newestKind };
+  const scheduledDetected = nonTerminal && isSleepingScheduled(newestEvent);
+
   let isStale: boolean | undefined;
-  if (nonTerminal && updatedAt) {
+  if (nonTerminal && updatedAt && !scheduledDetected) {
     const timeSinceUpdate = Date.now() - new Date(updatedAt).getTime();
     if (timeSinceUpdate > config.staleThresholdMs) {
       isStale = true;
@@ -813,12 +861,17 @@ export async function getRunDigest(runPath: string): Promise<RunDigest> {
   // Driver liveness (UX-R3 wave 3): lock verdict promoted to "live" for a
   // non-terminal run with fresh journal activity — the honest in-progress
   // signal (see deriveLivenessFromActivity). Mirrors parseRunDir so the board
-  // (full run) and the badges (digest) agree. Gated on !isStale.
+  // (full run) and the badges (digest) agree. Gated on !isStale. §15.1:
+  // "scheduled" (sleeping) wins over both the no-driver fallback and "live".
   const lockLiveness = await getDriverLiveness(runPath);
-  const driver =
-    nonTerminal && isStale !== true
+  const scheduledLiveness = scheduledDetected
+    ? deriveScheduledLiveness(lockLiveness, newestEvent)
+    : null;
+  const driver: DriverLiveness =
+    scheduledLiveness ??
+    (nonTerminal && isStale !== true
       ? deriveLivenessFromActivity(lockLiveness, updatedAt, config.activeThresholdMs ?? config.staleThresholdMs)
-      : lockLiveness;
+      : lockLiveness);
 
   return {
     runId: path.basename(runPath),

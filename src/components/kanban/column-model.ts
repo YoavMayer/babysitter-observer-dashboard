@@ -15,6 +15,7 @@ import type { LightRun } from "@/lib/services/run-query-service";
 import {
   classifyRun,
   isOrphanedBucket as isOrphanedBucketRaw,
+  HIDDEN_SURFACED_COLUMNS,
   type BoardColumnKey,
   type RunLiveness,
 } from "@/lib/counting/run-classification";
@@ -43,6 +44,7 @@ function isOrphanedBucket(run: LightRun): boolean {
  */
 export const COLUMN_ORDER: BoardColumnKey[] = [
   "needsyou",
+  "scheduled",
   "orphaned",
   "waiting",
   "stale",
@@ -88,6 +90,7 @@ function sortByActivity(runs: LightRun[]): void {
 function emptyPartition(): BoardPartition {
   return {
     needsyou: [],
+    scheduled: [],
     orphaned: [],
     waiting: [],
     stale: [],
@@ -102,9 +105,12 @@ function emptyPartition(): BoardPartition {
  * as sortRuns "activity" mode (no visual jumping during the "morning chaos"
  * scenario), which is reused directly.
  *
- * hiddenProjects (SPEC §6.3 / QA F4): runs from registry-hidden projects are
- * excluded from every column EXCEPT Needs-you (alarm-surface parity with
- * allBreakpointRuns), where they are retained and flagged `hiddenProject: true`.
+ * hiddenProjects (SPEC §6.3 / §15.1 model A): runs from registry-hidden
+ * projects are excluded from most columns, but the board STILL surfaces the
+ * ones that must alarm/inform — Needs-you approvals, live Working runs (AC-75),
+ * and Scheduled sleeping runs (AC-87) — flagged `hiddenProject: true` so the
+ * card shows the EyeOff marker. Everything else (orphaned/stale/done) stays
+ * collapsed. The surfaced set is HIDDEN_SURFACED_COLUMNS (the single source).
  */
 export function partitionRuns(
   runs: LightRun[],
@@ -116,10 +122,11 @@ export function partitionRuns(
     const column = assignColumn(run);
     const hidden = hiddenProjects?.has(run.projectName ?? "") === true;
     if (hidden) {
-      // Needs-you is NEVER silently swallowed by hiddenProjects; everything
-      // else follows grid parity and is excluded from the board.
-      if (column !== "needsyou") continue;
-      partition.needsyou.push({ ...run, hiddenProject: true });
+      // Model A: surface only the columns the board keeps for hidden projects
+      // (needsyou/waiting/scheduled); collapse the rest. A surfaced card is
+      // flagged so it renders the EyeOff "hidden project" marker.
+      if (!HIDDEN_SURFACED_COLUMNS.has(column)) continue;
+      partition[column].push({ ...run, hiddenProject: true });
       continue;
     }
     partition[column].push(run);
@@ -140,24 +147,31 @@ export function partitionRuns(
 // groupColumns() is a pure display layer over it.
 // ---------------------------------------------------------------------------
 
-/** The four display columns the board renders (§13.2b order). */
-export type BoardGroupKey = "needsyou" | "waiting" | "stalled" | "done";
+/**
+ * The display columns the board renders (§13.2b order, extended by §15.1 with
+ * a first-class Scheduled column for sleeping forever-runs). Scheduled sits
+ * between Working and Stalled: it is idle-HEALTHY (not dead), so it must never
+ * pool with Stalled (AC-84/86).
+ */
+export type BoardGroupKey = "needsyou" | "waiting" | "scheduled" | "stalled" | "done";
 
-/** Display order per §13.6 amended AC-12: Needs you → Working → Stalled → Done. */
+/** Display order: Needs you → Working → Scheduled → Stalled → Done. */
 export const GROUP_ORDER: BoardGroupKey[] = [
   "needsyou",
   "waiting",
+  "scheduled",
   "stalled",
   "done",
 ];
 
 /**
- * Bucket → host display column (§13.2b): orphaned+stale host under Stalled,
- * failed+completed under Done. Used by the pill→column focus mapping — the
- * filter pills keep all six buckets.
+ * Bucket → host display column (§13.2b + §15.1): orphaned+stale host under
+ * Stalled, failed+completed under Done, scheduled is its own column. Used by
+ * the pill→column focus mapping — the filter pills keep the six status buckets.
  */
 export const GROUP_HOST: Record<BoardColumnKey, BoardGroupKey> = {
   needsyou: "needsyou",
+  scheduled: "scheduled",
   orphaned: "stalled",
   waiting: "waiting",
   stale: "stalled",
@@ -178,6 +192,8 @@ export function groupColumns(partition: BoardPartition): BoardGroups {
   return {
     needsyou: partition.needsyou,
     waiting: partition.waiting,
+    // §15.1: Scheduled is its own display column — never merged into Stalled.
+    scheduled: partition.scheduled,
     stalled: [...partition.orphaned, ...partition.stale],
     done: [...partition.failed, ...partition.completed],
   };
