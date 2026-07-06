@@ -53,7 +53,15 @@ import type { Manifest } from "../fixtures/test-data";
 // 4-column taxonomy + color map (SPEC §13.2 option b). Stalled hosts the
 // orphaned+stale buckets; Done hosts failed+completed. Pills stay 6-bucket.
 const COLUMN_KEYS = ["needsyou", "waiting", "stalled", "done"] as const;
-type ColumnKey = (typeof COLUMN_KEYS)[number];
+type ColumnKey = (typeof COLUMN_KEYS)[number] | "scheduled";
+
+// §15.1 (owner gate 2026-07-06b, AC-77 — Scheduled column participates in the
+// board total): the Scheduled column is the 5th board column, auto-hidden when
+// empty. It is deliberately NOT one of the 4 always-present COLUMN_KEYS, but it
+// MUST be summed into any board-TOTAL reconciliation (a run parked at an
+// unresolved sleep effect lives here, not in Working/Stalled). Use this set —
+// not COLUMN_KEYS — anywhere a test totals every board column.
+const TOTAL_COLUMN_KEYS = [...COLUMN_KEYS, "scheduled"] as const;
 
 // Existing shared fixture (read-only in this spec — see breakpoints.spec.ts).
 // It has NO run.lock => driver "none" => orphaned-driver Needs-you card (AC-16).
@@ -733,8 +741,11 @@ test.describe("Kanban board — hidden projects, junk, empty & overflow (SPEC-vi
 
         // Board counts exclude it: total card count across visible columns
         // equals the sum of the column header counts (no phantom entries).
+        // §15.1 AC-77 (owner gate 2026-07-06b): sum EVERY board column,
+        // INCLUDING the Scheduled column — a run parked at an unresolved sleep
+        // effect lives there, so excluding it drops it from the board total.
         let headerSum = 0;
-        for (const key of COLUMN_KEYS) {
+        for (const key of TOTAL_COLUMN_KEYS) {
           if ((await column(page, key).count()) === 0) continue;
           headerSum += await readCount(page, key);
         }

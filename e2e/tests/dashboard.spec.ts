@@ -114,12 +114,22 @@ test.describe("KPI Metric Tiles", () => {
   });
 
   test("KPI tile values sum correctly", async ({ dashboardPage }) => {
-    // The active + completed + failed should generally equal total
-    // (pending are included in active)
+    // Total-runs tile === grid run count, with scheduled runs present (§15.1
+    // AC-77: the Scheduled column participates in the board total, so the total
+    // tile still reconciles to the full grid count).
+    //
+    // The KPI tiles read the wave-1 single counting source (useAllRuns /
+    // /api/runs), which resolves INDEPENDENTLY of waitForData() (that awaits the
+    // project grid, fed by the digest). So the tile shows 0 until the async
+    // metric settles — poll the parsed value instead of racing a one-shot
+    // innerText read.
     const totalTile = dashboardPage.getMetricTile("total-runs");
-    const totalText = await totalTile.innerText();
-    const totalValue = parseInt(totalText.match(/\d+/)?.[0] || "0", 10);
-    expect(totalValue).toBe(gridRunCount());
+    await expect
+      .poll(async () => {
+        const digits = (await totalTile.innerText()).match(/\d+/)?.[0];
+        return digits ? parseInt(digits, 10) : null;
+      })
+      .toBe(gridRunCount());
   });
 });
 
