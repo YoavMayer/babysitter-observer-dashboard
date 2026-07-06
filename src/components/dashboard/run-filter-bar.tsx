@@ -115,7 +115,7 @@ export function RunFilterBar({
                   contradicts the board column; the difference is disclosed. */}
               {disclosure && (
                 <span
-                  data-testid={`filter-pill-${f.value}-disclosure`}
+                  data-testid={`pill-disclosure-${f.value}`}
                   className="text-[10px] leading-tight text-foreground-muted/80 tabular-nums"
                 >
                   ({disclosure})
