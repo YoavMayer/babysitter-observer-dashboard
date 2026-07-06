@@ -71,11 +71,14 @@ export function LivenessChip({ run }: { run: LightRun }) {
       // text (icon is decorative → a11y-icons-not-hidden).
       <span
         data-status-badge
+        // UX-R3 wave 3: "live" now means real in-progress evidence — a live
+        // run.lock OR recent journal activity within the freshness window (see
+        // deriveLivenessFromActivity). Copy states the honest signal, not a lock.
         className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold bg-status-alive-muted text-status-alive"
-        title="A live orchestrator is attached to this run"
+        title="In progress — recent activity means this run is actively being worked"
       >
         <Wifi className="h-3 w-3" aria-hidden="true" focusable="false" /> live
-        <span className="sr-only">: a live orchestrator is attached to this run</span>
+        <span className="sr-only">: in progress — recent activity means this run is actively being worked</span>
       </span>
     );
   }

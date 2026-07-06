@@ -80,6 +80,12 @@ export default defineConfig({
       OBSERVER_REGISTRY: path.resolve(__dirname, "e2e/fixtures/.observer-test.json"),
       PORT: String(testPort),
       OBSERVER_STALE_THRESHOLD_MS: "999999999999",
+      // UX-R3 wave 3 (in-progress indication): the in-progress "active" window
+      // is decoupled from the frozen-open stale window so the months-old static
+      // fixtures are NOT falsely marked "live" (they'd all become Working if the
+      // active window inherited the 31-year stale window). Pin a realistic 1h
+      // window: only a run whose newest journal event is <1h old reads as live.
+      OBSERVER_ACTIVE_THRESHOLD_MS: "3600000",
       // Test isolation: serve ONLY the fixture runs, never the real ~/.a5c/runs.
       OBSERVER_WATCH_EXCLUSIVE: "1",
       // Pin a very large retention window so the static fixtures (which carry

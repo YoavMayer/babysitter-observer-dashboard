@@ -1,6 +1,6 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { getDriverLiveness } from "./liveness";
+import { getDriverLiveness, deriveLivenessFromActivity } from "./liveness";
 
 /** Return true when err represents a "file/directory not found" filesystem error. */
 function isNotFoundError(err: unknown): boolean {
@@ -434,9 +434,42 @@ export async function parseRunDir(
     }
   }
 
-  // Driver liveness (run.lock + pid) — needed for both the return payload and
-  // the answered-but-unapplied derivation below.
-  const driver = await getDriverLiveness(runPath);
+  // createdAt / lastEvent / updatedAt — feed staleness, in-progress liveness,
+  // and duration (declared once here; do not re-declare below).
+  const createdAt = runCreated?.ts || "";
+  const lastEvent = events[events.length - 1];
+  const updatedAt = lastEvent?.ts || createdAt;
+
+  const runNonTerminal = !runCompleted && !runFailed;
+
+  // Load config once — its staleThresholdMs bounds BOTH staleness and the
+  // in-progress liveness window (one documented, env-overridable source).
+  const config = await getConfig();
+
+  // Detect staleness for waiting or pending runs.
+  let isStale: boolean | undefined;
+  if (runNonTerminal && updatedAt) {
+    const timeSinceUpdate = Date.now() - new Date(updatedAt).getTime();
+    if (timeSinceUpdate > config.staleThresholdMs) {
+      isStale = true;
+    }
+  }
+  // Detect orphaned runs: all tasks resolved but no terminal event
+  // (process likely crashed before writing RUN_COMPLETED).
+  if (status === "pending" && tasks.length > 0 && !tasks.some((t) => t.status === "requested")) {
+    isStale = true;
+  }
+
+  // Driver liveness (UX-R3 wave 3): the lock verdict (run.lock + pid), promoted
+  // to "live" for a non-terminal run with FRESH journal activity — the honest
+  // in-progress signal in an environment where run.lock is never written (see
+  // deriveLivenessFromActivity). Gated on !isStale so the all-resolved-orphan
+  // rule above still reads as no-live-driver; terminal runs keep the lock verdict.
+  const lockLiveness = await getDriverLiveness(runPath);
+  const driver =
+    runNonTerminal && isStale !== true
+      ? deriveLivenessFromActivity(lockLiveness, updatedAt, config.activeThresholdMs ?? config.staleThresholdMs)
+      : lockLiveness;
 
   // UX-R3 §14.5 (AC-59): answered-but-unapplied detection. The observer's
   // approve action writes result.json (value.approvedBy "observer-dashboard")
@@ -448,7 +481,6 @@ export async function parseRunDir(
   // run terminates → this clears). Only the FIRST such breakpoint is surfaced.
   let recordedAwaitingResume = false;
   let recordedBreakpointEffectId: string | undefined;
-  const runNonTerminal = !runCompleted && !runFailed;
   const noLiveDriver = driver === "orphaned" || driver === "none";
   if (runNonTerminal && noLiveDriver) {
     const resolvedBreakpointIds = tasks
@@ -478,9 +510,6 @@ export async function parseRunDir(
     }
   }
 
-  const createdAt = runCreated?.ts || "";
-  const lastEvent = events[events.length - 1];
-
   let duration: number | undefined;
   if (createdAt && (runCompleted || runFailed)) {
     const endTs = (runCompleted || runFailed)!.ts;
@@ -488,25 +517,6 @@ export async function parseRunDir(
   } else if (createdAt && lastEvent) {
     duration =
       new Date(lastEvent.ts).getTime() - new Date(createdAt).getTime();
-  }
-
-  // Detect staleness for waiting or pending runs
-  let isStale: boolean | undefined;
-  if (status === "waiting" || status === "pending") {
-    const updatedAtTs = lastEvent?.ts || createdAt;
-    if (updatedAtTs) {
-      const config = await getConfig();
-      const timeSinceUpdate = Date.now() - new Date(updatedAtTs).getTime();
-      if (timeSinceUpdate > config.staleThresholdMs) {
-        isStale = true;
-      }
-    }
-  }
-
-  // Detect orphaned runs: all tasks resolved but no terminal event
-  // (process likely crashed before writing RUN_COMPLETED)
-  if (status === "pending" && tasks.length > 0 && !tasks.some((t) => t.status === "requested")) {
-    isStale = true;
   }
 
   return {
@@ -517,7 +527,7 @@ export async function parseRunDir(
       "unknown",
     status,
     createdAt,
-    updatedAt: lastEvent?.ts || createdAt,
+    updatedAt,
     completedAt: (runCompleted || runFailed)?.ts,
     tasks,
     events,
@@ -783,15 +793,15 @@ export async function getRunDigest(runPath: string): Promise<RunDigest> {
     }
   }
 
-  // Detect staleness for waiting or pending runs
+  // Detect staleness for waiting or pending runs. Config's staleThresholdMs also
+  // bounds the in-progress liveness window below (one documented source).
+  const nonTerminal = status === "waiting" || status === "pending";
+  const config = await getConfig();
   let isStale: boolean | undefined;
-  if (status === "waiting" || status === "pending") {
-    if (updatedAt) {
-      const config = await getConfig();
-      const timeSinceUpdate = Date.now() - new Date(updatedAt).getTime();
-      if (timeSinceUpdate > config.staleThresholdMs) {
-        isStale = true;
-      }
+  if (nonTerminal && updatedAt) {
+    const timeSinceUpdate = Date.now() - new Date(updatedAt).getTime();
+    if (timeSinceUpdate > config.staleThresholdMs) {
+      isStale = true;
     }
   }
 
@@ -799,6 +809,16 @@ export async function getRunDigest(runPath: string): Promise<RunDigest> {
   if (status === "waiting" && taskCount > 0 && completedTasks >= taskCount) {
     isStale = true;
   }
+
+  // Driver liveness (UX-R3 wave 3): lock verdict promoted to "live" for a
+  // non-terminal run with fresh journal activity — the honest in-progress
+  // signal (see deriveLivenessFromActivity). Mirrors parseRunDir so the board
+  // (full run) and the badges (digest) agree. Gated on !isStale.
+  const lockLiveness = await getDriverLiveness(runPath);
+  const driver =
+    nonTerminal && isStale !== true
+      ? deriveLivenessFromActivity(lockLiveness, updatedAt, config.activeThresholdMs ?? config.staleThresholdMs)
+      : lockLiveness;
 
   return {
     runId: path.basename(runPath),
@@ -812,7 +832,7 @@ export async function getRunDigest(runPath: string): Promise<RunDigest> {
     breakpointEffectId,
     isStale,
     waitingKind,
-    driver: await getDriverLiveness(runPath),
+    driver,
   };
 }
 

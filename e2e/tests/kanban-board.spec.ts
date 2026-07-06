@@ -1647,3 +1647,94 @@ test.describe("Kanban board — UX-R3 §14.5 write-path truth (owner gate 2026-0
     await expect(card.getByTestId("kanban-bp-recorded-answer")).toHaveCount(1);
   });
 });
+
+// ---------------------------------------------------------------------------
+// UX-R3 wave 3 — in-progress indication (root-cause: WORKING was structurally 0)
+//
+// Real-parser E2E (NOT /api/runs interception): write genuine lock-less run dirs
+// into the fixtures and let the actual liveness derivation classify them.
+//   - A run whose newest journal event is FRESH (< the 1h active window) must
+//     land in WORKING with the "live" in-progress chip — even with NO run.lock
+//     (0 of 308 real runs have one; that was the root cause of an empty column).
+//   - A run whose newest journal event is OLD (> the active window) must NOT be
+//     in WORKING; it reads as Stalled (no live driver). Honest: only real recent
+//     activity counts as in-progress, never merely "non-terminal".
+// The E2E webServer pins OBSERVER_ACTIVE_THRESHOLD_MS=1h so the months-old static
+// fixtures stay non-fresh; these two runs are the only movers.
+// ---------------------------------------------------------------------------
+test.describe("Kanban board — in-progress indication (UX-R3 wave 3)", () => {
+  const FRESH_RUN_ID = "01KTESTWAVE3INPROGRESS01";
+  const STALE_RUN_ID = "01KTESTWAVE3INPROGRESS02";
+  const WAVE3_PROJECT = "wave3-inprogress"; // not a hidden project
+
+  /** Write a minimal lock-less, non-terminal run dir whose newest journal event
+   *  is `ageMs` old. One pending AGENT effect → waiting (never a breakpoint, so
+   *  it is Working/Stalled, never Needs-you). No run.lock is written. */
+  async function writeInProgressRun(runId: string, ageMs: number): Promise<void> {
+    const dir = runDir(runId);
+    const journalDir = path.join(dir, "journal");
+    await fs.mkdir(journalDir, { recursive: true });
+    const ts = new Date(Date.now() - ageMs).toISOString();
+    await fs.writeFile(
+      path.join(dir, "run.json"),
+      JSON.stringify({ runId, processId: `${WAVE3_PROJECT}/driver`, projectName: WAVE3_PROJECT }, null, 2)
+    );
+    await fs.writeFile(
+      path.join(journalDir, `000001.${runId}A.json`),
+      JSON.stringify({
+        type: "RUN_CREATED",
+        recordedAt: ts,
+        data: { runId, processId: `${WAVE3_PROJECT}/driver` },
+      })
+    );
+    await fs.writeFile(
+      path.join(journalDir, `000002.${runId}B.json`),
+      JSON.stringify({
+        type: "EFFECT_REQUESTED",
+        recordedAt: ts,
+        data: {
+          effectId: `${runId}EFF`,
+          kind: "agent",
+          label: "working step",
+          invocationKey: `${WAVE3_PROJECT}/driver:S1:step`,
+          stepId: "S1",
+          taskId: "step",
+        },
+      })
+    );
+  }
+
+  test("a fresh lock-less run appears in WORKING with a live chip; a stale one does not", async ({ page }) => {
+    try {
+      await writeInProgressRun(FRESH_RUN_ID, 30_000); // 30s old → within 1h active window
+      await writeInProgressRun(STALE_RUN_ID, 3 * 60 * 60 * 1000); // 3h old → past it
+
+      await gotoBoard(page);
+
+      // Fresh run is genuinely in progress → WORKING (not Orphaned/Stalled),
+      // even though it has no run.lock.
+      const freshCard = cardFor(page, FRESH_RUN_ID);
+      await expect(freshCard).toBeVisible({ timeout: 20_000 });
+      await expect(
+        column(page, "waiting").locator(`[data-run-id="${FRESH_RUN_ID}"]`)
+      ).toHaveCount(1);
+      // ...and it carries the honest in-progress ("live") affordance.
+      await expect(
+        freshCard.getByText(/in progress — recent activity means this run is actively being worked/i)
+      ).toBeAttached();
+
+      // Stale run is NOT in Working; it reads as Stalled (no live driver).
+      const staleCard = cardFor(page, STALE_RUN_ID);
+      await expect(staleCard).toBeVisible({ timeout: 20_000 });
+      await expect(
+        column(page, "waiting").locator(`[data-run-id="${STALE_RUN_ID}"]`)
+      ).toHaveCount(0);
+      await expect(
+        column(page, "stalled").locator(`[data-run-id="${STALE_RUN_ID}"]`)
+      ).toHaveCount(1);
+    } finally {
+      await fs.rm(runDir(FRESH_RUN_ID), { recursive: true, force: true }).catch(() => {});
+      await fs.rm(runDir(STALE_RUN_ID), { recursive: true, force: true }).catch(() => {});
+    }
+  });
+});

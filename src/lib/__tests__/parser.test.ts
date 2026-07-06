@@ -676,6 +676,71 @@ describe('parser', () => {
   });
 
   // -----------------------------------------------------------------------
+  // UX-R3 wave 3 — in-progress liveness derivation (journal-activity freshness)
+  // Root cause: 0 of 308 real run dirs carry a run.lock, so getDriverLiveness is
+  // always "none" and every non-terminal run classifies as Orphaned (WORKING is
+  // structurally 0). parseRunDir/getRunDigest now promote a non-terminal run with
+  // FRESH journal activity (no lock) to driver "live" so it lands in Working.
+  // -----------------------------------------------------------------------
+  describe('in-progress liveness (UX-R3 wave 3)', () => {
+    // Wire a lock-less waiting run whose newest journal event is `msAgo` old.
+    function setupWaitingRun(msAgo: number) {
+      const requestedAt = new Date(Date.now() - msAgo).toISOString();
+      mockAccess.mockImplementation(async (p: any) => {
+        if (p.toString().includes('journal')) return undefined;
+        throw new Error('ENOENT'); // no run.lock, no other files
+      });
+      mockReaddir.mockImplementation(async (dir: any) => {
+        if (dir.toString().includes('journal')) {
+          return ['000001.A.json', '000002.B.json'] as any;
+        }
+        return [];
+      });
+      mockReadFile.mockImplementation(async (filePath: any) => {
+        const p = filePath.toString();
+        if (p.endsWith('run.json')) return JSON.stringify({});
+        if (p.includes('000001')) {
+          return JSON.stringify(makeRunCreatedRaw('run-live', 'proc', requestedAt));
+        }
+        if (p.includes('000002')) {
+          return JSON.stringify(
+            makeEffectRequestedRaw('eff-live', 'agent', 'working-step', requestedAt),
+          );
+        }
+        throw new Error('ENOENT'); // run.lock read → getDriverLiveness "none"
+      });
+    }
+
+    it('parseRunDir promotes a lock-less run with FRESH activity to driver "live" (not stale)', async () => {
+      setupWaitingRun(30_000); // 30s ago — well within the 1h stale window
+      const run = await parseRunDir('/runs/run-live');
+      expect(run.status).toBe('waiting');
+      expect(run.isStale).toBeUndefined();
+      expect(run.driver).toBe('live');
+    });
+
+    it('parseRunDir keeps a lock-less run with STALE activity as driver "none" (reads as Stalled)', async () => {
+      setupWaitingRun(2 * 3_600_000); // 2h ago — past the stale window
+      const run = await parseRunDir('/runs/run-stale');
+      expect(run.status).toBe('waiting');
+      expect(run.isStale).toBe(true);
+      expect(run.driver).toBe('none');
+    });
+
+    it('getRunDigest mirrors the derivation: fresh → "live", stale → "none"', async () => {
+      setupWaitingRun(30_000);
+      const freshDigest = await getRunDigest('/runs/run-live');
+      expect(freshDigest.status).toBe('waiting');
+      expect(freshDigest.driver).toBe('live');
+
+      setupWaitingRun(2 * 3_600_000);
+      const staleDigest = await getRunDigest('/runs/run-stale');
+      expect(staleDigest.isStale).toBe(true);
+      expect(staleDigest.driver).toBe('none');
+    });
+  });
+
+  // -----------------------------------------------------------------------
   // parseTaskDetail
   // -----------------------------------------------------------------------
   describe('parseTaskDetail', () => {

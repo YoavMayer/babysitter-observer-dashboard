@@ -21,6 +21,19 @@ export interface ObserverConfig {
   pollInterval: number;
   theme: "dark" | "light";
   staleThresholdMs: number;
+  /**
+   * UX-R3 wave 3 (in-progress indication): the freshness window (ms) within
+   * which a non-terminal run's newest journal event marks it as actively
+   * "live"/Working even without a run.lock (see deriveLivenessFromActivity).
+   * DEFAULTS to `staleThresholdMs` — reusing its semantics so, by default,
+   * "live" ⟺ "not stale" with no daylight. Override via
+   * OBSERVER_ACTIVE_THRESHOLD_MS / registry `activeThresholdMs` (e.g. the E2E
+   * pins a realistic 1h window while the stale window is frozen open). Keep
+   * activeThresholdMs ≤ staleThresholdMs so a "live" run is always non-stale.
+   * Optional on the type so partial config mocks may omit it; consumers fall
+   * back to staleThresholdMs.
+   */
+  activeThresholdMs?: number;
   recentCompletionWindowMs: number;
   retentionDays: number;
   hiddenProjects: string[];
@@ -47,6 +60,7 @@ export async function writeConfig(data: {
   pollInterval?: number;
   theme?: string;
   staleThresholdMs?: number;
+  activeThresholdMs?: number;
   recentCompletionWindowMs?: number;
   retentionDays?: number;
   hiddenProjects?: string[];
@@ -72,6 +86,7 @@ export async function writeConfig(data: {
     ...(data.pollInterval !== undefined ? { pollInterval: data.pollInterval } : {}),
     ...(data.theme !== undefined ? { theme: data.theme } : {}),
     ...(data.staleThresholdMs !== undefined ? { staleThresholdMs: data.staleThresholdMs } : {}),
+    ...(data.activeThresholdMs !== undefined ? { activeThresholdMs: data.activeThresholdMs } : {}),
     ...(data.recentCompletionWindowMs !== undefined ? { recentCompletionWindowMs: data.recentCompletionWindowMs } : {}),
     ...(data.retentionDays !== undefined ? { retentionDays: data.retentionDays } : {}),
     ...(data.hiddenProjects !== undefined ? { hiddenProjects: data.hiddenProjects } : {}),
@@ -85,6 +100,7 @@ interface RegistryData {
   pollInterval?: number;
   theme?: "dark" | "light";
   staleThresholdMs?: number;
+  activeThresholdMs?: number;
   recentCompletionWindowMs?: number;
   retentionDays?: number;
   hiddenProjects?: string[];
@@ -106,6 +122,7 @@ async function loadRegistry(): Promise<RegistryData> {
       pollInterval: typeof parsed.pollInterval === "number" ? parsed.pollInterval : undefined,
       theme: parsed.theme === "dark" || parsed.theme === "light" ? parsed.theme : undefined,
       staleThresholdMs: typeof parsed.staleThresholdMs === "number" ? parsed.staleThresholdMs : undefined,
+      activeThresholdMs: typeof parsed.activeThresholdMs === "number" ? parsed.activeThresholdMs : undefined,
       recentCompletionWindowMs: typeof parsed.recentCompletionWindowMs === "number" ? parsed.recentCompletionWindowMs : undefined,
       retentionDays: typeof parsed.retentionDays === "number" ? parsed.retentionDays : undefined,
       hiddenProjects: Array.isArray(parsed.hiddenProjects) ? parsed.hiddenProjects.filter((s: unknown) => typeof s === "string") : undefined,
@@ -218,15 +235,23 @@ export async function getConfig(): Promise<ObserverConfig> {
   const envPollInterval = process.env.OBSERVER_POLL_INTERVAL || process.env.POLL_INTERVAL;
   const envTheme = process.env.OBSERVER_DEFAULT_THEME || process.env.THEME;
   const envStaleThreshold = process.env.OBSERVER_STALE_THRESHOLD_MS;
+  const envActiveThreshold = process.env.OBSERVER_ACTIVE_THRESHOLD_MS;
   const envRecentWindow = process.env.OBSERVER_RECENT_WINDOW_MS;
   const envRetentionDays = process.env.OBSERVER_RETENTION_DAYS;
+
+  // Resolve the stale window first; the in-progress "active" window defaults to
+  // it (UX-R3 wave 3 — reuse OBSERVER_STALE_THRESHOLD_MS semantics) but can be
+  // overridden independently via OBSERVER_ACTIVE_THRESHOLD_MS / registry.
+  const staleThresholdMs = registry.staleThresholdMs ?? (envStaleThreshold ? parseInt(envStaleThreshold, 10) : 3600000);
+  const activeThresholdMs = registry.activeThresholdMs ?? (envActiveThreshold ? parseInt(envActiveThreshold, 10) : staleThresholdMs);
 
   cachedConfig = {
     sources,
     port: parseInt(process.env.OBSERVER_PORT || process.env.PORT || "4800", 10),
     pollInterval: registry.pollInterval ?? (envPollInterval ? parseInt(envPollInterval, 10) : 2000),
     theme: registry.theme ?? ((envTheme === "dark" || envTheme === "light" ? envTheme : "dark") as "dark" | "light"),
-    staleThresholdMs: registry.staleThresholdMs ?? (envStaleThreshold ? parseInt(envStaleThreshold, 10) : 3600000),
+    staleThresholdMs,
+    activeThresholdMs,
     recentCompletionWindowMs: registry.recentCompletionWindowMs ?? (envRecentWindow ? parseInt(envRecentWindow, 10) : 14400000),
     retentionDays: registry.retentionDays ?? (envRetentionDays ? parseInt(envRetentionDays, 10) : 30),
     hiddenProjects: registry.hiddenProjects ?? [],
