@@ -1,5 +1,5 @@
 import { test, expect } from "../fixtures";
-import { getManifest, getRunIdsByStatus } from "../fixtures/test-data";
+import { getManifest, getRunIdsByStatus, getActiveRunCount } from "../fixtures/test-data";
 import type { Manifest, ManifestRun } from "../fixtures/test-data";
 
 /**
@@ -118,9 +118,11 @@ test.describe("Breakpoint Banner", () => {
     const activeTile = dashboardPage.getMetricTile("active");
     await expect(activeTile).toBeVisible();
 
-    // Active count includes waiting + pending runs (including the new fixture)
-    const activeCount =
-      (manifest.statusCounts.waiting || 0) + (manifest.statusCounts.pending || 0);
+    // §15.1 (owner gate 2026-07-06b, scheduled-state): Active = waiting + pending
+    // MINUS sleeping "scheduled" runs (a forever-run parked at an unresolved
+    // sleep effect is idle-healthy, not in-progress). getActiveRunCount matches
+    // the tile's single-counting-source definition.
+    const activeCount = await getActiveRunCount();
     await expect(activeTile).toContainText(String(activeCount));
   });
 

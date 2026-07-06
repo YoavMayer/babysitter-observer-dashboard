@@ -1,5 +1,5 @@
 import { test, expect } from "../fixtures";
-import { getManifest, type Manifest } from "../fixtures/test-data";
+import { getManifest, getActiveRunCount, type Manifest } from "../fixtures/test-data";
 
 /**
  * Comprehensive E2E tests for the Observer Dashboard page (/).
@@ -90,9 +90,12 @@ test.describe("KPI Metric Tiles", () => {
     const tile = dashboardPage.getMetricTile("active");
     await expect(tile).toBeVisible();
     await expect(tile).toContainText("In Progress");
-    // Active = waiting + pending
-    const activeCount =
-      (manifest.statusCounts.waiting || 0) + (manifest.statusCounts.pending || 0);
+    // §15.1 (owner gate 2026-07-06b, scheduled-state): Active = waiting + pending
+    // MINUS sleeping "scheduled" runs. A forever-run parked at an unresolved
+    // sleep effect is idle-healthy, not in-progress, so the tile (single
+    // counting source) excludes it — getActiveRunCount reconciles this test with
+    // that definition instead of the stale raw waiting+pending sum.
+    const activeCount = await getActiveRunCount();
     await expect(tile).toContainText(String(activeCount));
   });
 
