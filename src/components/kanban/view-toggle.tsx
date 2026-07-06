@@ -35,10 +35,13 @@ export function ViewToggle({ view, onViewChange }: ViewToggleProps) {
           onClick={() => onViewChange(value)}
           title={value === "board" ? "Board view: one column per triage bucket" : "List view: project grid and flat run lists"}
           className={cn(
-            "rounded px-2.5 py-1.5 min-h-[40px] text-xs font-medium inline-flex items-center gap-1.5 transition-all",
+            "rounded px-2.5 py-1.5 min-h-[40px] text-xs inline-flex items-center gap-1.5 transition-all",
+            // UX-R3 §14.2 (owner gate 2026-07-06, option a): active segment is
+            // NEUTRAL (foreground ink + subtle foreground/7% fill + 2px
+            // underline + weight 600), never magenta.
             view === value
-              ? "bg-primary/10 text-primary shadow-sm"
-              : "text-foreground-muted hover:text-foreground-secondary"
+              ? "bg-foreground/[0.07] text-foreground font-semibold border-b-2 border-foreground shadow-sm"
+              : "font-medium text-foreground-muted hover:text-foreground-secondary"
           )}
         >
           {/* a11y-icons-not-hidden: decorative icons hidden from AT. */}

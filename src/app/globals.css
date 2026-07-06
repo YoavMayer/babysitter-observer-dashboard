@@ -29,6 +29,23 @@
   --primary-hover: #ff33e6;
   --primary-muted: rgba(255, 0, 224, 0.15);
 
+  /* ACTION — indigo-violet primary-CTA hue. UX-R3 §14.2 option (a), owner gate
+     2026-07-06 ruling. This is the ONE "pressable" hue (the answer submit /
+     any future single primary CTA); brand magenta is now brand-ONLY.
+     FILL-ONLY CONSTRAINT: as text/outline on the dark card (#0e0e12) --action
+     is only 4.20:1 → it FAILS AA as ink. It must therefore be used *exclusively*
+     as a filled button surface with a white/near-white label (never as border
+     or text on dark). Label contrast --action-foreground on --action = 5.14:1
+     (dark) / 7.04:1 (light), both ≥4.5:1. ΔE2000 ≥25 from every --status-* hue
+     and ≈24 from brand --primary → never a status/brand collision.
+     -muted (tint) and -border are non-text; -border is used only on option
+     hover, never as a resolved text/fill color equal to --action. */
+  --action: #6355F0;
+  --action-hover: #5544E8;
+  --action-foreground: #ffffff;
+  --action-muted: rgba(99, 85, 240, 0.16);
+  --action-border: rgba(99, 85, 240, 0.35);
+
   /* Secondary - Neon Cyan */
   --secondary: #00F0FF;
   --secondary-foreground: #0a0a0b;
@@ -192,6 +209,14 @@
   --primary-hover: #FF00E0;
   --primary-muted: rgba(214, 0, 192, 0.1);
 
+  /* ACTION (light) — UX-R3 §14.2 option (a). Same fill-only constraint as dark;
+     label --action-foreground on --action = 7.04:1. */
+  --action: #4B3FD6;
+  --action-hover: #3B30B8;
+  --action-foreground: #ffffff;
+  --action-muted: rgba(75, 63, 214, 0.10);
+  --action-border: rgba(75, 63, 214, 0.30);
+
   --secondary: #00C8D6;
   --secondary-foreground: #ffffff;
   --secondary-muted: rgba(0, 200, 214, 0.1);
@@ -225,7 +250,10 @@
      5.66:1 on white, same 47.6deg gold hue. */
   --status-attention: #7e6400;  --status-attention-muted: rgba(212, 175, 0, 0.12);
   --status-alive:     #006E7A;  --status-alive-muted:     rgba(0, 200, 214, 0.10);
-  --status-stalled:   #7A6431;  --status-stalled-muted:   rgba(122, 100, 49, 0.10);
+  /* UX-R3 §14.4 (owner gate 2026-07-06): nudged from #7A6431 → #6B5B47 (cooler
+     grey-taupe). ΔE2000 vs light attention gold 8.5 → 17.6 (parity with dark);
+     AA on #ffffff = 6.54:1. Dark stays #C9A86A. */
+  --status-stalled:   #6B5B47;  --status-stalled-muted:   rgba(122, 100, 49, 0.10);
   --status-failed:    #B01C47;  --status-failed-muted:    rgba(230, 41, 90, 0.12);
   --status-ok:        #00784A;  --status-ok-muted:        rgba(0, 204, 110, 0.12);
   --status-aged:      #63636C;  --status-aged-muted:      rgba(161, 161, 170, 0.10);
@@ -335,6 +363,12 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-hover: var(--primary-hover);
   --color-primary-muted: var(--primary-muted);
+  /* UX-R3 §14.2 action hue (bg-action, text-action-foreground, ...). */
+  --color-action: var(--action);
+  --color-action-hover: var(--action-hover);
+  --color-action-foreground: var(--action-foreground);
+  --color-action-muted: var(--action-muted);
+  --color-action-border: var(--action-border);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-secondary-muted: var(--secondary-muted);

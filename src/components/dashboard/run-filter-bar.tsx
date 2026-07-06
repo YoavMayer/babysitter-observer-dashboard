@@ -57,12 +57,14 @@ export function RunFilterBar({
               aria-pressed={statusFilter === f.value}
               onClick={() => onStatusFilterChange(f.value)}
               className={cn(
-                "rounded-md px-3 py-1.5 min-h-[44px] text-xs font-medium transition-all inline-flex items-center gap-1.5",
+                "rounded-md px-3 py-1.5 min-h-[44px] text-xs transition-all inline-flex items-center gap-1.5",
+                // UX-R3 §14.2 (owner gate 2026-07-06, option a): active-nav is
+                // NEUTRAL, not magenta — foreground ink + a subtle foreground/7%
+                // fill + a 2px foreground underline + weight 600. Unmistakably
+                // "current" in both themes without borrowing the brand hue.
                 statusFilter === f.value
-                  ? f.value === "stale"
-                    ? "bg-zinc-500/10 text-zinc-500"
-                    : "bg-primary/10 text-primary shadow-neon-glow-primary-xs"
-                  : "text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary"
+                  ? "bg-foreground/[0.07] text-foreground font-semibold border-b-2 border-foreground"
+                  : "font-medium text-foreground-muted hover:text-foreground-secondary hover:bg-background-secondary"
               )}
             >
               {f.label}
@@ -70,9 +72,7 @@ export function RunFilterBar({
                 <span className={cn(
                   "rounded-full px-1.5 py-px text-xs leading-tight font-semibold tabular-nums",
                   statusFilter === f.value
-                    ? f.value === "stale"
-                      ? "bg-zinc-500/20 text-zinc-500"
-                      : "bg-primary/20 text-primary"
+                    ? "bg-foreground/10 text-foreground"
                     : "bg-background-secondary text-foreground-muted"
                 )}>
                   {count}
@@ -104,9 +104,12 @@ export function RunFilterBar({
             className={cn(
               "rounded-md px-2.5 py-1.5 min-h-[44px] text-xs font-medium inline-flex items-center gap-1.5",
               "transition-all duration-200 ease-in-out",
-              sortMode === "status"
-                ? "bg-warning/10 border border-warning/30 text-warning hover:bg-warning/15 hover:border-warning/40 shadow-sm"
-                : "bg-primary/10 border border-primary/30 text-primary hover:bg-primary/15 hover:border-primary/40 shadow-sm"
+              // UX-R3 §14.7 (owner gate 2026-07-06, option a): the "By Status"
+              // group toggle read gold (--status-attention, a STATUS hue on
+              // chrome) and "By Activity" read magenta — both fold into one
+              // NEUTRAL chrome treatment. The icon + label carry the mode; hue
+              // no longer does.
+              "bg-background-secondary border border-border text-foreground-secondary hover:bg-background-tertiary hover:text-foreground shadow-sm"
             )}
             title={boardView
               // §6.2: board columns always order by latest update; the control

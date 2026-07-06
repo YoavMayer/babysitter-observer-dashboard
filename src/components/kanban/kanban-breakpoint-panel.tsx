@@ -71,7 +71,9 @@ export function KanbanBreakpointPanel({ run }: KanbanBreakpointPanelProps) {
     pendingBreakpoint.breakpointQuestion ||
     task?.breakpoint?.question ||
     BREAKPOINT_NO_QUESTION_FALLBACK;
-  const options = task?.breakpoint?.options ?? [];
+  // UX-R3 §14.3 (AC-55): options are no longer rendered as informative chips
+  // here (de-dup) — they surface exactly once as the neutral answer buttons
+  // inside BreakpointApproval below, so the panel reads them off `task` there.
   // Breakpoint title (UX-R2 §13.1 / AC-33): the resolved payload title (e.g.
   // metadata.payload.title "Gate 1 — …") renders as the panel heading when it
   // carries real information (the parser's generic "Breakpoint" default and
@@ -131,23 +133,11 @@ export function KanbanBreakpointPanel({ run }: KanbanBreakpointPanelProps) {
         {question}
       </p>
 
-      {/* One chip per option from BreakpointPayload.options (informative —
-          answering happens through BreakpointApproval below). */}
-      {options.length > 0 && (
-        <div className="flex flex-wrap gap-1">
-          {options.map((option) => (
-            <span
-              key={option}
-              data-testid="kanban-bp-option-chip"
-              // §13.3: option-chip ink follows --status-attention (AA-safe in
-              // light theme); the tinted border/background stay non-text.
-              className="inline-flex items-center rounded-full border border-status-attention/30 bg-status-attention-muted px-2 py-0.5 text-xs leading-tight font-medium text-status-attention"
-            >
-              {option}
-            </span>
-          ))}
-        </div>
-      )}
+      {/* UX-R3 §14.3 / AC-55 (owner gate 2026-07-06, option a): the informative
+          gold option chips are REMOVED (de-dup). The options render exactly
+          ONCE — as the neutral buttons inside the expandable answer panel below
+          (BreakpointApproval). The card above shows title + question +
+          semantics only, never a second copy of the options. */}
 
       {/* §13.4/AC-44: on an orphaned/no-driver run the honest semantics line
           is visible BEFORE any interaction — recorded now, applied on resume.

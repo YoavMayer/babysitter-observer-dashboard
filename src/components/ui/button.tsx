@@ -7,8 +7,15 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-[var(--primary-hover)] hover:shadow-glow-primary hover:scale-[1.02] active:scale-[0.98]",
-        neon: "bg-transparent border border-primary text-primary hover:shadow-glow-primary hover:bg-primary-muted hover:scale-[1.02] active:scale-[0.98]",
+        // UX-R3 §14.2 (owner gate 2026-07-06, option a): the primary CTA (the
+        // answer submit) carries the ACTION hue as a FILLED surface with a
+        // white/near-white label — never magenta. --action is fill-only.
+        default: "bg-action text-action-foreground hover:bg-action-hover hover:scale-[1.02] active:scale-[0.98] shadow-sm",
+        // UX-R3 §14.3: answer OPTION buttons are NEUTRAL, equal-weight — no
+        // brand/action/status ink steering the choice. Foreground ink on a
+        // background-secondary fill; hover only nudges the border to
+        // --action-border (a non-text tint, ≠ resolved --action).
+        neon: "bg-background-secondary border border-border text-foreground hover:bg-background-tertiary hover:border-[var(--action-border)] hover:scale-[1.02] active:scale-[0.98]",
         outline: "border border-border-hover bg-transparent hover:bg-muted hover:border-primary/30 hover:scale-[1.02]",
         ghost: "hover:bg-muted hover:text-foreground hover:border-primary/10",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:shadow-glow-error hover:scale-[1.02] active:scale-[0.98]",
