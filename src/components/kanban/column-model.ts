@@ -12,15 +12,29 @@
  */
 
 import type { LightRun } from "@/lib/services/run-query-service";
+import {
+  classifyRun,
+  isOrphanedBucket as isOrphanedBucketRaw,
+  type BoardColumnKey,
+  type RunLiveness,
+} from "@/lib/counting/run-classification";
 
-/** Column keys, matching the RunFilterBar pill/bucket keys (SPEC §3.2). */
-export type BoardColumnKey =
-  | "needsyou"
-  | "orphaned"
-  | "waiting"
-  | "stale"
-  | "failed"
-  | "completed";
+/**
+ * Column keys re-exported from the SINGLE counting source (§15.4) — this
+ * module no longer owns the classification, it consumes it. The type stays
+ * exported here for the frozen board contract (kanban-column-model.test.ts).
+ */
+export type { BoardColumnKey };
+
+/** Effective liveness of a LightRun for the raw orphaned predicate. */
+function livenessOf(run: LightRun): RunLiveness {
+  return (run.driver ?? "none") as RunLiveness;
+}
+
+/** Local wrapper: orphaned-bucket predicate over a LightRun's own driver. */
+function isOrphanedBucket(run: LightRun): boolean {
+  return isOrphanedBucketRaw(run, livenessOf(run));
+}
 
 /**
  * Column visual order = SPEC §3.2 table order = the flat-list rank() order in
@@ -45,61 +59,14 @@ export type BoardRun = LightRun & { hiddenProject?: boolean };
 
 export type BoardPartition = Record<BoardColumnKey, BoardRun[]>;
 
-/** Non-terminal = still in progress (same guard as filterByStatus / run-list). */
-function isNonTerminal(run: LightRun): boolean {
-  return run.status === "waiting" || run.status === "pending";
-}
-
 /**
- * Canonical "needs you" predicate, verbatim from filterByStatus:
- * NON-terminal AND pendingBreakpoints > 0, falling back to the
- * waiting-at-a-breakpoint heuristic only for older cached run shapes that
- * predate pendingBreakpoints. DC-4: the non-terminal guard keeps terminal runs
- * with residual pendingBreakpoints from leaking in.
- */
-function isNeedsYou(run: LightRun): boolean {
-  if (!isNonTerminal(run)) return false;
-  // UX-R3 §14.5 (AC-59): an observer-recorded-but-unapplied breakpoint keeps the
-  // run in Needs-you (amber-gray recorded state) until a resume consumes it,
-  // even though pendingBreakpoints has already dropped to 0 on disk.
-  if (run.recordedAwaitingResume) return true;
-  if (run.pendingBreakpoints !== undefined) return run.pendingBreakpoints > 0;
-  return run.waitingKind === "breakpoint";
-}
-
-/**
- * Canonical "orphaned" predicate, verbatim from filterByStatus: a NON-terminal
- * run with no live driver — run.lock pid dead ("orphaned") OR no lock at all
- * ("none"). DC-3: both drivers map to Orphaned. Liveness is only meaningful
- * for in-progress runs, so terminal runs are never "orphaned".
- */
-function isOrphanedBucket(run: LightRun): boolean {
-  return (
-    isNonTerminal(run) && (run.driver === "orphaned" || run.driver === "none")
-  );
-}
-
-/**
- * Assign a run to exactly one column: first match in SPEC §3.2 precedence
- * order 1→6. Total (never throws, never "unassigned"): non-terminal runs are
- * caught by rows 1–4 (a non-terminal, non-stale run always matches row 3);
- * terminal runs by rows 4–6 (stale flag wins over failed/completed, matching
- * runSortPriority and the flat-list rank(), which test isStale first).
+ * Assign a run to exactly one column — now a thin delegate to the SINGLE
+ * counting source (§15.4 AC-69): `classifyRun` is the ONE producer of the
+ * disjoint precedence partition (needsYou → orphaned → working → stale →
+ * failed → completed). Kept as a named export for the frozen board contract.
  */
 export function assignColumn(run: LightRun): BoardColumnKey {
-  // Row 1 — Needs you (highest precedence: the breakpoint is what the human
-  // must know, even when the run is also orphaned and/or stale).
-  if (isNeedsYou(run)) return "needsyou";
-  // Row 2 — Orphaned (beats stale: matches rank() which puts orphaned above stale).
-  if (isOrphanedBucket(run)) return "orphaned";
-  // Row 3 — Working: non-terminal and NOT stale (same exclusion as the
-  // "waiting" pill/badge — stale runs never render as Working).
-  if (isNonTerminal(run) && run.isStale !== true) return "waiting";
-  // Row 4 — Stale (verbatim pill predicate: r.isStale === true).
-  if (run.isStale === true) return "stale";
-  // Rows 5–6 — terminal.
-  if (run.status === "failed") return "failed";
-  return "completed";
+  return classifyRun(run).column;
 }
 
 /**
