@@ -31,7 +31,9 @@
  *   - focus/dim (AC-23): focused column gets [data-focused="true"], dimmed columns get [data-dimmed="true"]
  * Reused existing testids: breakpoint-approval, option-btn-<option>,
  * custom-answer-input, run-action-hint, hidden-projects-indicator,
- * filter-pill-<key>, empty-state, run-list-flat, breakpoint-banner.
+ * filter-pill-<key>, empty-state, run-list-flat, executive-summary-banner
+ * (owner 2026-07-07: deduped needs-you surface — the removed top breakpoint-banner
+ * list's alarm role is now carried by the counts banner + this Needs-you column).
  *
  * Fixture prerequisites NOT yet in e2e/fixtures (to be added by the
  * implementation waves; reserved ids are frozen here):
@@ -705,14 +707,18 @@ test.describe("Kanban board — hidden projects, junk, empty & overflow (SPEC-vi
       // The hidden project's NON-breakpoint run appears in NO column.
       await expect(cardFor(page, HIDDEN_PLAIN_RUN_ID)).toHaveCount(0);
 
-      // Invariant: Needs-you column count === needs-you pill count === banner item count.
+      // Invariant: Needs-you column count === needs-you pill count === counts-banner approvals.
+      // owner 2026-07-07: deduped needs-you surface — top list removed; alarm =
+      // counts banner + kanban column. The removed top list's per-run link count
+      // is replaced by the ExecutiveSummaryBanner approvals figure, which reads
+      // the same reconciledCounts.needsyou source as the pill and the column, so
+      // a hidden-project breakpoint counted in the column is counted in the alarm.
       const columnN = await readCount(page, "needsyou");
       const pillText = (await page.getByTestId("filter-pill-needsyou").textContent()) ?? "";
       const pillN = parseInt(pillText.match(/\d+/)?.[0] ?? "-1", 10);
-      const bannerN = await page
-        .getByTestId("breakpoint-banner")
-        .locator('a[href^="/runs/"]')
-        .count();
+      const attentionText =
+        (await page.getByTestId("summary-segment-attention").textContent()) ?? "";
+      const bannerN = parseInt(attentionText.match(/\d+/)?.[0] ?? "-1", 10);
       expect(pillN).toBe(columnN);
       expect(bannerN).toBe(columnN);
 
