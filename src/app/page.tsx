@@ -2,7 +2,6 @@
 import { useCallback, useMemo } from "react";
 import { useRunDashboard, type DashboardStatusFilter } from "@/hooks/use-run-dashboard";
 import { usePersistedState } from "@/hooks/use-persisted-state";
-import { BreakpointBanner } from "@/components/dashboard/breakpoint-banner";
 import { CatchUpBanner } from "@/components/dashboard/catch-up-banner";
 import { ExecutiveSummaryBanner } from "@/components/dashboard/executive-summary-banner";
 import { KpiGrid } from "@/components/dashboard/kpi-grid";
@@ -47,7 +46,6 @@ export default function DashboardPage() {
     loading,
     error,
     metrics,
-    allBreakpointRuns,
     summaryMetrics,
     bannerFingerprint,
     bannerDismissed,
@@ -157,19 +155,12 @@ export default function DashboardPage() {
           />
         )}
 
-        {/* Global Breakpoint Banner — pinned with sticky positioning */}
-        {!loading && !error && allBreakpointRuns.length > 0 && (
-          <ErrorBoundary section="Breakpoint Banner">
-            {/* D2: keep ONLY the header sticky. Both being `sticky top-0` made the banner
-                cover the header on scroll; a fixed `top-N` offset is fragile (the header is
-                ~69px and varies). Rendering the banner as a normal block at the top of the
-                scroll area makes overlap impossible regardless of header height. Pending
-                breakpoints remain surfaced via the sticky header's summary metrics. */}
-            <div className="z-20">
-              <BreakpointBanner breakpointRuns={allBreakpointRuns} />
-            </div>
-          </ErrorBoundary>
-        )}
+        {/* owner 2026-07-07: deduped needs-you surface — the redundant top
+            inform-only list (BreakpointBanner) was removed. Pending approvals,
+            including from hidden projects, remain surfaced by the counts banner
+            above (ExecutiveSummaryBanner: "N approvals need your attention" →
+            needs-you filter) and by the kanban Needs-you column, which is now
+            the single place to record an answer. */}
 
         {/* Filter pills + sort toggle */}
         <RunFilterBar
