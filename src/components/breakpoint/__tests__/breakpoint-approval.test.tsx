@@ -256,7 +256,8 @@ describe("BreakpointApproval", () => {
     await user.click(screen.getByTestId("approve-btn"));
 
     const resultEl = await screen.findByTestId("approval-result");
-    expect(resultEl.textContent).toContain("Answer recorded — awaiting resume");
+    // owner 2026-07-08: de-AI copy (no em-dashes) + answer-flow clarity
+    expect(resultEl.textContent).toContain("Answer recorded, awaiting resume");
     // NOT the green "done"-flavored copy.
     expect(resultEl.textContent).not.toContain("approved successfully");
     // Amber-gray, never green: the chip uses the stalled token, not status-ok.

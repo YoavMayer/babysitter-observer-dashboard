@@ -79,7 +79,7 @@ interface ColumnSpec {
 export const COLUMN_SPECS: Record<BoardGroupKey, ColumnSpec> = {
   needsyou: {
     label: "Needs you",
-    emptyText: "Nothing needs you — all clear.",
+    emptyText: "Nothing needs you. All clear.",
     // §13.3: gold = needs action (theme-aware; ≥4.5:1 in both themes).
     headerClass: "text-status-attention",
     emptyClass: "text-status-ok",
@@ -124,13 +124,13 @@ export const COLUMN_SPECS: Record<BoardGroupKey, ColumnSpec> = {
  * by the header "?" popover, so the taxonomy explains itself on the board.
  */
 export const COLUMN_DEFINITIONS: Record<BoardGroupKey, string> = {
-  needsyou: "Needs you — a run is waiting for YOUR answer.",
-  waiting: "Working — a live driver is attached and making progress.",
+  needsyou: "Needs you: a run is waiting for YOUR answer.",
+  waiting: "Working: a live driver is attached and making progress.",
   scheduled:
-    "Scheduled — a forever-run sleeping between ticks; healthy, not stalled. Overdue wakes show an amber resume hint.",
+    "Scheduled: a forever-run sleeping between ticks; healthy, not stalled. Overdue wakes show an amber resume hint.",
   stalled:
-    "Stalled — recoverable: no live driver or quiet >1h; resume to continue.",
-  done: "Done — terminal: completed or failed; failed runs carry a red failed badge.",
+    "Stalled and recoverable: no live driver or quiet >1h; resume to continue.",
+  done: "Done and terminal: completed or failed; failed runs carry a red failed badge.",
 };
 
 /**

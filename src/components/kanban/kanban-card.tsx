@@ -199,16 +199,16 @@ export function KanbanCard({ run, keyboard }: KanbanCardProps) {
               )}
               title={
                 overdue
-                  ? "Scheduled forever-run — wake time passed; resume it to continue"
-                  : "Scheduled forever-run — sleeping between ticks; it wakes on its own"
+                  ? "Scheduled forever-run: wake time passed; resume it to continue"
+                  : "Scheduled forever-run: sleeping between ticks; it wakes on its own"
               }
             >
               <AlarmClock className="h-3 w-3 shrink-0" aria-hidden="true" focusable="false" />
               {overdue
-                ? `Scheduled — wake overdue${wake.text ? ` ${wake.text}` : ""} — resume`
+                ? `Scheduled: wake overdue${wake.text ? ` ${wake.text}` : ""}, resume`
                 : run.sleepWakeAt
-                  ? `Scheduled — next run ${wake.text}`
-                  : "Scheduled — sleeping between ticks"}
+                  ? `Scheduled: next run ${wake.text}`
+                  : "Scheduled: sleeping between ticks"}
             </span>
             {overdue && (
               // AC-85/88: copyable INERT resume command — selectable text, runs
@@ -227,7 +227,7 @@ export function KanbanCard({ run, keyboard }: KanbanCardProps) {
           data-testid="kanban-quiet-badge"
           data-status-badge
           className="inline-flex self-start items-center gap-1 rounded-full bg-status-stalled-muted border border-status-stalled/30 px-2 py-0.5 text-xs leading-tight font-medium text-status-stalled"
-          title="No journal activity past the stale threshold — resume to continue"
+          title="No journal activity past the stale threshold. Resume to continue"
         >
           <MoonStar className="h-3 w-3 shrink-0" aria-hidden="true" focusable="false" />
           {staleTime ? `Quiet (${staleTime})` : "Quiet"}

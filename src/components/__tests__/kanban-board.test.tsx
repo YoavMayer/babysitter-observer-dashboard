@@ -264,7 +264,8 @@ describe("KanbanBoard (SPEC-vibekanban Wave 4 — a11y & polish)", () => {
     render(<KanbanBoard onViewAllInList={onViewAllInList} />);
 
     expect(screen.getByTestId("kanban-fetch-window-notice")).toHaveTextContent(
-      "Showing the 500 most relevant runs — open List view for everything"
+      // owner 2026-07-08: de-AI copy (no em-dashes) + answer-flow clarity
+      "Showing the 500 most relevant runs. Open List view for everything"
     );
     // Every rendered column gets the tail (the truncated window may be hiding
     // runs from any of them). Column key amended per owner gate 2026-07-05 run

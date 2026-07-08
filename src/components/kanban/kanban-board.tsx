@@ -276,7 +276,7 @@ export function KanbanBoard({
           data-testid="kanban-fetch-window-notice"
           className="mb-2 rounded-md border border-border bg-background-secondary px-3 py-1.5 text-xs text-foreground-muted"
         >
-          Showing the {BOARD_FETCH_LIMIT} most relevant runs — open List view
+          Showing the {BOARD_FETCH_LIMIT} most relevant runs. Open List view
           for everything
         </p>
       )}

@@ -86,16 +86,16 @@ export function LivenessChip({ run }: { run: LightRun }) {
         )}
         title={
           overdue
-            ? "Scheduled forever-run — wake time passed; resume to continue (babysitter run:iterate)"
-            : "Scheduled forever-run — sleeping between ticks; wakes on its own"
+            ? "Scheduled forever-run: wake time passed; resume to continue (babysitter run:iterate)"
+            : "Scheduled forever-run: sleeping between ticks; wakes on its own"
         }
       >
         <AlarmClock className="h-3 w-3" aria-hidden="true" focusable="false" />
         {overdue ? "overdue" : "scheduled"}
         <span className="sr-only">
           {overdue
-            ? ": scheduled forever-run, wake time passed — resume to continue"
-            : ": scheduled forever-run, sleeping between ticks — wakes on its own"}
+            ? ": scheduled forever-run, wake time passed. Resume to continue"
+            : ": scheduled forever-run, sleeping between ticks. Wakes on its own"}
         </span>
       </span>
     );
@@ -110,10 +110,10 @@ export function LivenessChip({ run }: { run: LightRun }) {
         // run.lock OR recent journal activity within the freshness window (see
         // deriveLivenessFromActivity). Copy states the honest signal, not a lock.
         className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold bg-status-alive-muted text-status-alive"
-        title="In progress — recent activity means this run is actively being worked"
+        title="In progress: recent activity means this run is actively being worked"
       >
         <Wifi className="h-3 w-3" aria-hidden="true" focusable="false" /> live
-        <span className="sr-only">: in progress — recent activity means this run is actively being worked</span>
+        <span className="sr-only">: in progress, recent activity means this run is actively being worked</span>
       </span>
     );
   }
@@ -122,10 +122,10 @@ export function LivenessChip({ run }: { run: LightRun }) {
     <span
       data-status-badge
       className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold bg-status-stalled-muted text-status-stalled"
-      title="No live orchestrator is attached — resume the run to continue it"
+      title="No live orchestrator is attached. Resume the run to continue it"
     >
       <AlertTriangle className="h-3 w-3" aria-hidden="true" focusable="false" /> orphaned
-      <span className="sr-only">: no live orchestrator is attached — resume the run to continue it</span>
+      <span className="sr-only">: no live orchestrator is attached. Resume the run to continue it</span>
     </span>
   );
 }
@@ -190,7 +190,7 @@ export function ActionHint({ run }: { run: LightRun }) {
           // when the run is resumed.
           title="No live orchestrator is attached. Recorded now → applied when the run is resumed (babysitter run:iterate)."
         >
-          <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" focusable="false" /> No live driver — resume to answer
+          <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" focusable="false" /> No live driver. Resume to answer
           <span className="sr-only">: recorded now → applied when the run is resumed (babysitter run:iterate)</span>
         </span>
       ) : (
@@ -198,10 +198,10 @@ export function ActionHint({ run }: { run: LightRun }) {
         <span
           data-status-badge
           className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-status-attention-muted text-status-attention border border-status-attention/30"
-          title="Answer this in the terminal that is driving this run"
+          title="Recorded to disk. The attached run picks it up on its next step."
         >
           <Terminal className="h-3.5 w-3.5" aria-hidden="true" focusable="false" /> Answer in terminal
-          <span className="sr-only">: answer this in the terminal that is driving this run</span>
+          <span className="sr-only">: recorded to disk. The attached run picks it up on its next step.</span>
         </span>
       )}
       <button

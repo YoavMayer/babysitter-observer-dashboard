@@ -108,7 +108,8 @@ const TASKDEF_BP_OPTIONS = ["Accept", "Request changes"];
 
 // AC-32/AC-34: the honest last-resort copy, frozen VERBATIM (SPEC §13.1).
 const NOQUEST_FALLBACK_COPY =
-  "Approval required — this breakpoint has no question text on disk.";
+  // owner 2026-07-08: de-AI copy (no em-dashes) + answer-flow clarity
+  "Approval required: this breakpoint has no question text on disk.";
 
 // AC-14: the fixture question, asserted VERBATIM (length > 120 chars).
 const LONG_BP_QUESTION =
@@ -490,7 +491,7 @@ test.describe("Kanban board — Needs-you cards (SPEC-vibekanban)", () => {
   );
 
   test(
-    `AC-16: an orphaned-driver Needs-you card shows the "No live driver — resume to answer" hint and a working copy-run-id control (${PENDING_IMPL})`,
+    `AC-16: an orphaned-driver Needs-you card shows the "No live driver. Resume to answer" hint and a working copy-run-id control (${PENDING_IMPL})`,
     async ({ page, context }) => {
       // 01KTESTPENDINGBPFIXTURE0 has no run.lock => driver "none" => orphaned.
       await context.grantPermissions(["clipboard-read", "clipboard-write"]);
@@ -501,7 +502,7 @@ test.describe("Kanban board — Needs-you cards (SPEC-vibekanban)", () => {
       await expect(column(page, "needsyou").locator(`[data-run-id="${PENDING_BP_RUN_ID}"]`)).toBeVisible();
 
       // Driver-aware informing hint (exact copy from run-list.tsx ActionHint).
-      await expect(card).toContainText("No live driver — resume to answer");
+      await expect(card).toContainText("No live driver. Resume to answer");
       await expect(card).not.toContainText("Answer in terminal");
 
       // Copy control puts the FULL runId on the clipboard.
@@ -779,7 +780,7 @@ test.describe("Kanban board — hidden projects, junk, empty & overflow (SPEC-vi
       await interceptRuns(page, [makeApiRun({ runId: "01KSYNTHONLYWORKING00001" })]);
       await page.reload({ waitUntil: "domcontentloaded" });
       await expect(board(page)).toBeVisible({ timeout: 30_000 });
-      await expect(column(page, "needsyou")).toContainText("Nothing needs you — all clear.");
+      await expect(column(page, "needsyou")).toContainText("Nothing needs you. All clear.");
       expect(await readCount(page, "needsyou")).toBe(0);
       await expect(cardsIn(page, "waiting")).toHaveCount(1);
     }
@@ -965,7 +966,7 @@ test.describe("Kanban board — UX-R2 §13.2b/§13.3 taxonomy & color (owner gat
     // Orphaned-bucket card: the "no driver" resume hint, and NO quiet badge.
     const orphanedCard = cardFor(page, "01KSYNTHUXRORPH000000003");
     await expect(orphanedCard.getByTestId("run-action-hint")).toBeVisible();
-    await expect(orphanedCard).toContainText("No live driver — resume to answer");
+    await expect(orphanedCard).toContainText("No live driver. Resume to answer");
     await expect(orphanedCard.getByTestId("kanban-quiet-badge")).toHaveCount(0);
 
     // Stale-bucket card: the "quiet" badge, and NO no-driver hint.
@@ -1010,13 +1011,13 @@ test.describe("Kanban board — UX-R2 §13.2b/§13.3 taxonomy & color (owner gat
     await expect(definitions).toBeVisible();
 
     // One line per column, plain language (§13.2 column meanings).
-    await expect(definitions).toContainText("Needs you — a run is waiting for YOUR answer.");
-    await expect(definitions).toContainText("Working — a live driver is attached and making progress.");
+    await expect(definitions).toContainText("Needs you: a run is waiting for YOUR answer.");
+    await expect(definitions).toContainText("Working: a live driver is attached and making progress.");
     await expect(definitions).toContainText(
-      "Stalled — recoverable: no live driver or quiet >1h; resume to continue."
+      "Stalled and recoverable: no live driver or quiet >1h; resume to continue."
     );
     await expect(definitions).toContainText(
-      "Done — terminal: completed or failed; failed runs carry a red failed badge."
+      "Done and terminal: completed or failed; failed runs carry a red failed badge."
     );
 
     // Escape closes the popover.
@@ -1085,7 +1086,7 @@ test.describe("Kanban board — UX-R2 §13.2b/§13.3 taxonomy & color (owner gat
     await gotoBoard(page);
 
     const okColor = await resolveCssColor(page, "var(--status-ok)");
-    const allClear = page.getByText("Nothing needs you — all clear.");
+    const allClear = page.getByText("Nothing needs you. All clear.");
     await expect(allClear).toBeVisible();
     expect(await allClear.evaluate((el) => getComputedStyle(el).color)).toBe(okColor);
 
@@ -1111,9 +1112,9 @@ test.describe("Kanban board — UX-R2 §13.2b/§13.3 taxonomy & color (owner gat
 
 // §13.4 exact copy — these strings are spec, not suggestions (frozen VERBATIM).
 const READONLY_CONTRACT_LINE =
-  "The observer is read-only — except this single action: recording your breakpoint answer.";
+  "The observer is read-only, except this single action: recording your breakpoint answer.";
 const ORPHANED_SEMANTICS_LINE =
-  "Recorded now → applied when the run is resumed (babysitter run:iterate).";
+  "Recorded to disk. Nothing runs until you resume:";
 const ORPHANED_RECORDED_CONFIRMATION =
   "Answer recorded. It will be applied when the run is resumed.";
 
@@ -1456,7 +1457,7 @@ test.describe("Kanban board — UX-R2 §13.5 carried minors & nits (owner gate 2
 // ---------------------------------------------------------------------------
 
 // §14.5 frozen copy (verbatim).
-const RECORDED_CHIP_TEXT = "Answer recorded — awaiting resume";
+const RECORDED_CHIP_TEXT = "Answer recorded, awaiting resume";
 const RECORDED_CONFIRMATION = "Answer recorded. It will be applied when the run is resumed.";
 const FORBIDDEN_CONFIRMATION_WORDS = ["published", "approved successfully", "done"];
 
@@ -1737,7 +1738,7 @@ test.describe("Kanban board — in-progress indication (UX-R3 wave 3)", () => {
       ).toHaveCount(1);
       // ...and it carries the honest in-progress ("live") affordance.
       await expect(
-        freshCard.getByText(/in progress — recent activity means this run is actively being worked/i)
+        freshCard.getByText(/in progress, recent activity means this run is actively being worked/i)
       ).toBeAttached();
 
       // Stale run is NOT in Working; it reads as Stalled (no live driver).

@@ -86,7 +86,7 @@ export function RunFilterBar({
               onClick={() => onStatusFilterChange(f.value)}
               title={
                 disclosure
-                  ? `${count} total — ${disclosure} (the rest render in the board column)`
+                  ? `${count} total: ${disclosure} (the rest render in the board column)`
                   : undefined
               }
               className={cn(

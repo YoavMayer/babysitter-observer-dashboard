@@ -56,8 +56,8 @@ export function RunIterateCommand({
         onClick={copy}
         data-testid="kanban-bp-run-iterate-copy"
         className="flex shrink-0 items-center gap-1 text-[10px] text-foreground-muted transition-colors hover:text-foreground"
-        aria-label="Copy the resume command (babysitter run:iterate) — the observer never runs it"
-        title="Copy the resume command — run it yourself in a terminal"
+        aria-label="Copy the resume command (babysitter run:iterate). The observer never runs it"
+        title="Copy the resume command, then run it yourself in a terminal"
       >
         {copied ? (
           <Check className="h-3 w-3" aria-hidden="true" focusable="false" />

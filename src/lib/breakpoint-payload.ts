@@ -32,7 +32,7 @@ import type {
  * a generic approval.
  */
 export const BREAKPOINT_NO_QUESTION_FALLBACK =
-  "Approval required — this breakpoint has no question text on disk.";
+  "Approval required: this breakpoint has no question text on disk.";
 
 /**
  * UX-R2 §13.4 read-only clarity — exact copy (these strings are spec, not
@@ -41,7 +41,7 @@ export const BREAKPOINT_NO_QUESTION_FALLBACK =
  * the observer's ONLY write path, and the panel says so out loud (AC-43).
  */
 export const BREAKPOINT_READONLY_CONTRACT =
-  "The observer is read-only — except this single action: recording your breakpoint answer.";
+  "The observer is read-only, except this single action: recording your breakpoint answer.";
 
 /**
  * §13.4 orphaned semantics line (replaces the old "an answer won't be applied
@@ -49,7 +49,7 @@ export const BREAKPOINT_READONLY_CONTRACT =
  * recorded on disk NOW and takes effect only when the run is resumed (AC-44).
  */
 export const BREAKPOINT_ORPHANED_SEMANTICS =
-  "Recorded now → applied when the run is resumed (babysitter run:iterate).";
+  "Recorded to disk. Nothing runs until you resume:";
 
 /**
  * §13.4 post-submit confirmation shown after answering an orphaned run's
@@ -64,7 +64,7 @@ export const BREAKPOINT_ORPHANED_RECORDED_CONFIRMATION =
  * green (--status-ok = done); the run is not done until it is resumed.
  */
 export const BREAKPOINT_RECORDED_AWAITING_RESUME_CHIP =
-  "Answer recorded — awaiting resume";
+  "Answer recorded, awaiting resume";
 
 /**
  * UX-R3 §14.5 (AC-59) — body copy under the recorded chip on the board's

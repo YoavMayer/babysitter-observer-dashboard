@@ -128,7 +128,8 @@ describe('BreakpointPanel', () => {
     render(<BreakpointPanel task={task} runId={defaultRunId} />);
 
     expect(
-      screen.getByText('Approval required — this breakpoint has no question text on disk.'),
+      // owner 2026-07-08: de-AI copy (no em-dashes) + answer-flow clarity
+      screen.getByText('Approval required: this breakpoint has no question text on disk.'),
     ).toBeInTheDocument();
   });
 
@@ -141,7 +142,7 @@ describe('BreakpointPanel', () => {
 
     const contract = screen.getByTestId('bp-readonly-contract');
     expect(contract).toHaveTextContent(
-      'The observer is read-only — except this single action: recording your breakpoint answer.',
+      'The observer is read-only, except this single action: recording your breakpoint answer.',
     );
     // Above any input: the contract line precedes the approval form in the DOM.
     const input = screen.getByTestId('custom-answer-input');
@@ -156,7 +157,7 @@ describe('BreakpointPanel', () => {
       <BreakpointPanel task={task} runId={defaultRunId} runDriver="none" />,
     );
     expect(screen.getByTestId('bp-orphaned-semantics')).toHaveTextContent(
-      'Recorded now → applied when the run is resumed (babysitter run:iterate).',
+      'Recorded to disk. Nothing runs until you resume:',
     );
     unmount();
 

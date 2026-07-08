@@ -134,7 +134,7 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 const HEX_RE = /^[0-9a-f]{16,}$/i;
 
 export function formatShortId(id: string, chars: number = 4): string {
-  if (!id) return '—';
+  if (!id) return 'N/A';
   if (id.length <= chars) return id;
   // Human-named ids (e.g. a run dir called "my-migration"): the head carries
   // the meaning — "...tion" would be useless. Show the name, head-truncated

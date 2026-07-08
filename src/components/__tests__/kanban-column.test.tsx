@@ -67,7 +67,8 @@ describe("KanbanColumn (SPEC-vibekanban Wave 2)", () => {
 
   it("shows the quiet §7 placeholder for an empty always-visible column", () => {
     render(<KanbanColumn columnKey="needsyou" runs={[]} />);
-    expect(screen.getByText("Nothing needs you — all clear.")).toBeInTheDocument();
+    // owner 2026-07-08: de-AI copy (no em-dashes) + answer-flow clarity
+    expect(screen.getByText("Nothing needs you. All clear.")).toBeInTheDocument();
     expect(screen.getByTestId("kanban-column-count-needsyou")).toHaveTextContent("0");
     expect(screen.queryAllByTestId("kanban-card")).toHaveLength(0);
   });

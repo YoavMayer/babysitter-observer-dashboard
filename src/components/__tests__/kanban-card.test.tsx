@@ -47,7 +47,8 @@ function makeLightRun(overrides: Partial<LightRun> = {}): LightRun {
 
 // sr-only strings are the exact LivenessChip/StatusDot expansions from
 // src/components/dashboard/run-list.tsx (a11y-status-chip-title-only).
-const LIVE_SR_TEXT = /in progress — recent activity means this run is actively being worked/i;
+// owner 2026-07-08: de-AI copy (no em-dashes) + answer-flow clarity
+const LIVE_SR_TEXT = /in progress, recent activity means this run is actively being worked/i;
 const ORPHANED_SR_TEXT = /no live orchestrator is attached/i;
 const STATUS_DOT_SR_TEXT = /run status:/i;
 

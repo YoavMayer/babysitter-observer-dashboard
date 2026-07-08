@@ -103,7 +103,7 @@ describe("KanbanBreakpointPanel (SPEC-vibekanban §5, Wave 3)", () => {
     setupTaskDetail(pendingDetail());
     render(<KanbanBreakpointPanel run={makeNeedsYouRun({ driver: "none" })} />);
 
-    expect(screen.getByText(/No live driver — resume to answer/)).toBeInTheDocument();
+    expect(screen.getByText(/No live driver\. Resume to answer/)).toBeInTheDocument();
     expect(screen.queryByText(/Answer in terminal/)).not.toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /copy run id/i })
@@ -115,7 +115,7 @@ describe("KanbanBreakpointPanel (SPEC-vibekanban §5, Wave 3)", () => {
     render(<KanbanBreakpointPanel run={makeNeedsYouRun({ driver: "live" })} />);
 
     expect(screen.getByText(/Answer in terminal/)).toBeInTheDocument();
-    expect(screen.queryByText(/No live driver — resume to answer/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/No live driver\. Resume to answer/)).not.toBeInTheDocument();
   });
 
   it("mounts the existing BreakpointApproval (the only write path) when the Answer section expands", () => {
@@ -152,10 +152,10 @@ describe("KanbanBreakpointPanel (SPEC-vibekanban §5, Wave 3)", () => {
 // ---------------------------------------------------------------------------
 
 describe("KanbanBreakpointPanel — UX-R2 §13.4 read-only clarity", () => {
+  // owner 2026-07-08: de-AI copy (no em-dashes) + answer-flow clarity
   const CONTRACT_LINE =
-    "The observer is read-only — except this single action: recording your breakpoint answer.";
-  const ORPHANED_SEMANTICS =
-    "Recorded now → applied when the run is resumed (babysitter run:iterate).";
+    "The observer is read-only, except this single action: recording your breakpoint answer.";
+  const ORPHANED_SEMANTICS = "Recorded to disk. Nothing runs until you resume:";
   const ORPHANED_CONFIRMATION =
     "Answer recorded. It will be applied when the run is resumed.";
 
@@ -258,7 +258,7 @@ describe("KanbanBreakpointPanel — recorded, awaiting resume (UX-R3 §14.5)", (
     expect(mockUseTaskDetail).toHaveBeenCalledWith(RUN_ID, EFFECT_ID);
 
     const chip = screen.getByTestId("kanban-bp-recorded-chip");
-    expect(chip).toHaveTextContent("Answer recorded — awaiting resume");
+    expect(chip).toHaveTextContent("Answer recorded, awaiting resume");
     // Amber-gray stalled token, never the green ok token.
     expect(chip.className).toContain("status-stalled");
     expect(chip.className).not.toContain("status-ok");

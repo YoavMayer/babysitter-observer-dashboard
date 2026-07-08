@@ -71,7 +71,7 @@ describe('RunList (flat filtered list)', () => {
     setupPolling({ runs, totalCount: 1 });
     render(<RunList status="orphaned" />);
 
-    expect(screen.getByText('No live driver — resume to answer')).toBeInTheDocument();
+    expect(screen.getByText('No live driver. Resume to answer')).toBeInTheDocument();
   });
 
   it('shows no orphaned chip or resume hint for a terminal run', () => {
@@ -89,7 +89,7 @@ describe('RunList (flat filtered list)', () => {
 
     expect(screen.queryByText('orphaned')).not.toBeInTheDocument();
     expect(
-      screen.queryByText('No live driver — resume to answer')
+      screen.queryByText('No live driver. Resume to answer')
     ).not.toBeInTheDocument();
     expect(screen.queryByTestId('run-action-hint')).not.toBeInTheDocument();
     // A neutral, status-appropriate label is shown instead.
@@ -110,7 +110,7 @@ describe('RunList (flat filtered list)', () => {
 
     expect(screen.getByText('orphaned')).toBeInTheDocument();
     expect(
-      screen.getByText('No live driver — resume to answer')
+      screen.getByText('No live driver. Resume to answer')
     ).toBeInTheDocument();
   });
 
@@ -131,7 +131,7 @@ describe('RunList (flat filtered list)', () => {
 
     expect(screen.getByText('orphaned')).toBeInTheDocument();
     expect(
-      screen.getByText('No live driver — resume to answer')
+      screen.getByText('No live driver. Resume to answer')
     ).toBeInTheDocument();
     expect(screen.getByTestId('run-action-hint')).toBeInTheDocument();
   });
@@ -151,7 +151,7 @@ describe('RunList (flat filtered list)', () => {
 
     expect(screen.queryByText('orphaned')).not.toBeInTheDocument();
     expect(
-      screen.queryByText('No live driver — resume to answer')
+      screen.queryByText('No live driver. Resume to answer')
     ).not.toBeInTheDocument();
     expect(screen.queryByTestId('run-action-hint')).not.toBeInTheDocument();
     expect(screen.getByText('completed')).toBeInTheDocument();
@@ -173,7 +173,7 @@ describe('RunList (flat filtered list)', () => {
 
     expect(screen.getByTestId('run-action-hint')).toBeInTheDocument();
     expect(
-      screen.getByText('No live driver — resume to answer')
+      screen.getByText('No live driver. Resume to answer')
     ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: /copy run id/i })
@@ -296,8 +296,9 @@ describe('RunList accessibility', () => {
     setupPolling({ runs, totalCount: 1 });
     render(<RunList status="orphaned" />);
 
+    // owner 2026-07-08: de-AI copy (no em-dashes) + answer-flow clarity
     expect(
-      screen.getByText(/no live orchestrator is attached — resume the run to continue it/i)
+      screen.getByText(/no live orchestrator is attached\. Resume the run to continue it/i)
     ).toBeInTheDocument();
   });
 

@@ -143,7 +143,8 @@ describe('resolveBreakpointPayload', () => {
     });
 
     expect(resolved.question).toBe(
-      'Approval required — this breakpoint has no question text on disk.',
+      // owner 2026-07-08: de-AI copy (no em-dashes) + answer-flow clarity
+      'Approval required: this breakpoint has no question text on disk.',
     );
     expect(resolved.question).toBe(BREAKPOINT_NO_QUESTION_FALLBACK);
     expect(resolved.questionSource).toBe('fallback');

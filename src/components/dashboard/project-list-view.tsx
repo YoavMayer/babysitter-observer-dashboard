@@ -82,7 +82,7 @@ function IdleEmptyState() {
   return (
     <div data-testid="idle-empty-state" className="text-center py-16">
       <Eye className="h-10 w-10 text-foreground-muted/30 mx-auto mb-3" />
-      <p className="text-sm text-foreground-muted mb-1">All quiet — no active orchestration runs</p>
+      <p className="text-sm text-foreground-muted mb-1">All quiet. No active orchestration runs</p>
       <p className="text-xs text-foreground-muted/60">
         Runs will appear here when babysitter processes are started
       </p>

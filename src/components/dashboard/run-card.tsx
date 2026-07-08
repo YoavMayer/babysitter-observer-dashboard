@@ -141,7 +141,7 @@ export const RunCard = memo(function RunCard({ run, selected }: RunCardProps) {
               {run.driver === "orphaned" && (
                 <span
                   className="inline-flex items-center gap-1 rounded-full bg-error/10 border border-error/30 px-2 py-0.5 text-xs leading-tight font-medium text-error shrink-0"
-                  title="No live orchestrator attached (run.lock pid is dead) — abandoned; resume or clean up"
+                  title="No live orchestrator attached (run.lock pid is dead). Abandoned; resume or clean up"
                 >
                   <span className="h-1.5 w-1.5 rounded-full bg-error" /> orphaned
                 </span>

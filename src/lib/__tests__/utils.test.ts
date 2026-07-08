@@ -154,7 +154,8 @@ describe('getStatusBg', () => {
 
 describe('formatShortId', () => {
   it('returns dash for empty string', () => {
-    expect(formatShortId('')).toBe('\u2014');
+    // owner 2026-07-08: de-AI copy (no em-dashes) + answer-flow clarity
+    expect(formatShortId('')).toBe('N/A');
   });
 
   it('returns full string when within limit', () => {

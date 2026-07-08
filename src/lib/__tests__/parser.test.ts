@@ -1547,7 +1547,8 @@ describe('parser', () => {
     // AC-32 honest last-resort copy — frozen verbatim here on purpose (the
     // test must not import the constant it is meant to pin down).
     const HONEST_FALLBACK =
-      'Approval required — this breakpoint has no question text on disk.';
+      // owner 2026-07-08: de-AI copy (no em-dashes) + answer-flow clarity
+      'Approval required: this breakpoint has no question text on disk.';
 
     // metadata.payload keys byte-replicate the evidence run:
     // [context, expert, question, tags, title].
