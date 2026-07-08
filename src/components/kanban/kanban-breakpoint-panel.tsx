@@ -49,31 +49,33 @@ export interface KanbanBreakpointPanelProps {
 export function KanbanBreakpointPanel({ run }: KanbanBreakpointPanelProps) {
   const [expanded, setExpanded] = useState(false);
 
-  // The pending breakpoint effect this card is waiting on (same gating as
-  // use-run-detail's hasBreakpointWaiting).
-  const pendingBreakpoint = run.tasks.find(
-    (t) => t.kind === "breakpoint" && t.status === "requested"
-  );
+  // The pending breakpoint this card is waiting on — derived from the DIGEST
+  // (perf slimming: the list payload no longer carries tasks[]). The digest
+  // already exposes pendingBreakpoints (count) + breakpointEffectId (the first
+  // pending breakpoint's effectId, regardless of question), which is exactly
+  // what this panel needs (same gating as use-run-detail's hasBreakpointWaiting).
+  const hasPending = (run.pendingBreakpoints ?? 0) > 0;
 
   // UX-R3 §14.5 (AC-59): answered-but-unapplied mode — the observer recorded an
   // answer (disk-derived on the run) but the run is not yet resumed, so there
-  // is no longer a "requested" breakpoint task. The card stays in Needs-you and
-  // shows the amber-gray recorded state (never green, never gone).
-  const recordedMode =
-    !pendingBreakpoint && run.recordedAwaitingResume === true;
+  // is no longer a pending breakpoint. The card stays in Needs-you and shows the
+  // amber-gray recorded state (never green, never gone).
+  const recordedMode = !hasPending && run.recordedAwaitingResume === true;
 
   // Full BreakpointPayload (question/options + recorded result) from the
   // existing task-detail endpoint. Enabled for the pending breakpoint OR, in
   // recorded mode, the recorded breakpoint effect.
-  const activeEffectId =
-    pendingBreakpoint?.effectId ??
-    (recordedMode ? run.recordedBreakpointEffectId ?? null : null);
+  const activeEffectId = hasPending
+    ? run.breakpointEffectId ?? null
+    : recordedMode
+      ? run.recordedBreakpointEffectId ?? null
+      : null;
   const { task } = useTaskDetail(run.runId, activeEffectId);
 
-  if (!pendingBreakpoint && !recordedMode) {
-    // Legacy run shapes (pendingBreakpoints heuristics) without a visible
-    // breakpoint task, and no observer-recorded answer awaiting resume:
-    // nothing actionable to show on-card.
+  if (!hasPending && !recordedMode) {
+    // Legacy run shapes (pendingBreakpoints heuristics) without a pending
+    // breakpoint, and no observer-recorded answer awaiting resume: nothing
+    // actionable to show on-card.
     return null;
   }
 
@@ -185,7 +187,6 @@ export function KanbanBreakpointPanel({ run }: KanbanBreakpointPanelProps) {
   // any on-disk source, say so — never a bare "Approval required".
   const question =
     run.breakpointQuestion ||
-    pendingBreakpoint?.breakpointQuestion ||
     task?.breakpoint?.question ||
     BREAKPOINT_NO_QUESTION_FALLBACK;
   // UX-R3 §14.3 (AC-55): options are no longer rendered as informative chips

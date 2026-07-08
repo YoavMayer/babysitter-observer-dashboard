@@ -701,9 +701,19 @@ export async function getRunDigest(runPath: string): Promise<RunDigest> {
   const breakpointEffectIds = new Set<string>();
   // Track requested effects and their kinds for waitingKind determination
   const requestedEffects: Array<{ effectId: string; kind: string }> = [];
+  // Failed-step derivation (mirror parseRunDir L361-393): the requested-payload
+  // label/stepId per effect + the first/last effect that resolved with error,
+  // and the RUN_FAILED error payload.
+  const requestedInfo = new Map<string, { label?: string; stepId?: string; taskId?: string }>();
+  let firstFailedEffectId: string | undefined;
+  let lastFailedError: { name?: string; message?: string; stack?: string } | undefined;
+  let runFailedError: { name?: string; message?: string; stack?: string } | undefined;
   // §15.1: newest journal event type/kind for sleeping-forever-run detection.
   let newestType: string | undefined;
   let newestKind: string | undefined;
+  // Newest payload label/stepId — feeds parseSleepWakeAt for scheduled runs.
+  let newestLabel: string | undefined;
+  let newestStepId: string | undefined;
 
   if (await fileExists(journalPath)) {
     const files = await fs.readdir(journalPath);
@@ -727,13 +737,22 @@ export async function getRunDigest(runPath: string): Promise<RunDigest> {
       updatedAt = event.ts;
       // Files are sorted ascending, so the last processed event is the newest.
       newestType = event.type;
-      newestKind = (event.payload as Record<string, unknown>).kind as string | undefined;
+      const newestPayload = event.payload as Record<string, unknown>;
+      newestKind = newestPayload.kind as string | undefined;
+      newestLabel = newestPayload.label as string | undefined;
+      newestStepId = newestPayload.stepId as string | undefined;
       if (event.type === "EFFECT_REQUESTED") {
         taskCount++;
         const data = event.payload as Record<string, unknown>;
         const effectId = data.effectId as string;
         const kind = (data.kind as string) || "agent";
         requestedEffects.push({ effectId, kind });
+        requestedInfo.set(effectId, {
+          // Mirror parseRunDir: label defaults to taskId when absent.
+          label: (data.label as string) || (data.taskId as string),
+          stepId: data.stepId as string | undefined,
+          taskId: data.taskId as string | undefined,
+        });
         if (data.kind === "breakpoint") {
           requestedBreakpoints.add(effectId);
           breakpointEffectIds.add(effectId);
@@ -743,9 +762,17 @@ export async function getRunDigest(runPath: string): Promise<RunDigest> {
         completedTasks++;
         const data = event.payload as Record<string, unknown>;
         resolvedEffects.add(data.effectId as string);
+        if (data.status === "error") {
+          if (!firstFailedEffectId) firstFailedEffectId = data.effectId as string;
+          // Keep the LAST errored effect's error (mirror parseRunDir fallback).
+          lastFailedError = data.error as typeof lastFailedError;
+        }
       }
       if (event.type === "RUN_COMPLETED") status = "completed";
-      if (event.type === "RUN_FAILED") status = "failed";
+      if (event.type === "RUN_FAILED") {
+        status = "failed";
+        runFailedError = (event.payload as Record<string, unknown>).error as typeof runFailedError;
+      }
     }
 
     if (status === "pending" && taskCount > 0) status = "waiting";
@@ -844,6 +871,34 @@ export async function getRunDigest(runPath: string): Promise<RunDigest> {
   // parseRunDir so the board full-run and the digest badges agree).
   const newestEvent = { type: newestType, kind: newestKind };
   const scheduledDetected = nonTerminal && isSleepingScheduled(newestEvent);
+  // §15.1 (AC-84/85): the wake time encoded in the sleep effect's label/stepId
+  // (`sleep:<ISO>`). Mirrors parseRunDir L457-468.
+  const sleepWakeAt = scheduledDetected
+    ? parseSleepWakeAt(newestLabel, newestStepId) ?? undefined
+    : undefined;
+
+  // Failure details (mirror parseRunDir L367-393): prefer RUN_FAILED's error,
+  // else the last errored EFFECT_RESOLVED.
+  let failureMessage: string | undefined;
+  if (runFailedError) {
+    failureMessage = runFailedError.message || runFailedError.stack || undefined;
+  }
+  if (!failureMessage && lastFailedError) {
+    failureMessage = lastFailedError.message || lastFailedError.stack || undefined;
+  }
+  // Failed step (mirror parseRunDir L361-365): the first errored effect's title
+  // (task.json) || label || stepId. Reading a single task.json is cheap and
+  // keeps the list card in sync with the run-detail page.
+  let failedStep: string | undefined;
+  if (firstFailedEffectId) {
+    const info = requestedInfo.get(firstFailedEffectId);
+    const taskDef = await readJsonSafe<Record<string, unknown>>(
+      path.join(runPath, "tasks", firstFailedEffectId, "task.json"),
+      null
+    );
+    failedStep =
+      (taskDef?.title as string) || info?.label || info?.stepId || undefined;
+  }
 
   let isStale: boolean | undefined;
   if (nonTerminal && updatedAt && !scheduledDetected) {
@@ -873,6 +928,41 @@ export async function getRunDigest(runPath: string): Promise<RunDigest> {
       ? deriveLivenessFromActivity(lockLiveness, updatedAt, config.activeThresholdMs ?? config.staleThresholdMs)
       : lockLiveness);
 
+  // UX-R3 §14.5 (AC-59): observer-recorded-but-unapplied breakpoint detection
+  // (mirror parseRunDir L516-545). On a non-terminal run with no live driver,
+  // scan resolved breakpoints' result.json for value.approvedBy ===
+  // "observer-dashboard" — only the FIRST such breakpoint is surfaced.
+  let recordedAwaitingResume = false;
+  let recordedBreakpointEffectId: string | undefined;
+  const noLiveDriver = driver === "orphaned" || driver === "none";
+  if (nonTerminal && noLiveDriver && breakpointEffectIds.size > 0) {
+    const resolvedBreakpointIds = [...breakpointEffectIds].filter((id) =>
+      resolvedEffects.has(id)
+    );
+    if (resolvedBreakpointIds.length > 0) {
+      const recordedChecks = await Promise.all(
+        resolvedBreakpointIds.map((id) =>
+          readJsonSafe<Record<string, unknown>>(
+            path.join(runPath, "tasks", id, "result.json"),
+            null
+          )
+        )
+      );
+      for (let i = 0; i < resolvedBreakpointIds.length; i++) {
+        const r = recordedChecks[i];
+        const value =
+          r && typeof r === "object"
+            ? (r.value as Record<string, unknown> | undefined)
+            : undefined;
+        if (value?.approvedBy === "observer-dashboard") {
+          recordedAwaitingResume = true;
+          recordedBreakpointEffectId = resolvedBreakpointIds[i];
+          break;
+        }
+      }
+    }
+  }
+
   return {
     runId: path.basename(runPath),
     latestSeq,
@@ -886,6 +976,11 @@ export async function getRunDigest(runPath: string): Promise<RunDigest> {
     isStale,
     waitingKind,
     driver,
+    failedStep,
+    failureMessage,
+    sleepWakeAt,
+    recordedAwaitingResume,
+    recordedBreakpointEffectId,
   };
 }
 

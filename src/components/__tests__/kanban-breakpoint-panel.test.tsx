@@ -45,7 +45,16 @@ function makeNeedsYouRun(overrides: Partial<BoardRun> = {}): BoardRun {
     tasks: [bpTask],
     breakpointQuestion: QUESTION,
   });
-  return { ...run, events: [], totalEvents: 5, pendingBreakpoints: 1, ...overrides } as BoardRun;
+  // Digest-derived board shape (perf slimming): the panel reads pendingBreakpoints
+  // + breakpointEffectId off the run, not tasks[].
+  return {
+    ...run,
+    events: [],
+    totalEvents: 5,
+    pendingBreakpoints: 1,
+    breakpointEffectId: "eff-bp-1",
+    ...overrides,
+  } as BoardRun;
 }
 
 function setupTaskDetail(task: TaskDetail | null) {
@@ -135,11 +144,11 @@ describe("KanbanBreakpointPanel (SPEC-vibekanban §5, Wave 3)", () => {
     expect(screen.getByTestId("option-btn-approve")).toBeInTheDocument();
   });
 
-  it("renders nothing when the run has no pending breakpoint task (legacy shapes)", () => {
+  it("renders nothing when the run has no pending breakpoint and no recorded answer (legacy shapes)", () => {
     setupTaskDetail(null);
-    const run = makeNeedsYouRun({
-      tasks: [createMockTaskEffect({ kind: "agent", status: "requested" })],
-    });
+    // No pending breakpoint (count 0) and not recorded-awaiting-resume: nothing
+    // actionable to show on-card.
+    const run = makeNeedsYouRun({ pendingBreakpoints: 0, breakpointEffectId: undefined });
     const { container } = render(<KanbanBreakpointPanel run={run} />);
     expect(container).toBeEmptyDOMElement();
     // The hook is still called (hooks-before-early-return) but disabled.

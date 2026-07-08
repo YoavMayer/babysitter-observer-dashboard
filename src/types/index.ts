@@ -173,6 +173,21 @@ export interface RunDigest {
   /** Orchestrator attachment (read from run.lock + pid liveness).
    *  §15.1: "scheduled" = sleeping forever-run between ticks (idle-healthy). */
   driver?: 'live' | 'orphaned' | 'none' | 'scheduled';
+  // ---------------------------------------------------------------------------
+  // Card-parity fields (perf slimming): the default /api/runs list is served
+  // from digests, so getRunDigest computes these cheaply (same journal scan +
+  // breakpoint result.json reads it already performs) to mirror parseRunDir.
+  // ---------------------------------------------------------------------------
+  /** Failed-column "Failed at:" text — the first errored effect's step. */
+  failedStep?: string;
+  /** Failure detail from RUN_FAILED or the last errored EFFECT_RESOLVED. */
+  failureMessage?: string;
+  /** §15.1: parsed wake time (`sleep:<ISO>`) when driver === "scheduled". */
+  sleepWakeAt?: string;
+  /** UX-R3 §14.5 (AC-59): observer-recorded breakpoint answer awaiting resume. */
+  recordedAwaitingResume?: boolean;
+  /** The effectId of the observer-recorded breakpoint awaiting resume. */
+  recordedBreakpointEffectId?: string;
 }
 
 // Project grouping for dashboard
