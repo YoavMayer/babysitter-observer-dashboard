@@ -18,6 +18,8 @@ import {
   type BoardGroupKey,
   type BoardGroups,
 } from "@/components/kanban/column-model";
+import { computeReconciledCounts } from "@/lib/counting/run-classification";
+import { SessionsChip } from "@/components/kanban/sessions-chip";
 import type { RunsListResponse } from "@/lib/services/run-query-service";
 
 /**
@@ -160,9 +162,23 @@ export function KanbanBoard({
   });
 
   const runs = useMemo(() => data?.runs ?? [], [data]);
-  const partition = useMemo(
-    () => partitionRuns(runs, hiddenProjects),
+
+  // SESSIONS-CHIP-SPEC AC3/AC4: the idle-session (bare/0-task) count comes from
+  // the SINGLE counting source (§15.4), and a reveal toggle un-hides them.
+  const sessionsCount = useMemo(
+    () => computeReconciledCounts(runs, { hiddenProjects }).sessions,
     [runs, hiddenProjects]
+  );
+  const [sessionsRevealed, setSessionsRevealed] = useState(false);
+
+  const partition = useMemo(
+    // AC2: idle sessions are excluded from every column by default; when the
+    // chip toggle reveals them, they re-enter their natural columns.
+    () =>
+      partitionRuns(runs, hiddenProjects, {
+        detectIdleSessions: !sessionsRevealed,
+      }),
+    [runs, hiddenProjects, sessionsRevealed]
   );
   // §13.2b display grouping over the unchanged six-bucket partition.
   const groups = useMemo(() => groupColumns(partition), [partition]);
@@ -253,6 +269,14 @@ export function KanbanBoard({
   // difference went (same mechanism as the Stalled absorbed-into tooltip).
   const workingTooltip = workingOverflowTooltip(partition);
 
+  // SESSIONS-CHIP-SPEC AC5 / §15.4 (owner decision 2026-07-09): the Working
+  // header count is the plain DISJOINT rendered-card count (waiting-lane cards)
+  // in ALL cases — the same rule every other column uses. A needs-you run stays
+  // solely in the Needs-you column (needsYou precedence) and never also counts
+  // into Working. Excluding idle sessions from the waiting lane makes the
+  // Working count drop by exactly the idle count naturally, with no special
+  // gated branch. Read-only presentation only.
+
   // §7 fetch-window: the API window is capped at 500 — when more runs exist,
   // say so instead of silently truncating (count-honesty, F1 lesson).
   const totalCount = data?.totalCount ?? runs.length;
@@ -269,6 +293,18 @@ export function KanbanBoard({
       >
         {announcement}
       </div>
+
+      {/* SESSIONS-CHIP-SPEC AC3/AC4: the single muted idle-session chip + reveal
+          toggle. Rendered only when idle sessions exist (no chip, no noise). */}
+      {sessionsCount > 0 && (
+        <div className="mb-2 flex items-center">
+          <SessionsChip
+            count={sessionsCount}
+            revealed={sessionsRevealed}
+            onToggle={() => setSessionsRevealed((prev) => !prev)}
+          />
+        </div>
+      )}
 
       {/* §7 fetch-window notice: board-level, under the filter bar. */}
       {fetchWindowTruncated && (

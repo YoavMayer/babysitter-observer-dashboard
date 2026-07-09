@@ -14,6 +14,7 @@
 import type { LightRun } from "@/lib/services/run-query-service";
 import {
   classifyRun,
+  isIdleSession,
   isOrphanedBucket as isOrphanedBucketRaw,
   HIDDEN_SURFACED_COLUMNS,
   type BoardColumnKey,
@@ -114,11 +115,17 @@ function emptyPartition(): BoardPartition {
  */
 export function partitionRuns(
   runs: LightRun[],
-  hiddenProjects?: Set<string>
+  hiddenProjects?: Set<string>,
+  options?: { detectIdleSessions?: boolean }
 ): BoardPartition {
   const partition = emptyPartition();
+  // SESSIONS-CHIP-SPEC AC2: idle sessions (bare/0-task) are kept OUT of every
+  // column by default. Detection defaults on; the board passes false to build
+  // the "revealed" partition where idle sessions land in their natural column.
+  const detectIdle = options?.detectIdleSessions !== false;
 
   for (const run of runs) {
+    if (detectIdle && isIdleSession(run)) continue;
     const column = assignColumn(run);
     const hidden = hiddenProjects?.has(run.projectName ?? "") === true;
     if (hidden) {

@@ -76,6 +76,13 @@ export interface RunClassification {
   live: boolean;
   /** §15.1 seam — true only once wave 2 feeds a "scheduled" liveness in. */
   scheduled: boolean;
+  /**
+   * SESSIONS-CHIP-SPEC AC1/AC2: this run is an idle session (bare/0-task) and,
+   * with detection on (default), is kept OUT of every board column. `column`
+   * still holds its natural bucket for a revealed view; consumers gate on this
+   * flag to hide it by default.
+   */
+  idleSession: boolean;
   /** The single disjoint column this run renders in. */
   column: BoardColumnKey;
 }
@@ -89,6 +96,37 @@ export interface ClassifyOptions {
    * injectable so wave 2 can plug in sleep detection without a second model.
    */
   livenessOf?: (run: LightRun) => RunLiveness;
+  /**
+   * SESSIONS-CHIP-SPEC (frozen 2026-07-09) AC1/AC2: detect "idle sessions"
+   * (bare/0-task runs) and keep them OUT of every board column + status pill,
+   * disclosing them only via `sessionCollapsed` + the top-level `sessions`
+   * count. Default true. Setting it false restores the pre-feature behavior
+   * (idle sessions flood the Working column) — used to prove the drop is
+   * exactly the idle count (AC5).
+   */
+  detectIdleSessions?: boolean;
+}
+
+/**
+ * SESSIONS-CHIP-SPEC AC1 — the idle-session (a.k.a. bare-run) predicate with
+ * its alarm-safety guarantee. A run is an idle session IFF ALL hold:
+ *   1. processId is "bare-run" OR empty/absent; AND
+ *   2. it has 0 tasks; AND
+ *   3. it has NO pending breakpoint AND NO recorded breakpoint.
+ * Anything that could need the owner's attention (>0 tasks, a pending or
+ * recorded breakpoint, or any needs-you signal) is EXCLUDED here so it can
+ * never be hidden by this feature.
+ */
+export function isIdleSession(run: LightRun): boolean {
+  const pid = run.processId ?? "";
+  if (pid !== "" && pid !== "bare-run") return false;
+  if ((run.totalTasks ?? 0) > 0) return false;
+  // Alarm-safety: a recorded-but-unresumed or pending breakpoint — or the
+  // waiting-at-a-breakpoint fallback — keeps the run out of the idle set.
+  if (run.recordedAwaitingResume) return false;
+  if ((run.pendingBreakpoints ?? 0) > 0) return false;
+  if (run.waitingKind === "breakpoint") return false;
+  return true;
 }
 
 // ---------------------------------------------------------------------------
@@ -163,6 +201,8 @@ export function classifyRun(
     !needsYou &&
     !scheduled;
   const live = liveness === "live";
+  // SESSIONS-CHIP-SPEC AC1/AC2: idle detection defaults on.
+  const idleSession = options.detectIdleSessions !== false && isIdleSession(run);
 
   // Disjoint column: first match in precedence order. Total (never unassigned):
   // a non-terminal run always matches one of rows 1–5; terminal rows 6–7.
@@ -184,6 +224,7 @@ export function classifyRun(
     stale,
     live,
     scheduled,
+    idleSession,
     column,
   };
 }
@@ -224,11 +265,28 @@ export interface ReconciledCount {
   fromHidden: number;
   /** Hidden-project runs NOT surfaced (wave-2 candidates; 0 for visible-scope). */
   hiddenCollapsed: number;
+  /**
+   * SESSIONS-CHIP-SPEC AC5: idle-session (bare/0-task) runs disclosed on this
+   * pill rather than silently dropped. Non-zero only on the grand-total (`all`)
+   * pill, whose total keeps the idle sessions the status columns shed; every
+   * status pill sheds them (0 here) so the flood leaves the columns. This is
+   * the sanctioned extension of the §15.4 invariant:
+   *   pill === column + underNeedsYou + fromHidden + hiddenCollapsed + sessionCollapsed
+   */
+  sessionCollapsed: number;
   /** The scope this count was taken over (AC-76). */
   scope: CountScope;
 }
 
-export type ReconciledCounts = Record<PillStatus, ReconciledCount>;
+/**
+ * The reconciled counts for every pill PLUS the top-level `sessions` chip count
+ * (SESSIONS-CHIP-SPEC AC3): the exact idle-session count, equal to the `all`
+ * pill's `sessionCollapsed` addend.
+ */
+export type ReconciledCounts = Record<PillStatus, ReconciledCount> & {
+  /** SESSIONS-CHIP-SPEC AC3: the muted "⚡ N sessions" chip number. */
+  sessions: number;
+};
 
 interface PillSpec {
   predicate: (run: LightRun, liveness: RunLiveness) => boolean;
@@ -310,9 +368,29 @@ export function computeReconciledCounts(
     let underNeedsYou = 0;
     let fromHidden = 0;
     let hiddenCollapsed = 0;
+    let sessionCollapsed = 0;
 
     for (const { run, c } of classified) {
       if (!spec.predicate(run, liveness(run))) continue;
+
+      if (c.idleSession) {
+        // SESSIONS-CHIP-SPEC AC2/AC5: idle sessions never flood a status pill
+        // or board column. They are disclosed ONLY in the grand-total (`all`)
+        // pill, so `all` keeps them in its total while every status pill sheds
+        // them (their addends stay 0).
+        //   - VISIBLE idle sessions → `sessionCollapsed` (the chip's top-level
+        //     `sessions` count mirrors exactly this set — AC3).
+        //   - HIDDEN idle sessions → `hiddenCollapsed`, so a bare/0-task run in
+        //     a registry-hidden project is still DISCLOSED in the `all` total
+        //     ("disclosed, never silently dropped"), without polluting the
+        //     visible-scope chip/`sessionCollapsed`. The §15.4 invariant holds
+        //     either way (both are pill addends).
+        if (status === "all") {
+          if (c.hidden) hiddenCollapsed += 1;
+          else sessionCollapsed += 1;
+        }
+        continue;
+      }
 
       if (c.hidden) {
         // §15.1 model A (AC-71/75/87): a hidden-project run is SURFACED on the
@@ -336,16 +414,23 @@ export function computeReconciledCounts(
       }
     }
 
-    const pill = column + underNeedsYou + fromHidden + hiddenCollapsed;
+    const pill = column + underNeedsYou + fromHidden + hiddenCollapsed + sessionCollapsed;
     result[status] = {
       pill,
       column,
       underNeedsYou,
       fromHidden,
       hiddenCollapsed,
+      sessionCollapsed,
       scope: spec.scope,
     };
   }
+
+  // SESSIONS-CHIP-SPEC AC3: the chip number = the disclosed idle-session set
+  // (visible scope), identical to the `all` pill's sessionCollapsed addend.
+  result.sessions = classified.filter(
+    ({ c }) => c.idleSession && !c.hidden
+  ).length;
 
   return result;
 }
@@ -362,6 +447,8 @@ export interface ReconciledMetrics {
   completedRuns: number;
   failedRuns: number;
   pendingBreakpoints: number;
+  /** SESSIONS-CHIP-SPEC AC3: idle-session (bare/0-task) count — the chip N. */
+  idleSessions: number;
 }
 
 export function metricsFromReconciled(
@@ -374,5 +461,6 @@ export function metricsFromReconciled(
     completedRuns: counts.completed.pill,
     failedRuns: counts.failed.pill,
     pendingBreakpoints: counts.needsyou.pill,
+    idleSessions: counts.sessions,
   };
 }

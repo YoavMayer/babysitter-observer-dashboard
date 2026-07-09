@@ -33,6 +33,10 @@ function pillDisclosure(
   const parts: string[] = [];
   if (c.fromHidden > 0) parts.push(`${c.fromHidden} from hidden`);
   if (c.underNeedsYou > 0) parts.push(`${c.underNeedsYou} under Needs you`);
+  // SESSIONS-CHIP-SPEC AC5: idle sessions collapsed out of this pill are
+  // DISCLOSED here (never a bare number that contradicts the board) — same
+  // treatment as the from-hidden / under-Needs-you deltas.
+  if (c.sessionCollapsed > 0) parts.push(`${c.sessionCollapsed} idle sessions`);
   return parts.length > 0 ? parts.join(", ") : null;
 }
 

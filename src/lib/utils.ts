@@ -147,6 +147,8 @@ export function formatShortId(id: string, chars: number = 4): string {
 
 export function friendlyProcessName(processId: string): string {
   if (!processId) return '';
+  // SESSIONS-CHIP-SPEC AC6: the bare-run label "Bare Run" reads as "Idle session".
+  if (processId === 'bare-run') return 'Idle session';
   return processId
     .split(/[-/]/)
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())

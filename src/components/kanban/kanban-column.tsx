@@ -199,6 +199,13 @@ function ColumnInfoPopover({ columnKey }: { columnKey: BoardGroupKey }) {
 export interface KanbanColumnProps {
   columnKey: BoardGroupKey;
   runs: BoardRun[];
+  /**
+   * Header count override. Defaults to the number of rendered cards
+   * (`runs.length`) — the disjoint card count every non-idle scenario uses.
+   * SESSIONS-CHIP-SPEC AC5 passes a reconciled count for the Working lane when
+   * idle sessions are collapsed (the drop equals exactly the idle count).
+   */
+  count?: number;
   /** Count-honesty tooltip (§3.4) — e.g. stalled runs captured by Needs-you. */
   countTooltip?: string | null;
   /** §6.2 pill focus: this column is highlighted and scrolled into view. */
@@ -217,12 +224,15 @@ export interface KanbanColumnProps {
 export function KanbanColumn({
   columnKey,
   runs,
+  count,
   countTooltip,
   focused = false,
   dimmed = false,
   keyboard,
   onViewAllInList,
 }: KanbanColumnProps) {
+  // Displayed header count: caller override, else the rendered-card count.
+  const displayCount = count ?? runs.length;
   const spec = COLUMN_SPECS[columnKey];
   const sectionRef = useRef<HTMLElement>(null);
   const cardsRef = useRef<HTMLDivElement>(null);
@@ -332,7 +342,7 @@ export function KanbanColumn({
           data-testid={`kanban-column-count-${columnKey}`}
           className="ml-auto rounded-full bg-background-secondary px-1.5 py-px text-xs leading-tight font-semibold tabular-nums text-foreground-muted"
         >
-          {runs.length}
+          {displayCount}
         </span>
       </div>
 

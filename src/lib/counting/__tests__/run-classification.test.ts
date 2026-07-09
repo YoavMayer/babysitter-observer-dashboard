@@ -17,6 +17,10 @@ import {
   classifyRun,
   computeReconciledCounts,
   metricsFromReconciled,
+  // SESSIONS-CHIP-SPEC (frozen 2026-07-09) AC1/AC5: idle-session predicate +
+  // the §15.4 reconciliation extension. These exports do NOT exist until the
+  // sessions-chip wave lands — importing them now is the intended red step.
+  isIdleSession,
   type PillStatus,
 } from "@/lib/counting/run-classification";
 
@@ -50,14 +54,22 @@ const ALL_STATUSES: PillStatus[] = [
   "failed",
 ];
 
-/** The invariant every reconciled count must satisfy, by construction. */
+/**
+ * The invariant every reconciled count must satisfy, by construction.
+ *
+ * SESSIONS-CHIP-SPEC AC5: the §15.4 invariant is EXTENDED with a new addend
+ * `sessionCollapsed` so idle sessions are DISCLOSED in the reconciliation
+ * rather than silently dropped. Prior addends unchanged; this is the sanctioned
+ * extension. `sessionCollapsed` is 0 on every count that has no idle sessions,
+ * so the existing (non-session) fixtures still reconcile once the field lands.
+ */
 function assertInvariant(runs: LightRun[], hiddenProjects?: Set<string>) {
   const counts = computeReconciledCounts(runs, { hiddenProjects });
   for (const s of ALL_STATUSES) {
     const c = counts[s];
     expect(
-      c.column + c.underNeedsYou + c.fromHidden + c.hiddenCollapsed,
-      `pill(${s}) must equal column+underNeedsYou+fromHidden+hiddenCollapsed`
+      c.column + c.underNeedsYou + c.fromHidden + c.hiddenCollapsed + c.sessionCollapsed,
+      `pill(${s}) must equal column+underNeedsYou+fromHidden+hiddenCollapsed+sessionCollapsed`
     ).toBe(c.pill);
   }
   return counts;
@@ -291,5 +303,116 @@ describe("computeReconciledCounts — hidden-live surfaced into Working + schedu
     ];
     const counts = assertInvariant(runs, hidden);
     expect(counts.all.pill).toBe(1); // only the visible completed run
+  });
+});
+
+// ---------------------------------------------------------------------------
+// SESSIONS-CHIP-SPEC (frozen 2026-07-09) — idle-session detection + the §15.4
+// reconciliation extension (AC1..AC7). Authored BEFORE implementation: the
+// `isIdleSession` export, the `sessionCollapsed` field on ReconciledCount, the
+// top-level `sessions` count, and the `detectIdleSessions` option do NOT exist
+// yet — these tests are the frozen definition of done (red step).
+// ---------------------------------------------------------------------------
+
+/**
+ * An idle session (a.k.a. bare run): processId "bare-run" (or empty/absent),
+ * 0 tasks, NO pending breakpoint and NO recorded breakpoint. driver:"live" so
+ * that with idle-detection OFF it would flood the Working/waiting column
+ * (SESSIONS-CHIP-SPEC §1), which is exactly the flood this feature removes.
+ */
+function makeIdleSession(overrides: Partial<LightRun> = {}): LightRun {
+  return makeRun({
+    processId: "bare-run",
+    status: "waiting",
+    driver: "live",
+    isStale: false,
+    totalTasks: 0,
+    completedTasks: 0,
+    failedTasks: 0,
+    pendingBreakpoints: 0,
+    ...overrides,
+  });
+}
+
+describe("idle sessions — SESSIONS-CHIP-SPEC AC1 predicate (alarm-safety)", () => {
+  it("AC1: a bare-run/0-task run with no pending/recorded breakpoint IS an idle session", () => {
+    expect(isIdleSession(makeIdleSession())).toBe(true);
+    // AC1.1: processId empty OR absent also qualifies.
+    expect(isIdleSession(makeIdleSession({ processId: "" }))).toBe(true);
+    expect(isIdleSession(makeIdleSession({ processId: undefined }))).toBe(true);
+  });
+
+  it("AC1 (alarm-safety): a run with tasks OR a pending/recorded breakpoint is NEVER idle", () => {
+    // >0 tasks → never idle (even with a bare-run processId).
+    expect(isIdleSession(makeIdleSession({ totalTasks: 1 }))).toBe(false);
+    expect(isIdleSession(makeIdleSession({ totalTasks: 5 }))).toBe(false);
+    // pending breakpoint → never idle.
+    expect(isIdleSession(makeIdleSession({ pendingBreakpoints: 1 }))).toBe(false);
+    // recorded-awaiting-resume breakpoint (pendingBreakpoints already 0) → never idle.
+    expect(
+      isIdleSession(makeIdleSession({ recordedAwaitingResume: true, pendingBreakpoints: 0 }))
+    ).toBe(false);
+    // A real run (non-bare processId, tasks present) → never idle.
+    expect(isIdleSession(makeRun())).toBe(false);
+  });
+});
+
+describe("idle sessions — SESSIONS-CHIP-SPEC AC3/AC5 reconciliation (§15.4 + sessionCollapsed)", () => {
+  it("AC1/AC2/AC5: idle sessions are excluded from the waiting pill and from EVERY column, disclosed only via sessions + sessionCollapsed", () => {
+    const idle = Array.from({ length: 3 }, () => makeIdleSession());
+    const counts = assertInvariant(idle); // invariant now includes + sessionCollapsed
+
+    // AC2: out of the Working/waiting pill and out of every board column.
+    expect(counts.waiting.pill).toBe(0);
+    for (const s of ALL_STATUSES) {
+      expect(counts[s].column, `column(${s}) must contain no idle session`).toBe(0);
+    }
+
+    // AC3: the chip number equals the idle-session count.
+    expect(counts.sessions).toBe(3);
+
+    // AC5: disclosed (never silently dropped) — they remain in the grand total
+    // pill and are reconciled by the new sessionCollapsed addend.
+    expect(counts.all.pill).toBe(3);
+    expect(counts.all.column).toBe(0);
+    expect(counts.all.sessionCollapsed).toBe(3);
+  });
+
+  it("AC5: the Working/waiting count DROPS by EXACTLY the idle-session count vs idle-detection OFF; invariant holds either way", () => {
+    const working = Array.from({ length: 2 }, () =>
+      makeRun({ status: "waiting", driver: "live", isStale: false, pendingBreakpoints: 0 })
+    );
+    const idle = Array.from({ length: 4 }, () => makeIdleSession());
+    const runs = [...working, ...idle];
+
+    // Idle-detection OFF: the bare/0-task runs flood Working alongside the real
+    // in-progress runs (today's behavior — §1).
+    const off = computeReconciledCounts(runs, { detectIdleSessions: false });
+    expect(off.waiting.pill).toBe(6);
+    expect(off.sessions).toBe(0);
+
+    // Idle-detection ON (default): the flood moves out — Working drops by
+    // EXACTLY the idle count, disclosed as sessions + sessionCollapsed.
+    const on = computeReconciledCounts(runs, { detectIdleSessions: true });
+    expect(on.waiting.pill).toBe(off.waiting.pill - idle.length);
+    expect(on.waiting.pill).toBe(2);
+    expect(on.sessions).toBe(4);
+    expect(on.all.sessionCollapsed).toBe(4);
+
+    // AC5: the extended invariant holds in the default (ON) state.
+    assertInvariant(runs);
+  });
+
+  it("AC1 (alarm-safety) + AC5: an alarm-carrying bare run stays in Needs-you, never collapsed into sessions", () => {
+    const idle = Array.from({ length: 2 }, () => makeIdleSession());
+    // Same bare-run/0-task shape but WITH a pending breakpoint → not idle.
+    const alarming = makeIdleSession({ pendingBreakpoints: 1 });
+    const counts = assertInvariant([...idle, alarming]);
+
+    // Only the two true idle sessions collapse; the alarm run is untouched.
+    expect(counts.sessions).toBe(2);
+    expect(counts.all.sessionCollapsed).toBe(2);
+    // The alarm-carrying run surfaces on the needs-you pill (never hidden).
+    expect(counts.needsyou.pill).toBe(1);
   });
 });
