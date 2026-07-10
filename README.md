@@ -255,7 +255,6 @@ All endpoints include `Cache-Control: no-cache, no-store` headers and return JSO
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/api/test` | Health check. Returns `"test"` with status 200. |
 | `GET` | `/api/config` | Returns the current merged configuration (sources, port, pollInterval, theme). |
 | `POST` | `/api/config` | Updates the registry file with new sources, pollInterval, and/or theme. |
 | `GET` | `/api/digest` | Lightweight run digests for all discovered runs. Returns `{ runs: RunDigest[] }`. |
