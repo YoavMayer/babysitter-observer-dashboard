@@ -1,5 +1,10 @@
 # @yoavmayer/babysitter-observer-dashboard
 
+A read-only kanban board that answers one question: does any of my agent runs need me right now? Zero-config: `npx @yoavmayer/babysitter-observer-dashboard`.
+
+<!-- OWNER TODO before Tuesday: replace this line with an actual screenshot of the board, e.g. ![Kanban board](docs/screenshot-board.png) -->
+Screenshot: `docs/screenshot-board.png` (placeholder -- not yet captured)
+
 [![npm version](https://img.shields.io/npm/v/@yoavmayer/babysitter-observer-dashboard.svg)](https://www.npmjs.com/package/@yoavmayer/babysitter-observer-dashboard)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](https://nodejs.org)
@@ -504,8 +509,8 @@ The API and configuration format may change between minor versions.
 - **Single-instance only** -- Running multiple observer instances watching the same directories is untested and may produce duplicate SSE events.
 - **Large run directories** -- Discovery scans are cached and debounced (filesystem rescans happen at most once per 60 seconds, triggered by the watcher on new-run events). The digest API reads purely from the in-memory cache with zero filesystem I/O. Thousands of run directories are handled efficiently, though initial startup may take a few seconds for the first scan.
 - **Runs visible only after first write to `.a5c/runs/`** -- The dashboard monitors `.a5c/runs/` directories for run data. Regular Claude Code terminal sessions that do not use babysitter orchestration will not appear on the dashboard. A run becomes visible only after the babysitter runtime writes its first journal entry to `.a5c/runs/<runId>/journal/`. This means there is a brief delay between starting a babysitter process and seeing it on the dashboard.
-- **No run deletion or archival** -- The observer is fully read-only (except for the settings panel). There is no UI to delete, archive, or export runs.
-- **Browser notifications** -- Notification support depends on browser permissions and may not work in all environments.
+- **No run deletion or archival** -- There is no UI to delete, archive, or export runs. The single sanctioned write path is recording a breakpoint answer: it writes `result.json` plus one `EFFECT_RESOLVED` journal entry (via the settings panel and the breakpoint-answer action) and never runs, resumes, or otherwise drives the orchestrator itself.
+- **No browser/desktop notification permission UI** -- The dashboard shows in-app toast notifications (and a notification panel) for new runs, completions, failures, and breakpoints; it does not prompt for OS-level notification permission, so it cannot fire desktop notifications unless permission was already granted by some other means.
 
 
 
