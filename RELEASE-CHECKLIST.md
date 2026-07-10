@@ -21,8 +21,10 @@ gh pr create --base main --head feat/observer-liveness-r2 \
   --body-file RELEASE-NOTES-0.13.0.md
 
 gh pr checks --watch        # CI = build + vitest on Node 20/22
-gh pr merge --merge         # repo convention is merge commits (see PR #5)
+gh pr merge --squash --subject "chore(release): v0.14.0"
 ```
+
+**Why `--squash --subject` and not a regular merge commit:** `.github/workflows/auto-version.yml` skips auto-versioning only when the commit landing on `main` has a subject starting with `chore(release):` (`if: "!startsWith(github.event.head_commit.message, 'chore(release):')"`). A default merge commit's subject is `Merge pull request #N from ...`, which does not match — auto-version would then run, recompute the next version from the last tag, and mislabel this release as 0.13.0. Squash-merging with an explicit `--subject` guarantees the landed commit's subject matches the skip pattern exactly.
 
 ## 3. Version tag + npm publish
 
