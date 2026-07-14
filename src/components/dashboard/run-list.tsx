@@ -6,6 +6,7 @@ import { cn } from "@/lib/cn";
 import { friendlyProcessName, formatRelativeTime, formatWakeRelative } from "@/lib/utils";
 import { useSmartPolling } from "@/hooks/use-smart-polling";
 import { EmptyState } from "@/components/shared/empty-state";
+import { TruncatedId } from "@/components/shared/truncated-id";
 import type { DashboardStatusFilter } from "@/hooks/use-run-dashboard";
 import type { LightRun, RunsListResponse } from "@/lib/services/run-query-service";
 
@@ -252,7 +253,14 @@ function RunRow({ run }: { run: LightRun }) {
           {run.projectName}
         </span>
       )}
-      <span className="font-mono text-xs text-info">{run.runId.slice(0, 8)}</span>
+      {/* Copy-full-run-id affordance: hover shows the full id, click copies it
+          (inline TruncatedId renders at z-10 above the overlay link). */}
+      <TruncatedId
+        id={run.runId}
+        display={run.runId.slice(0, 8)}
+        variant="inline"
+        className="text-xs text-info"
+      />
       <span className="text-xs text-foreground-muted tabular-nums">
         {formatRelativeTime(run.updatedAt)}
       </span>

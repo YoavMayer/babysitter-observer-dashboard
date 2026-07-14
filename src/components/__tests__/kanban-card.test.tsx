@@ -15,8 +15,9 @@
  */
 
 import React from "react";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@/test/test-utils";
+import userEvent from "@testing-library/user-event";
 import type { Run } from "@/types";
 import type { LightRun } from "@/lib/services/run-query-service";
 // pending-impl: SPEC-declared component path — does not exist until Wave 2.
@@ -122,5 +123,30 @@ describe("KanbanCard project tag truncation (UX-R2 §13.5 / AC-48)", () => {
     expect(wrapper.querySelector("svg")).not.toBeNull();
     expect(wrapper.className).toContain("min-w-0");
     expect(wrapper.className).not.toContain("truncate");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Copy-full-run-id affordance — owner UX ask 2026-07: the row-3 short-id
+// ("01KX4TCZ") must expose the WHOLE run id (hover title) and copy it on
+// click, because resuming needs the full id (babysitter run:iterate <id>).
+// ---------------------------------------------------------------------------
+
+describe("KanbanCard row-3 short-id copy affordance", () => {
+  const RUN_ID = "01KTESTKANBANCARD0000001"; // makeLightRun default runId
+  const SHORT = RUN_ID.slice(0, 8);
+
+  it("shows the truncated short-id with the FULL run id in its title (hover)", () => {
+    render(<KanbanCard run={makeLightRun()} />);
+    const el = screen.getByText(SHORT);
+    expect(el).toHaveAttribute("title", RUN_ID);
+  });
+
+  it("clicking the short-id copies the FULL run id to the clipboard", async () => {
+    const user = userEvent.setup();
+    const writeTextSpy = vi.spyOn(navigator.clipboard, "writeText");
+    render(<KanbanCard run={makeLightRun()} />);
+    await user.click(screen.getByText(SHORT));
+    expect(writeTextSpy).toHaveBeenCalledWith(RUN_ID);
   });
 });

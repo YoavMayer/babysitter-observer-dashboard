@@ -59,4 +59,32 @@ describe('TruncatedId', () => {
     const span = container.querySelector('span');
     expect(span?.className).toContain('custom-class');
   });
+
+  // -------------------------------------------------------------------------
+  // Copy-full-run-id affordance (owner UX ask: truncated chips must expose the
+  // WHOLE id on hover and copy it on click — resume needs the full id).
+  // -------------------------------------------------------------------------
+
+  it('exposes the FULL id in the title attribute (hover)', () => {
+    render(<TruncatedId id={ULID} />);
+    expect(screen.getByText('...5FAV')).toHaveAttribute('title', ULID);
+  });
+
+  it('inline variant renders the display override with the full id in title', () => {
+    render(<TruncatedId id={ULID} display={ULID.slice(0, 8)} variant="inline" />);
+    const el = screen.getByText(ULID.slice(0, 8));
+    expect(el).toHaveAttribute('title', ULID);
+    // Lean row text — no 44px chip padding.
+    expect(el.className).not.toContain('min-h-[44px]');
+    // Stays clickable above stretched-overlay row links.
+    expect(el.className).toContain('z-10');
+  });
+
+  it('inline variant copies the FULL id on click, not the displayed fragment', async () => {
+    const user = userEvent.setup();
+    const writeTextSpy = vi.spyOn(navigator.clipboard, 'writeText');
+    render(<TruncatedId id={ULID} display={ULID.slice(0, 8)} variant="inline" />);
+    await user.click(screen.getByText(ULID.slice(0, 8)));
+    expect(writeTextSpy).toHaveBeenCalledWith(ULID);
+  });
 });

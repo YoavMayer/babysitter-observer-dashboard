@@ -4,6 +4,7 @@ import { EyeOff, AlertCircle, AlarmClock, MoonStar, Tag } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { friendlyProcessName, formatRelativeTime, formatWakeRelative } from "@/lib/utils";
 import { ProgressBar } from "@/components/shared/progress-bar";
+import { TruncatedId } from "@/components/shared/truncated-id";
 import { RunIterateCommand } from "@/components/breakpoint/run-iterate-command";
 import {
   LivenessChip,
@@ -159,9 +160,17 @@ export function KanbanCard({ run, keyboard }: KanbanCardProps) {
         {friendlyProcessName(run.processId)}
       </span>
 
-      {/* Row 3: mono short-id · age · task progress */}
+      {/* Row 3: mono short-id · age · task progress. The short-id is a
+          copy-full-run-id affordance (owner ask: resume needs the WHOLE id) —
+          hover shows the full id, click copies it; the inline TruncatedId
+          variant sits at z-10 above the stretched overlay link. */}
       <div className="flex items-center gap-2 text-xs text-foreground-muted">
-        <span className="font-mono text-info">{run.runId.slice(0, 8)}</span>
+        <TruncatedId
+          id={run.runId}
+          display={run.runId.slice(0, 8)}
+          variant="inline"
+          className="text-info"
+        />
         <span className="tabular-nums">{formatRelativeTime(run.updatedAt)}</span>
         <span className="tabular-nums">
           {run.completedTasks}/{run.totalTasks} tasks

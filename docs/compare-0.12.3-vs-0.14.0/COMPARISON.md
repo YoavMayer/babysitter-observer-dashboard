@@ -33,3 +33,11 @@ The KPI numbers are the same on both versions; v0.14.0 adds Needs-you / Waiting 
 | v0.12.3 | v0.14.0 |
 | --- | --- |
 | ![KPI row in v0.12.3](c4-counts-old.png) | ![KPI and filter row in v0.14.0 with triage pills and Board/List toggle](c4-counts-new.png) |
+
+## 5. Run detail page
+
+v0.14.0 shows readable step names instead of truncated hex ids and adds completed-state accent bars per task; layout and event stream otherwise identical.
+
+| v0.12.3 | v0.14.0 |
+| --- | --- |
+| ![Run detail in v0.12.3: truncated hex step ids](c5-rundetail-old.png) | ![Run detail in v0.14.0: readable step names with completed-state accent bars](c5-rundetail-new.png) |
