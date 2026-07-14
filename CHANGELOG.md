@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.3] - 2026-07-14
+### Other
+- docs: refresh comparison to 0.14.2 + skip auto-version on docs-only pushes
+
 ## [0.14.2] - 2026-07-14
 ### Fixed
 - fix(ux): copy full run id from truncated id chips + run-detail comparison pair
