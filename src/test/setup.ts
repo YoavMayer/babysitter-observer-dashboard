@@ -75,15 +75,16 @@ vi.mock('lucide-react', () => {
 
   // All icon names used across the codebase
   const iconNames = [
-    'Activity', 'AlertCircle', 'AlertTriangle', 'ArrowLeft', 'ArrowRight',
-    'ArrowUpDown', 'Bell', 'Bot',
+    'Activity', 'AlarmClock', 'AlertCircle', 'AlertTriangle', 'ArrowLeft', 'ArrowRight',
+    'ArrowUpDown', 'Bell', 'BellRing', 'Bot',
     'CalendarDays', 'Check', 'CheckCircle2', 'ChevronDown', 'ChevronLeft',
     'ChevronRight', 'ChevronUp', 'Circle', 'Clock', 'Code', 'Cog', 'Copy',
     'ExternalLink', 'Eye', 'EyeOff', 'FileJson', 'FileText', 'FolderOpen',
     'GitBranch', 'Github',
     'Hand', 'Hash', 'HelpCircle', 'History', 'Inbox', 'Info', 'Layers',
-    'Loader2', 'Moon', 'Palette',
-    'Pause', 'Percent', 'Pin', 'Plus', 'Puzzle', 'RefreshCw', 'Search', 'Settings',
+    'LayoutGrid', 'List', 'Loader2', 'Moon', 'MoonStar', 'Palette',
+    'Pause', 'PauseCircle', 'Percent', 'Pin', 'Plus', 'Puzzle', 'RefreshCw',
+    'Search', 'Settings',
     'Sun', 'Tag', 'Terminal', 'Timer', 'Trash2', 'Wifi', 'WifiOff',
     'X', 'XCircle',
   ];

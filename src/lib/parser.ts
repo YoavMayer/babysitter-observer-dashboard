@@ -1,5 +1,13 @@
 import { promises as fs } from "fs";
 import path from "path";
+import {
+  getDriverLiveness,
+  deriveLivenessFromActivity,
+  deriveScheduledLiveness,
+  isSleepingScheduled,
+  parseSleepWakeAt,
+  type DriverLiveness,
+} from "./liveness";
 
 /** Return true when err represents a "file/directory not found" filesystem error. */
 function isNotFoundError(err: unknown): boolean {
@@ -21,6 +29,7 @@ import type {
   RunCreatedPayload,
 } from "@/types";
 import { getConfig } from "@/lib/config-loader";
+import { resolveBreakpointPayload } from "@/lib/breakpoint-payload";
 
 async function fileExists(filePath: string): Promise<boolean> {
   try {
@@ -295,23 +304,34 @@ export async function parseRunDir(
     }
   }
 
-  // Batch-read all task.json files in parallel for EFFECT_REQUESTED tasks
+  // Batch-read all task.json files in parallel for EFFECT_REQUESTED tasks.
+  // For breakpoints, also read input.json — it is the highest-precedence
+  // question source (UX-R2 §13.1: input.json > taskDef.inputs > metadata.payload).
   if (requestedPayloads.length > 0) {
-    const taskDefFactories = requestedPayloads.map(
-      (p) => () =>
-        readJsonSafe<Record<string, unknown>>(
+    const taskFileFactories = requestedPayloads.map(
+      (p) => async () => ({
+        taskDef: await readJsonSafe<Record<string, unknown>>(
           path.join(runPath, "tasks", p.effectId, "task.json"),
           null
-        )
+        ),
+        input:
+          p.kind === "breakpoint"
+            ? await readJsonSafe<Record<string, unknown>>(
+                path.join(runPath, "tasks", p.effectId, "input.json"),
+                undefined
+              )
+            : undefined,
+      })
     );
-    const taskDefResults = await batchAllSettled(taskDefFactories);
+    const taskFileResults = await batchAllSettled(taskFileFactories);
 
     for (let i = 0; i < requestedPayloads.length; i++) {
       const p = requestedPayloads[i];
-      const result = taskDefResults[i];
-      const taskDef = result.status === "fulfilled" ? result.value : null;
+      const result = taskFileResults[i];
+      const files = result.status === "fulfilled" ? result.value : null;
+      const taskDef = files?.taskDef ?? null;
+      const task = taskMap.get(p.effectId)!;
       if (taskDef) {
-        const task = taskMap.get(p.effectId)!;
         task.title = (taskDef.title as string) || task.title;
         if (taskDef.agent && typeof taskDef.agent === "object") {
           const agentDef = taskDef.agent as Record<string, unknown>;
@@ -320,12 +340,15 @@ export async function parseRunDir(
             prompt: agentDef.prompt as NonNullable<TaskEffect["agent"]>["prompt"],
           };
         }
-        // Extract breakpoint question from inputs for breakpoint tasks
-        if (p.kind === "breakpoint") {
-          const inputs = taskDef.inputs as Record<string, unknown> | undefined;
-          if (inputs && typeof inputs.question === "string") {
-            task.breakpointQuestion = inputs.question;
-          }
+      }
+      // Extract the breakpoint question via the shared §13.1 resolver
+      // (input.json > taskDef.inputs > metadata.payload). Only a REAL
+      // on-disk question is stored — the honest fallback copy is a
+      // display-level concern (BreakpointPayload.questionSource).
+      if (p.kind === "breakpoint") {
+        const resolved = resolveBreakpointPayload(taskDef, files?.input);
+        if (resolved.questionSource !== "fallback") {
+          task.breakpointQuestion = resolved.question;
         }
       }
     }
@@ -395,8 +418,131 @@ export async function parseRunDir(
     }
   }
 
+  // Count pending breakpoints (requested but not yet resolved). Mirror the
+  // digest logic (parseRunDigest): also check result.json because the dashboard
+  // writes it on approve but cannot append journal events, so the journal alone
+  // may lag behind an already-answered breakpoint.
+  let pendingBreakpoints = 0;
+  const requestedBreakpointIds = tasks
+    .filter((t) => t.kind === "breakpoint" && t.status === "requested")
+    .map((t) => t.effectId);
+  if (requestedBreakpointIds.length > 0) {
+    const resultChecks = await Promise.all(
+      requestedBreakpointIds.map((id) =>
+        readJsonSafe<Record<string, unknown>>(
+          path.join(runPath, "tasks", id, "result.json"),
+          null
+        )
+      )
+    );
+    for (let i = 0; i < requestedBreakpointIds.length; i++) {
+      const r = resultChecks[i];
+      if (!(r && r.status === "ok")) pendingBreakpoints++;
+    }
+  }
+
+  // createdAt / lastEvent / updatedAt — feed staleness, in-progress liveness,
+  // and duration (declared once here; do not re-declare below).
   const createdAt = runCreated?.ts || "";
   const lastEvent = events[events.length - 1];
+  const updatedAt = lastEvent?.ts || createdAt;
+
+  const runNonTerminal = !runCompleted && !runFailed;
+
+  // §15.1 (AC-83): sleeping forever-run detection. A never-ending run parks
+  // between ticks by REQUESTING a `sleep` effect and not resolving it, so its
+  // NEWEST journal event is that unresolved sleep — the on-disk signal for a
+  // first-class idle-healthy "scheduled" state (not orphaned/stale). The wake
+  // time is encoded in the effect's label/stepId as `sleep:<ISO>`.
+  const newestPayload = (lastEvent?.payload ?? {}) as Record<string, unknown>;
+  const newestEvent = {
+    type: lastEvent?.type,
+    kind: newestPayload.kind as string | undefined,
+  };
+  const scheduledDetected = runNonTerminal && isSleepingScheduled(newestEvent);
+  const sleepWakeAt = scheduledDetected
+    ? parseSleepWakeAt(
+        newestPayload.label as string | undefined,
+        newestPayload.stepId as string | undefined
+      ) ?? undefined
+    : undefined;
+
+  // Load config once — its staleThresholdMs bounds BOTH staleness and the
+  // in-progress liveness window (one documented, env-overridable source).
+  const config = await getConfig();
+
+  // Detect staleness for waiting or pending runs. §15.1 (AC-84): a scheduled
+  // (sleeping) run is idle-HEALTHY — never flag it stale, so it can never
+  // inflate the stale/orphaned counts nor land in the Stalled column.
+  let isStale: boolean | undefined;
+  if (runNonTerminal && updatedAt && !scheduledDetected) {
+    const timeSinceUpdate = Date.now() - new Date(updatedAt).getTime();
+    if (timeSinceUpdate > config.staleThresholdMs) {
+      isStale = true;
+    }
+  }
+  // Detect orphaned runs: all tasks resolved but no terminal event
+  // (process likely crashed before writing RUN_COMPLETED).
+  if (status === "pending" && tasks.length > 0 && !tasks.some((t) => t.status === "requested")) {
+    isStale = true;
+  }
+
+  // Driver liveness (UX-R3 wave 3): the lock verdict (run.lock + pid), promoted
+  // to "live" for a non-terminal run with FRESH journal activity — the honest
+  // in-progress signal in an environment where run.lock is never written (see
+  // deriveLivenessFromActivity). Gated on !isStale so the all-resolved-orphan
+  // rule above still reads as no-live-driver; terminal runs keep the lock verdict.
+  const lockLiveness = await getDriverLiveness(runPath);
+  // §15.1 (AC-83/86): "scheduled" takes precedence over the no-live-driver
+  // fallback AND over activity-derived "live" (a sleeping run is not actively
+  // progressing) — but a genuinely live lock still wins (deriveScheduledLiveness).
+  const scheduledLiveness = scheduledDetected
+    ? deriveScheduledLiveness(lockLiveness, newestEvent)
+    : null;
+  const driver: DriverLiveness =
+    scheduledLiveness ??
+    (runNonTerminal && isStale !== true
+      ? deriveLivenessFromActivity(lockLiveness, updatedAt, config.activeThresholdMs ?? config.staleThresholdMs)
+      : lockLiveness);
+
+  // UX-R3 §14.5 (AC-59): answered-but-unapplied detection. The observer's
+  // approve action writes result.json (value.approvedBy "observer-dashboard")
+  // + one EFFECT_RESOLVED, but never runs the driver. So on a non-terminal run
+  // with no live driver, an observer-recorded breakpoint sits on disk "awaiting
+  // resume": keep the card in Needs-you (amber-gray recorded state) instead of
+  // letting it slide silently to Stalled. Derived from disk so a page refresh
+  // still shows it, until a real resume consumes it (driver goes live or the
+  // run terminates → this clears). Only the FIRST such breakpoint is surfaced.
+  let recordedAwaitingResume = false;
+  let recordedBreakpointEffectId: string | undefined;
+  const noLiveDriver = driver === "orphaned" || driver === "none";
+  if (runNonTerminal && noLiveDriver) {
+    const resolvedBreakpointIds = tasks
+      .filter((t) => t.kind === "breakpoint" && t.status === "resolved")
+      .map((t) => t.effectId);
+    if (resolvedBreakpointIds.length > 0) {
+      const recordedChecks = await Promise.all(
+        resolvedBreakpointIds.map((id) =>
+          readJsonSafe<Record<string, unknown>>(
+            path.join(runPath, "tasks", id, "result.json"),
+            null
+          )
+        )
+      );
+      for (let i = 0; i < resolvedBreakpointIds.length; i++) {
+        const r = recordedChecks[i];
+        const value =
+          r && typeof r === "object"
+            ? (r.value as Record<string, unknown> | undefined)
+            : undefined;
+        if (value?.approvedBy === "observer-dashboard") {
+          recordedAwaitingResume = true;
+          recordedBreakpointEffectId = resolvedBreakpointIds[i];
+          break;
+        }
+      }
+    }
+  }
 
   let duration: number | undefined;
   if (createdAt && (runCompleted || runFailed)) {
@@ -407,25 +553,6 @@ export async function parseRunDir(
       new Date(lastEvent.ts).getTime() - new Date(createdAt).getTime();
   }
 
-  // Detect staleness for waiting or pending runs
-  let isStale: boolean | undefined;
-  if (status === "waiting" || status === "pending") {
-    const updatedAtTs = lastEvent?.ts || createdAt;
-    if (updatedAtTs) {
-      const config = await getConfig();
-      const timeSinceUpdate = Date.now() - new Date(updatedAtTs).getTime();
-      if (timeSinceUpdate > config.staleThresholdMs) {
-        isStale = true;
-      }
-    }
-  }
-
-  // Detect orphaned runs: all tasks resolved but no terminal event
-  // (process likely crashed before writing RUN_COMPLETED)
-  if (status === "pending" && tasks.length > 0 && !tasks.some((t) => t.status === "requested")) {
-    isStale = true;
-  }
-
   return {
     runId: createdPayload.runId || path.basename(runPath),
     processId:
@@ -434,7 +561,7 @@ export async function parseRunDir(
       "unknown",
     status,
     createdAt,
-    updatedAt: lastEvent?.ts || createdAt,
+    updatedAt,
     completedAt: (runCompleted || runFailed)?.ts,
     tasks,
     events,
@@ -446,8 +573,13 @@ export async function parseRunDir(
     failureError,
     failureMessage,
     breakpointQuestion,
+    pendingBreakpoints,
     isStale,
     waitingKind,
+    driver,
+    sleepWakeAt,
+    recordedAwaitingResume,
+    recordedBreakpointEffectId,
     _journalFileCount: journalResult.fileCount,
   };
 }
@@ -516,16 +648,14 @@ export async function parseTaskDetail(
   // Use inputs from task.json if separate input.json doesn't exist
   const resolvedInput = input ?? (taskDef?.inputs as Record<string, unknown> | undefined);
 
-  // Extract breakpoint payload for breakpoint tasks
+  // Extract breakpoint payload for breakpoint tasks via the shared §13.1
+  // resolver (input.json > taskDef.inputs > metadata.payload, per field).
+  // When no source carries a question, the payload carries the honest
+  // last-resort copy flagged with questionSource: "fallback" (AC-32).
   const kind = (taskDef?.kind as TaskKind) || "agent";
   let breakpointPayload: import("@/types").BreakpointPayload | undefined;
-  if (kind === "breakpoint" && resolvedInput) {
-    breakpointPayload = {
-      question: (resolvedInput.question as string) || "Approval required",
-      title: (resolvedInput.title as string) || (taskDef?.title as string) || "Breakpoint",
-      options: Array.isArray(resolvedInput.options) ? (resolvedInput.options as string[]) : undefined,
-      context: resolvedInput.context as import("@/types").BreakpointPayload["context"],
-    };
+  if (kind === "breakpoint") {
+    breakpointPayload = resolveBreakpointPayload(taskDef, input);
   }
 
   // Determine error status from result or journal
@@ -571,6 +701,19 @@ export async function getRunDigest(runPath: string): Promise<RunDigest> {
   const breakpointEffectIds = new Set<string>();
   // Track requested effects and their kinds for waitingKind determination
   const requestedEffects: Array<{ effectId: string; kind: string }> = [];
+  // Failed-step derivation (mirror parseRunDir L361-393): the requested-payload
+  // label/stepId per effect + the first/last effect that resolved with error,
+  // and the RUN_FAILED error payload.
+  const requestedInfo = new Map<string, { label?: string; stepId?: string; taskId?: string }>();
+  let firstFailedEffectId: string | undefined;
+  let lastFailedError: { name?: string; message?: string; stack?: string } | undefined;
+  let runFailedError: { name?: string; message?: string; stack?: string } | undefined;
+  // §15.1: newest journal event type/kind for sleeping-forever-run detection.
+  let newestType: string | undefined;
+  let newestKind: string | undefined;
+  // Newest payload label/stepId — feeds parseSleepWakeAt for scheduled runs.
+  let newestLabel: string | undefined;
+  let newestStepId: string | undefined;
 
   if (await fileExists(journalPath)) {
     const files = await fs.readdir(journalPath);
@@ -592,12 +735,24 @@ export async function getRunDigest(runPath: string): Promise<RunDigest> {
       const event = normalizeJournalEvent(raw, jsonFiles[i]);
       if (!event) continue;
       updatedAt = event.ts;
+      // Files are sorted ascending, so the last processed event is the newest.
+      newestType = event.type;
+      const newestPayload = event.payload as Record<string, unknown>;
+      newestKind = newestPayload.kind as string | undefined;
+      newestLabel = newestPayload.label as string | undefined;
+      newestStepId = newestPayload.stepId as string | undefined;
       if (event.type === "EFFECT_REQUESTED") {
         taskCount++;
         const data = event.payload as Record<string, unknown>;
         const effectId = data.effectId as string;
         const kind = (data.kind as string) || "agent";
         requestedEffects.push({ effectId, kind });
+        requestedInfo.set(effectId, {
+          // Mirror parseRunDir: label defaults to taskId when absent.
+          label: (data.label as string) || (data.taskId as string),
+          stepId: data.stepId as string | undefined,
+          taskId: data.taskId as string | undefined,
+        });
         if (data.kind === "breakpoint") {
           requestedBreakpoints.add(effectId);
           breakpointEffectIds.add(effectId);
@@ -607,9 +762,17 @@ export async function getRunDigest(runPath: string): Promise<RunDigest> {
         completedTasks++;
         const data = event.payload as Record<string, unknown>;
         resolvedEffects.add(data.effectId as string);
+        if (data.status === "error") {
+          if (!firstFailedEffectId) firstFailedEffectId = data.effectId as string;
+          // Keep the LAST errored effect's error (mirror parseRunDir fallback).
+          lastFailedError = data.error as typeof lastFailedError;
+        }
       }
       if (event.type === "RUN_COMPLETED") status = "completed";
-      if (event.type === "RUN_FAILED") status = "failed";
+      if (event.type === "RUN_FAILED") {
+        status = "failed";
+        runFailedError = (event.payload as Record<string, unknown>).error as typeof runFailedError;
+      }
     }
 
     if (status === "pending" && taskCount > 0) status = "waiting";
@@ -653,23 +816,30 @@ export async function getRunDigest(runPath: string): Promise<RunDigest> {
       // Store the first pending breakpoint effectId regardless of question
       breakpointEffectId = pendingBpIds[0];
 
+      // Read task.json + input.json per pending breakpoint — both feed the
+      // shared §13.1 resolver (input.json > taskDef.inputs > metadata.payload).
       const bpFactories = pendingBpIds.map(
-        (effectId) => () =>
-          readJsonSafe<Record<string, unknown>>(
+        (effectId) => async () => ({
+          taskDef: await readJsonSafe<Record<string, unknown>>(
             path.join(runPath, "tasks", effectId, "task.json"),
             null
-          )
+          ),
+          input: await readJsonSafe<Record<string, unknown>>(
+            path.join(runPath, "tasks", effectId, "input.json"),
+            undefined
+          ),
+        })
       );
       const bpResults = await batchAllSettled(bpFactories);
 
-      // Use the first pending breakpoint question found
+      // Use the first pending breakpoint with a REAL on-disk question
       for (let i = 0; i < pendingBpIds.length; i++) {
         const result = bpResults[i];
-        const taskDef = result.status === "fulfilled" ? result.value : null;
-        if (taskDef) {
-          const inputs = taskDef.inputs as Record<string, unknown> | undefined;
-          if (inputs && typeof inputs.question === "string") {
-            breakpointQuestion = inputs.question;
+        const files = result.status === "fulfilled" ? result.value : null;
+        if (files) {
+          const resolved = resolveBreakpointPayload(files.taskDef, files.input);
+          if (resolved.questionSource !== "fallback") {
+            breakpointQuestion = resolved.question;
             breakpointEffectId = pendingBpIds[i];
             break;
           }
@@ -691,21 +861,106 @@ export async function getRunDigest(runPath: string): Promise<RunDigest> {
     }
   }
 
-  // Detect staleness for waiting or pending runs
+  // Detect staleness for waiting or pending runs. Config's staleThresholdMs also
+  // bounds the in-progress liveness window below (one documented source).
+  const nonTerminal = status === "waiting" || status === "pending";
+  const config = await getConfig();
+
+  // §15.1 (AC-83/84): sleeping forever-run — newest event is an unresolved
+  // `sleep` effect → idle-healthy "scheduled", never flagged stale (mirrors
+  // parseRunDir so the board full-run and the digest badges agree).
+  const newestEvent = { type: newestType, kind: newestKind };
+  const scheduledDetected = nonTerminal && isSleepingScheduled(newestEvent);
+  // §15.1 (AC-84/85): the wake time encoded in the sleep effect's label/stepId
+  // (`sleep:<ISO>`). Mirrors parseRunDir L457-468.
+  const sleepWakeAt = scheduledDetected
+    ? parseSleepWakeAt(newestLabel, newestStepId) ?? undefined
+    : undefined;
+
+  // Failure details (mirror parseRunDir L367-393): prefer RUN_FAILED's error,
+  // else the last errored EFFECT_RESOLVED.
+  let failureMessage: string | undefined;
+  if (runFailedError) {
+    failureMessage = runFailedError.message || runFailedError.stack || undefined;
+  }
+  if (!failureMessage && lastFailedError) {
+    failureMessage = lastFailedError.message || lastFailedError.stack || undefined;
+  }
+  // Failed step (mirror parseRunDir L361-365): the first errored effect's title
+  // (task.json) || label || stepId. Reading a single task.json is cheap and
+  // keeps the list card in sync with the run-detail page.
+  let failedStep: string | undefined;
+  if (firstFailedEffectId) {
+    const info = requestedInfo.get(firstFailedEffectId);
+    const taskDef = await readJsonSafe<Record<string, unknown>>(
+      path.join(runPath, "tasks", firstFailedEffectId, "task.json"),
+      null
+    );
+    failedStep =
+      (taskDef?.title as string) || info?.label || info?.stepId || undefined;
+  }
+
   let isStale: boolean | undefined;
-  if (status === "waiting" || status === "pending") {
-    if (updatedAt) {
-      const config = await getConfig();
-      const timeSinceUpdate = Date.now() - new Date(updatedAt).getTime();
-      if (timeSinceUpdate > config.staleThresholdMs) {
-        isStale = true;
-      }
+  if (nonTerminal && updatedAt && !scheduledDetected) {
+    const timeSinceUpdate = Date.now() - new Date(updatedAt).getTime();
+    if (timeSinceUpdate > config.staleThresholdMs) {
+      isStale = true;
     }
   }
 
   // Detect orphaned runs: all effects resolved but no terminal event
   if (status === "waiting" && taskCount > 0 && completedTasks >= taskCount) {
     isStale = true;
+  }
+
+  // Driver liveness (UX-R3 wave 3): lock verdict promoted to "live" for a
+  // non-terminal run with fresh journal activity — the honest in-progress
+  // signal (see deriveLivenessFromActivity). Mirrors parseRunDir so the board
+  // (full run) and the badges (digest) agree. Gated on !isStale. §15.1:
+  // "scheduled" (sleeping) wins over both the no-driver fallback and "live".
+  const lockLiveness = await getDriverLiveness(runPath);
+  const scheduledLiveness = scheduledDetected
+    ? deriveScheduledLiveness(lockLiveness, newestEvent)
+    : null;
+  const driver: DriverLiveness =
+    scheduledLiveness ??
+    (nonTerminal && isStale !== true
+      ? deriveLivenessFromActivity(lockLiveness, updatedAt, config.activeThresholdMs ?? config.staleThresholdMs)
+      : lockLiveness);
+
+  // UX-R3 §14.5 (AC-59): observer-recorded-but-unapplied breakpoint detection
+  // (mirror parseRunDir L516-545). On a non-terminal run with no live driver,
+  // scan resolved breakpoints' result.json for value.approvedBy ===
+  // "observer-dashboard" — only the FIRST such breakpoint is surfaced.
+  let recordedAwaitingResume = false;
+  let recordedBreakpointEffectId: string | undefined;
+  const noLiveDriver = driver === "orphaned" || driver === "none";
+  if (nonTerminal && noLiveDriver && breakpointEffectIds.size > 0) {
+    const resolvedBreakpointIds = [...breakpointEffectIds].filter((id) =>
+      resolvedEffects.has(id)
+    );
+    if (resolvedBreakpointIds.length > 0) {
+      const recordedChecks = await Promise.all(
+        resolvedBreakpointIds.map((id) =>
+          readJsonSafe<Record<string, unknown>>(
+            path.join(runPath, "tasks", id, "result.json"),
+            null
+          )
+        )
+      );
+      for (let i = 0; i < resolvedBreakpointIds.length; i++) {
+        const r = recordedChecks[i];
+        const value =
+          r && typeof r === "object"
+            ? (r.value as Record<string, unknown> | undefined)
+            : undefined;
+        if (value?.approvedBy === "observer-dashboard") {
+          recordedAwaitingResume = true;
+          recordedBreakpointEffectId = resolvedBreakpointIds[i];
+          break;
+        }
+      }
+    }
   }
 
   return {
@@ -720,6 +975,12 @@ export async function getRunDigest(runPath: string): Promise<RunDigest> {
     breakpointEffectId,
     isStale,
     waitingKind,
+    driver,
+    failedStep,
+    failureMessage,
+    sleepWakeAt,
+    recordedAwaitingResume,
+    recordedBreakpointEffectId,
   };
 }
 

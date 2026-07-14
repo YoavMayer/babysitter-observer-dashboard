@@ -29,6 +29,23 @@
   --primary-hover: #ff33e6;
   --primary-muted: rgba(255, 0, 224, 0.15);
 
+  /* ACTION — indigo-violet primary-CTA hue. UX-R3 §14.2 option (a), owner gate
+     2026-07-06 ruling. This is the ONE "pressable" hue (the answer submit /
+     any future single primary CTA); brand magenta is now brand-ONLY.
+     FILL-ONLY CONSTRAINT: as text/outline on the dark card (#0e0e12) --action
+     is only 4.20:1 → it FAILS AA as ink. It must therefore be used *exclusively*
+     as a filled button surface with a white/near-white label (never as border
+     or text on dark). Label contrast --action-foreground on --action = 5.14:1
+     (dark) / 7.04:1 (light), both ≥4.5:1. ΔE2000 ≥25 from every --status-* hue
+     and ≈24 from brand --primary → never a status/brand collision.
+     -muted (tint) and -border are non-text; -border is used only on option
+     hover, never as a resolved text/fill color equal to --action. */
+  --action: #6355F0;
+  --action-hover: #5544E8;
+  --action-foreground: #ffffff;
+  --action-muted: rgba(99, 85, 240, 0.16);
+  --action-border: rgba(99, 85, 240, 0.35);
+
   /* Secondary - Neon Cyan */
   --secondary: #00F0FF;
   --secondary-foreground: #0a0a0b;
@@ -51,12 +68,26 @@
   --success-muted: rgba(0, 255, 136, 0.15);
   --warning: #FFD700;
   --warning-muted: rgba(255, 215, 0, 0.15);
+  /* Text-on-background alarm label (design-QA: neon gold is fine on dark,
+     but needs a darker ink in light mode to clear WCAG 4.5:1). */
+  --warning-label: #FFD700;
   --error: #FF3366;
   --error-muted: rgba(255, 51, 102, 0.18);
   --info: #00F0FF;
   --info-muted: rgba(0, 240, 255, 0.12);
   --pending: #a1a1aa;
   --pending-muted: rgba(161, 161, 170, 0.15);
+
+  /* Semantic STATUS tokens — UX-R2 §13.3 "one hue, one meaning" (owner gate
+     2026-07-05 run 01KWRR8XAHFCDEGCRBRFHFF44W). Label tokens are verified
+     >=4.5:1 on #0a0a0b (and >=4.4:1 on the #0e0e12 card); -muted tints are
+     non-text backgrounds. Brand magenta is NOT a status; red is terminal-only. */
+  --status-attention: #FFD700;  --status-attention-muted: rgba(255, 215, 0, 0.15);
+  --status-alive:     #00F0FF;  --status-alive-muted:     rgba(0, 240, 255, 0.12);
+  --status-stalled:   #C9A86A;  --status-stalled-muted:   rgba(201, 168, 106, 0.14);
+  --status-failed:    #FF3366;  --status-failed-muted:    rgba(255, 51, 102, 0.18);
+  --status-ok:        #00FF88;  --status-ok-muted:        rgba(0, 255, 136, 0.15);
+  --status-aged:      #9A9AA3;  --status-aged-muted:      rgba(154, 154, 163, 0.12);
 
   /* Border - subtle magenta tint */
   --border: rgba(255, 0, 224, 0.08);
@@ -178,6 +209,14 @@
   --primary-hover: #FF00E0;
   --primary-muted: rgba(214, 0, 192, 0.1);
 
+  /* ACTION (light) — UX-R3 §14.2 option (a). Same fill-only constraint as dark;
+     label --action-foreground on --action = 7.04:1. */
+  --action: #4B3FD6;
+  --action-hover: #3B30B8;
+  --action-foreground: #ffffff;
+  --action-muted: rgba(75, 63, 214, 0.10);
+  --action-border: rgba(75, 63, 214, 0.30);
+
   --secondary: #00C8D6;
   --secondary-foreground: #ffffff;
   --secondary-muted: rgba(0, 200, 214, 0.1);
@@ -195,12 +234,29 @@
   --success-muted: rgba(0, 204, 110, 0.12);
   --warning: #D4AF00;
   --warning-muted: rgba(212, 175, 0, 0.12);
+  /* Darkened alarm-label gold: #8a6d00 on near-white ≈ 4.9:1 (≥ 4.5:1). */
+  --warning-label: #8a6d00;
   --error: #E6295A;
   --error-muted: rgba(230, 41, 90, 0.12);
   --info: #00C8D6;
   --info-muted: rgba(0, 200, 214, 0.1);
   --pending: #a1a1aa;
   --pending-muted: rgba(161, 161, 170, 0.1);
+
+  /* Semantic STATUS tokens (light) — UX-R2 §13.3: labels verified >=4.5:1 on
+     #ffffff AND on every muted tint they sit on (live-verify 2026-07-05:
+     attention must clear the composited error-muted banner rgb(252,229,235),
+     where the old #8a6d00 measured only 4.12:1). #7e6400 = 4.73:1 there,
+     5.66:1 on white, same 47.6deg gold hue. */
+  --status-attention: #7e6400;  --status-attention-muted: rgba(212, 175, 0, 0.12);
+  --status-alive:     #006E7A;  --status-alive-muted:     rgba(0, 200, 214, 0.10);
+  /* UX-R3 §14.4 (owner gate 2026-07-06): nudged from #7A6431 → #6B5B47 (cooler
+     grey-taupe). ΔE2000 vs light attention gold 8.5 → 17.6 (parity with dark);
+     AA on #ffffff = 6.54:1. Dark stays #C9A86A. */
+  --status-stalled:   #6B5B47;  --status-stalled-muted:   rgba(122, 100, 49, 0.10);
+  --status-failed:    #B01C47;  --status-failed-muted:    rgba(230, 41, 90, 0.12);
+  --status-ok:        #00784A;  --status-ok-muted:        rgba(0, 204, 110, 0.12);
+  --status-aged:      #63636C;  --status-aged-muted:      rgba(161, 161, 170, 0.10);
 
   --border: rgba(255, 0, 224, 0.15);
   --border-hover: rgba(255, 0, 224, 0.25);
@@ -307,6 +363,12 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-hover: var(--primary-hover);
   --color-primary-muted: var(--primary-muted);
+  /* UX-R3 §14.2 action hue (bg-action, text-action-foreground, ...). */
+  --color-action: var(--action);
+  --color-action-hover: var(--action-hover);
+  --color-action-foreground: var(--action-foreground);
+  --color-action-muted: var(--action-muted);
+  --color-action-border: var(--action-border);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-secondary-muted: var(--secondary-muted);
@@ -324,12 +386,26 @@
   --color-success-muted: var(--success-muted);
   --color-warning: var(--warning);
   --color-warning-muted: var(--warning-muted);
+  --color-warning-label: var(--warning-label);
   --color-error: var(--error);
   --color-error-muted: var(--error-muted);
   --color-info: var(--info);
   --color-info-muted: var(--info-muted);
   --color-pending: var(--pending);
   --color-pending-muted: var(--pending-muted);
+  /* UX-R2 §13.3 status tokens (text-status-*, bg-status-*-muted, ...). */
+  --color-status-attention: var(--status-attention);
+  --color-status-attention-muted: var(--status-attention-muted);
+  --color-status-alive: var(--status-alive);
+  --color-status-alive-muted: var(--status-alive-muted);
+  --color-status-stalled: var(--status-stalled);
+  --color-status-stalled-muted: var(--status-stalled-muted);
+  --color-status-failed: var(--status-failed);
+  --color-status-failed-muted: var(--status-failed-muted);
+  --color-status-ok: var(--status-ok);
+  --color-status-ok-muted: var(--status-ok-muted);
+  --color-status-aged: var(--status-aged);
+  --color-status-aged-muted: var(--status-aged-muted);
   --color-background-muted: var(--background-muted);
   --shadow-sm: var(--shadow-sm);
   --shadow-md: var(--shadow-md);
@@ -380,9 +456,13 @@
   --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
 }
 
-/* Base */
-* {
-  border-color: var(--border);
+/* Base — layered so Tailwind border-color utilities (@layer utilities) can
+   override the reset; an unlayered `*` rule would defeat border-error/30,
+   border-status-stalled/30 etc. site-wide. */
+@layer base {
+  * {
+    border-color: var(--border);
+  }
 }
 
 body {

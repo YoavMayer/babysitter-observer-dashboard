@@ -136,6 +136,24 @@ export const RunCard = memo(function RunCard({ run, selected }: RunCardProps) {
                   {formatStaleTime(run.updatedAt)}
                 </span>
               )}
+              {/* Liveness: is an orchestrator attached? (read from run.lock). This is what
+                  distinguishes a dead run from one that's merely idle. */}
+              {run.driver === "orphaned" && (
+                <span
+                  className="inline-flex items-center gap-1 rounded-full bg-error/10 border border-error/30 px-2 py-0.5 text-xs leading-tight font-medium text-error shrink-0"
+                  title="No live orchestrator attached (run.lock pid is dead). Abandoned; resume or clean up"
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-error" /> orphaned
+                </span>
+              )}
+              {run.driver === "live" && isActive && (
+                <span
+                  className="inline-flex items-center gap-1 rounded-full bg-success/10 border border-success/30 px-2 py-0.5 text-xs leading-tight font-medium text-success shrink-0"
+                  title="An orchestrator is actively attached to this run"
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse-dot" /> live
+                </span>
+              )}
               <TruncatedId id={run.runId} chars={4} className="text-foreground-secondary" />
               {run.projectName && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-background-secondary px-2 py-0.5 text-xs leading-tight font-medium text-foreground-muted shrink-0">

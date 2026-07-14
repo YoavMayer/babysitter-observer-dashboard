@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.0] - 2026-07-10
+### Added
+- **Kanban triage board** — the dashboard now opens on a board that partitions every run into four honest, disjoint columns (Needs you / Working / Stalled / Done), with a compact chip-gated card per run, column virtualization, keyboard navigation, a live region for screen readers, and a list/board view toggle
+- **Scheduled column** — runs waiting on a wake/schedule are surfaced as first-class scheduled state with wake affordances and a compact status chip, instead of being miscounted as active or stalled
+- **Flat filtered run list** — clicking a status pill shows a flat, cross-project list of matching runs with per-run action hints, stale-first so the oldest stuck work is on top
+- **"Needs you" and "Orphaned" filters** — pills to isolate runs waiting on a human decision and runs whose orchestrator process is gone
+- **Orchestrator liveness detection** — reads `run.lock` + a pid liveness probe to distinguish an actively-driven run from an abandoned one (live / orphaned / none), read-only, never touching the process
+- **"N hidden" indicator** — a chip next to the filter pills shows how many projects are hidden and opens Settings to manage them
+- **Idle-session "⚡ N sessions" chip** — bare session-start runs (no tasks, no breakpoints) are classified as idle sessions and hidden from every board column by default, collapsed behind a single muted chip with a reveal toggle; a run with tasks or a pending/recorded breakpoint is never idle
+
+### Fixed
+- **One source of truth for every count** — tiles, banner, and filter pills now all route through a single `classifyRun` / reconciled-counts source, so a badge and the list it opens can never disagree (no more "badge says 8, list shows 14")
+- **Genuinely in-progress runs show as Working** — liveness is now activity-based (freshness of the newest journal event) rather than depending on a `run.lock` that agent-started runs never write, so live work no longer reads as idle
+- **Honest breakpoint cards (write-path truth)** — answering a breakpoint from the dashboard only records the answer to disk (`result.json` + one `EFFECT_RESOLVED`); it never runs the orchestrator. Cards show a recorded state, keep an answered-but-unapplied run in "Needs you" until a driver applies it, carry the full v6 breakpoint question (read from `task.json` metadata), and guard against double-answers
+- **Honest "Waiting" label** — runs blocked on a breakpoint were labeled "Running"; the pill and its counts now say "Waiting"
+- **Hidden projects no longer swallow "needs you"** — hiding a project affects only the grid and KPIs; the alarm surface (banner, needs-you count/filter, search) still includes hidden projects
+- **`~/.a5c/runs` home runs surface** — depth-0 runs-dir now wins dedup so agent-default home runs appear; `--watch-dir` merges with the persisted Settings sources instead of replacing them
+- **No fake run pages** — only dirs with `run.json` or a `journal/` count as runs; stray folders 404 instead of rendering ghost "Unknown / 0 tasks" cards or inflating counts
+- **Real CLI version in the footer** — `/api/version` re-detects the babysitter CLI version (5-min TTL + idle-gap refresh) instead of caching it once per process
+- **Readable ids and ages** — human-named run dirs keep their name; only opaque machine ids are tail-truncated; ages ≥48h render in days (e.g. `16d 4h`)
+- **`sdkVersion` stamped on approval journal writes** — the `EFFECT_RESOLVED` entry carries a top-level `sdkVersion` like SDK-native entries, omitted (never forged) when detection fails
+
+### Changed
+- **UX-R3 color discipline** — magenta is brand-only; a distinct indigo-violet `--action` hue carries the single interactive submit; navigation is neutral; semantic status tokens are one-hue-one-meaning (attention amber meets AA on composited tints; failure red is scoped to the failed segment; orphaned hints wear stalled tokens, not red)
+- **Breakpoint cards inform, don't rule** — the old one-click Approve (which wrote an inert entry when no orchestrator was attached and flattened multi-option surveys) is replaced with a liveness-aware, read-only treatment: see the decision, then "Answer in terminal" / "no live driver — resume to answer" with a copyable run-id
+- **Accessibility** — proper list/board semantics, ARIA roles and labels, screen-reader announcements for copy and loading, decorative icons hidden from assistive tech
+- **`/api/runs` returns lightweight digests by default** — the board/flat-list request now maps the TTL-cached run digest instead of the full parsed run, dropping the per-request payload for 500 runs from ~35MB to under 1MB (no `tasks[]`/`events[]` in the default response); a payload-size guardrail test pins this
+- **Removed the redundant top "needs you" list** — the counts banner and the kanban Needs-you column are now the only needs-you surfaces, per owner feedback that the standalone list duplicated them
+
 ## [0.12.4] - 2026-07-01
 ### Fixed
 - fix(ci): repair bump-version.sh so auto-version + publish run

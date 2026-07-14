@@ -5,6 +5,7 @@ import path from "path";
 import crypto from "crypto";
 import { monotonicFactory } from "ulid";
 import { findRunDir } from "@/lib/path-resolver";
+import { getVersionInfo } from "@/lib/version-info";
 
 export interface ApproveBreakpointResult {
   success: boolean;
@@ -49,6 +50,13 @@ async function appendJournalEntry(
   const ulid = nextUlid();
   const filename = `${seq.toString().padStart(6, "0")}.${ulid}.json`;
 
+  // SDK-native entries carry a top-level `sdkVersion` (after `data`, before
+  // `checksum`) with the installed babysitter version. Reuse the detection in
+  // version-info (cached `babysitter --version`); omit the field rather than
+  // forge a value when detection fails ("N/A"/non-semver).
+  const detected = getVersionInfo().babysitter;
+  const sdkVersion = /^\d+\.\d+\.\d+/.test(detected) ? detected : undefined;
+
   const eventPayload = {
     type: "EFFECT_RESOLVED",
     recordedAt: now,
@@ -59,6 +67,9 @@ async function appendJournalEntry(
       startedAt: now,
       finishedAt: now,
     },
+    // Key order matters only for human diffing, not the checksum — but keep
+    // it identical to SDK-written entries: type, recordedAt, data, sdkVersion.
+    ...(sdkVersion !== undefined ? { sdkVersion } : {}),
   };
 
   const contents = JSON.stringify(eventPayload, null, 2) + "\n";
@@ -116,6 +127,24 @@ export async function approveBreakpoint(
       return { success: false, error: `Task directory not found: ${effectId}` };
     }
 
+    // --- Double-answer guard (UX-R3 §14.5 / AC-62) ---
+    // If THIS observer already recorded an answer for the effect (result.json
+    // carries approvedBy "observer-dashboard") and the run has not consumed it
+    // yet, a second submit is an OVERWRITE, not a new decision: rewrite the
+    // single result.json but do NOT append a second EFFECT_RESOLVED journal
+    // entry. This keeps the write path byte-identical to a first record for a
+    // fresh breakpoint (AC-63: exactly one result.json + one EFFECT_RESOLVED)
+    // while making a re-answer overwrite rather than stack.
+    const resultPath = path.join(taskDir, "result.json");
+    let alreadyRecordedByObserver = false;
+    try {
+      const existingRaw = await fs.readFile(resultPath, "utf-8");
+      const existing = JSON.parse(existingRaw) as { value?: { approvedBy?: unknown } };
+      alreadyRecordedByObserver = existing?.value?.approvedBy === "observer-dashboard";
+    } catch {
+      // No prior result.json (or unreadable) — this is a fresh record.
+    }
+
     // --- Write result.json (SDK-compatible format) ---
     const now = new Date().toISOString();
     const resultPayload = {
@@ -132,14 +161,17 @@ export async function approveBreakpoint(
       startedAt: now,
       finishedAt: now,
     };
-    const resultPath = path.join(taskDir, "result.json");
     await fs.writeFile(resultPath, JSON.stringify(resultPayload, null, 2), "utf-8");
 
-    // --- Append EFFECT_RESOLVED journal entry ---
+    // --- Append EFFECT_RESOLVED journal entry (only on a fresh record) ---
     // This is the critical piece that was missing: without a journal entry,
     // the SDK's state machine never knows the breakpoint was resolved and
-    // the run stays stuck in "Waiting" forever.
-    await appendJournalEntry(runDir, effectId, now);
+    // the run stays stuck in "Waiting" forever. On an overwrite of an answer
+    // this observer already recorded, the journal entry exists already — do
+    // not append a second one (AC-62: overwrite, not stack).
+    if (!alreadyRecordedByObserver) {
+      await appendJournalEntry(runDir, effectId, now);
+    }
 
     return { success: true };
   } catch (err: unknown) {
