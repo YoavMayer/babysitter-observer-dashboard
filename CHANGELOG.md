@@ -12,7 +12,7 @@ All notable changes to this project will be documented in this file.
 
 ## [0.14.0] - 2026-07-10
 
-See [what changed from 0.12.3 to 0.14.0, visually](docs/compare-0.12.3-vs-0.14.0/COMPARISON.md).
+See [what changed from 0.12.3 to 0.14.2, visually](docs/compare-0.12.3-vs-0.14.2/COMPARISON.md).
 
 ### Added
 - **Kanban triage board** — the dashboard now opens on a board that partitions every run into four honest, disjoint columns (Needs you / Working / Stalled / Done), with a compact chip-gated card per run, column virtualization, keyboard navigation, a live region for screen readers, and a list/board view toggle

@@ -3,6 +3,9 @@ name: Auto Version & Tag
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
 
 permissions:
   contents: write
