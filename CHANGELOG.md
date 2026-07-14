@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.2] - 2026-07-14
+### Fixed
+- fix(ux): copy full run id from truncated id chips + run-detail comparison pair
+
 ## [0.14.1] - 2026-07-14
 ### Other
 - docs: add 0.12.3 → 0.14.0 visual comparison
