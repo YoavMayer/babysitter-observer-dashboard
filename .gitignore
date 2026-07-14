@@ -46,6 +46,8 @@ e2e-*.txt
 /docs/*
 # ...except the README's public board screenshot (public repos only, no private data)
 !/docs/screenshot-board.png
+# ...and the public 0.12.3 vs 0.14.0 visual comparison (curated public run set only)
+!/docs/compare-0.12.3-vs-0.14.0/
 
 # Defects list (user screenshots and notes)
 /Defects List/

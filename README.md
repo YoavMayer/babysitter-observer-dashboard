@@ -5,6 +5,8 @@ A read-only kanban board that answers one question: does any of my agent runs ne
 <!-- OWNER TODO before Tuesday: replace this line with an actual screenshot of the board, e.g. ![Kanban board](docs/screenshot-board.png) -->
 Screenshot: `docs/screenshot-board.png` (placeholder -- not yet captured)
 
+See [what changed from 0.12.3 to 0.14.0, visually](docs/compare-0.12.3-vs-0.14.0/COMPARISON.md).
+
 [![npm version](https://img.shields.io/npm/v/@yoavmayer/babysitter-observer-dashboard.svg)](https://www.npmjs.com/package/@yoavmayer/babysitter-observer-dashboard)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](https://nodejs.org)
