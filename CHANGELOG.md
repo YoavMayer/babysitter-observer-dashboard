@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.1] - 2026-07-14
+### Other
+- docs: add 0.12.3 → 0.14.0 visual comparison
+
 ## [0.14.0] - 2026-07-10
 
 See [what changed from 0.12.3 to 0.14.0, visually](docs/compare-0.12.3-vs-0.14.0/COMPARISON.md).
