@@ -54,3 +54,5 @@ e2e-*.txt
 
 /STAKEHOLDER-UX-REVIEW.md
 /IDE-INTEGRATED-DASHBOARD-PDR.md
+node_modules/@next/swc-linux-x64-musl/next-swc.linux-x64-musl.node
+node_modules/@next/swc-linux-x64-gnu/next-swc.linux-x64-gnu.node
