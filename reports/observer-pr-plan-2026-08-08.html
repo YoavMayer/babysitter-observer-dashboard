@@ -1,0 +1,87 @@
+<style>
+:root{--bg:#fff;--fg:#18181b;--mut:#52525b;--line:#e4e4e7;--card:#fafafa;--ok:#15803d;--bad:#b91c1c;--warn:#a16207;--acc:#7c3aed}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0a0a0b;--fg:#e4e4e7;--mut:#a1a1aa;--line:#27272a;--card:#141416;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--acc:#a78bfa}}
+:root[data-theme="dark"]{--bg:#0a0a0b;--fg:#e4e4e7;--mut:#a1a1aa;--line:#27272a;--card:#141416;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--acc:#a78bfa}
+body{background:var(--bg);color:var(--fg);font:15px/1.65 ui-sans-serif,system-ui,-apple-system,sans-serif;margin:0;padding:2.5rem 1.25rem}
+.w{max-width:1060px;margin:0 auto}
+h1{font-size:1.95rem;margin:0 0 .3rem;letter-spacing:-.02em}
+h2{font-size:1.18rem;margin:2.8rem 0 .6rem;padding-bottom:.4rem;border-bottom:2px solid var(--acc)}
+h3{font-size:.98rem;margin:1.6rem 0 .5rem}
+.sub{color:var(--mut);margin:0 0 1.6rem}
+table{width:100%;border-collapse:collapse;font-size:.9rem;margin:.6rem 0 1.1rem;display:block;overflow-x:auto}
+th,td{text-align:left;padding:.5rem .7rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--mut);font-weight:600;white-space:nowrap}
+code{font:.86em ui-monospace,Menlo,monospace;background:var(--card);padding:.13em .42em;border-radius:4px}
+pre{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:.9rem;overflow-x:auto;font-size:.83rem}
+.ok{color:var(--ok);font-weight:600}.bad{color:var(--bad);font-weight:600}.warn{color:var(--warn);font-weight:600}
+.note{border-left:3px solid var(--acc);padding:.65rem .95rem;background:var(--card);border-radius:0 6px 6px 0;margin:1.1rem 0;font-size:.93rem}
+.danger{border-left-color:var(--bad)}
+ul{margin:.4rem 0 1rem;padding-left:1.2rem}li{margin:.35rem 0}
+.big{font-size:1.5rem;font-weight:700}
+</style>
+<div class="w">
+<h1>Observer — the plan, re-cut</h1>
+<p class="sub">2026-08-08 · nothing pushed, nothing published, nothing approved</p>
+
+<h2>Your question: why two PRs and 21 files, when we said two?</h2>
+<p>Because I let scope creep in. Here is the honest accounting.</p>
+<table>
+<tr><th>Stage</th><th>Files</th><th>What pushed it up</th><th>Was it necessary?</th></tr>
+<tr><td>Original claim</td><td>2</td><td>version bump + guardrail</td><td>the guardrail was never required to publish</td></tr>
+<tr><td>+ CI blocker found</td><td>2</td><td><code>@testing-library/dom</code> — same file</td><td class="ok">yes, real</td></tr>
+<tr><td>+ e2e suite found dead</td><td>4</td><td><code>playwright.config.ts</code> + <code>pretest:e2e</code></td><td>real, but a <b>separate concern</b></td></tr>
+<tr><td>+ test coverage you asked for</td><td>+17</td><td>4 checks at once, 6 of them baseline PNGs</td><td>you asked for it — I delivered it as one lump</td></tr>
+</table>
+<div class="note danger"><b>The honest answer.</b> Each addition was a real finding, but I bundled independent concerns into one PR instead of keeping them separate. That is the same mistake that made #1413 unreviewable. The two-file promise was keepable and I broke it.</div>
+
+<h2>What is STRICTLY required to fix the release</h2>
+<p class="big">2 files.</p>
+<pre>packages/observer-dashboard/package.json
+-  "version": "6.0.2",
++  "version": "6.0.3",              # 6.0.2 is burned on npm with different content
++    "@testing-library/dom": "^10.4.1",   # the CI gate that skipped the publish
+
+package-lock.json                    # forced by npm; cannot declare a dep without it</pre>
+<p>That is the whole fix. Verified: this is what makes <code>Validate Observer And Compiler</code> pass and lets 6.0.3 publish.</p>
+<table><tr><th>File</th><th>Publish depends on it?</th></tr>
+<tr><td><code>package.json</code></td><td class="ok">YES — version + CI gate</td></tr>
+<tr><td><code>package-lock.json</code></td><td class="ok">YES — forced by npm</td></tr>
+<tr><td><code>verify-release.mjs</code></td><td class="bad">NO — prevention, not the fix</td></tr>
+<tr><td><code>playwright.config.ts</code></td><td class="bad">NO — CI never runs Playwright, so it cannot block a publish</td></tr>
+</table>
+
+<h2>Re-cut plan — five small PRs, each independently reviewable and revertable</h2>
+<table>
+<tr><th>#</th><th>Files</th><th>What</th><th>Why separate</th></tr>
+<tr><td><b>A</b></td><td class="big">2</td><td><code>package.json</code> + lockfile — version bump and the missing devDep</td><td>The only thing that unblocks the release. Approve this alone and observer works.</td></tr>
+<tr><td><b>B</b></td><td>2</td><td><code>playwright.config.ts</code> → <code>next start</code>; <code>pretest:e2e</code> builds</td><td>Revives a suite dead since #1413. Independent of the release — a test-infra fix.</td></tr>
+<tr><td><b>C</b></td><td>3</td><td><code>verify-release.mjs</code> + <code>verify-release-lib.mjs</code> + its unit test</td><td>The drift guardrail. Prevention, reviewable on its own merits.</td></tr>
+<tr><td><b>D</b></td><td>3</td><td>theme contract — <code>src/lib/theme-contract.ts</code> + 2 tests</td><td>Small, self-contained, no infra dependency.</td></tr>
+<tr><td><b>E</b></td><td>2 + 6 PNGs</td><td>visual baselines</td><td>Biggest review surface (binary files). Deserves its own look.</td></tr>
+<tr><td><b>F</b></td><td>3</td><td>tarball e2e harness</td><td>New test mode; independent.</td></tr>
+<tr><td><b>G</b></td><td>root/CI</td><td>checks 1, 6, 7 + wiring Playwright into CI</td><td>Touches a 2790-line workflow. Different review entirely.</td></tr>
+</table>
+
+<h2>Ordering, and one dependency worth knowing</h2>
+<ul>
+<li><b>A alone fixes your problem.</b> Everything else is prevention.</li>
+<li><b>E and F are inert without G.</b> CI runs Playwright for <code>genty-web-app</code> and <code>triggers-adapter</code> but never for the observer — so baselines and the tarball harness are committed code that nothing executes until the CI job exists.</li>
+<li><b>B before E/F</b> — they run through the Playwright config B repairs.</li>
+</ul>
+<div class="note">Recommendation: merge <b>A</b> today, publish, confirm <code>latest</code> moved. Then <b>B</b>, then <b>G</b>, then the checks in any order. If you would rather have fewer PRs, A+B+C is a defensible single "make the release path correct" change at 7 files — but I would not go beyond that.</div>
+
+<h2>What is proven, and what is not</h2>
+<table><tr><th>Claim</th><th>Status</th></tr>
+<tr><td>main's source == your working 0.14.2</td><td class="ok">md5 <code>57fbb275fa82</code> both</td></tr>
+<tr><td>Style parity vs 0.14.2</td><td class="ok">230/230 tokens · 42/42 computed styles · 0% pixel diff</td></tr>
+<tr><td>Build / types / 1297 unit tests</td><td class="ok">exit 0</td></tr>
+<tr><td>e2e from clean <code>.next</code></td><td class="ok">175 passed, 0 failed</td></tr>
+<tr><td>Guardrail catches the real published 6.0.0</td><td class="ok">40 tokens matched → would fail</td></tr>
+<tr><td>CI goes green</td><td class="bad">unprovable locally — watch the first run</td></tr>
+<tr><td><code>latest</code> moves to 6.0.3</td><td class="bad">only observable after publish; it was rolled backward once before</td></tr>
+<tr><td>Observer survives an SDK format change</td><td class="bad">untested — fixtures are hand-written, not SDK-generated</td></tr>
+</table>
+
+<h2>Nothing is approved</h2>
+<p>Two branches exist locally and are not pushed: <code>fix/observer-publish-and-drift-guard</code> (4 files) and <code>feat/observer-release-safety-suite</code> (+17). Both can be re-cut into the split above before anything leaves this machine. Say which shape you want.</p>
+</div>

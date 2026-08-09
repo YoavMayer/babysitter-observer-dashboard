@@ -1,0 +1,101 @@
+<style>
+:root{--bg:#fff;--fg:#18181b;--mut:#52525b;--line:#e4e4e7;--card:#fafafa;--ok:#15803d;--bad:#b91c1c;--warn:#a16207;--acc:#7c3aed}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0a0a0b;--fg:#e4e4e7;--mut:#a1a1aa;--line:#27272a;--card:#141416;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--acc:#a78bfa}}
+:root[data-theme="dark"]{--bg:#0a0a0b;--fg:#e4e4e7;--mut:#a1a1aa;--line:#27272a;--card:#141416;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--acc:#a78bfa}
+body{background:var(--bg);color:var(--fg);font:15px/1.65 ui-sans-serif,system-ui,-apple-system,sans-serif;margin:0;padding:2.5rem 1.25rem}
+.w{max-width:1080px;margin:0 auto}
+h1{font-size:1.95rem;margin:0 0 .3rem;letter-spacing:-.02em}
+h2{font-size:1.18rem;margin:2.8rem 0 .6rem;padding-bottom:.4rem;border-bottom:2px solid var(--acc)}
+h3{font-size:.98rem;margin:1.7rem 0 .5rem}
+.sub{color:var(--mut);margin:0 0 1.6rem}
+table{width:100%;border-collapse:collapse;font-size:.9rem;margin:.6rem 0 1.1rem;display:block;overflow-x:auto}
+th,td{text-align:left;padding:.5rem .7rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--mut);font-weight:600;white-space:nowrap}
+code{font:.86em ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--card);padding:.13em .42em;border-radius:4px}
+pre{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:.9rem;overflow-x:auto;font-size:.83rem;line-height:1.5}
+.ok{color:var(--ok);font-weight:600}.bad{color:var(--bad);font-weight:600}.warn{color:var(--warn);font-weight:600}
+.note{border-left:3px solid var(--acc);padding:.65rem .95rem;background:var(--card);border-radius:0 6px 6px 0;margin:1.1rem 0;font-size:.93rem}
+.danger{border-left-color:var(--bad)}
+ul{margin:.4rem 0 1rem;padding-left:1.2rem}li{margin:.3rem 0}
+</style>
+<div class="w">
+<h1>Observer dashboard — PR report</h1>
+<p class="sub">2026-08-08 · branches <code>fix/observer-publish-and-drift-guard</code> and <code>feat/observer-release-safety-suite</code> · nothing pushed, nothing published</p>
+
+<h2>1. What broke</h2>
+<p>PR #1413 merged your dashboard to <code>main</code> on 2026-08-07 08:52Z. The CI <em>Publish</em> run on that commit <b class="bad">failed</b>: <code>Validate Observer And Compiler</code> died on <code>Cannot find module '@testing-library/dom'</code>, which made <code>Prepare Publish</code> and every <code>Publish Foundation</code> job <b>skip</b>. Nothing was published, so <code>npx @a5c-ai/babysitter-observer-dashboard@latest</code> kept serving <b>6.0.0</b> — an unrelated a5c-ai "Compendium Edition" codebase whose stylesheet carries 40 <code>--ground-void</code>/<code>--tkc-*</code> tokens that exist nowhere in your source.</p>
+
+<h2>2. PR 1 — the fix (4 files, +48 / −15)</h2>
+<table>
+<tr><th>File</th><th>Δ</th><th>Change and why</th></tr>
+<tr><td><code>package.json</code></td><td>+3/−2</td><td><b>Declare <code>@testing-library/dom ^10.4.1</code></b> — the CI blocker; it resolved only by accidental root hoisting. <b><code>6.0.2</code> → <code>6.0.3</code></b> — 6.0.2 is burned on npm with different content. <b><code>pretest:e2e</code> builds</b> — <code>next start</code> needs a build.</td></tr>
+<tr><td><code>playwright.config.ts</code></td><td>+1/−1</td><td><code>next dev</code> → <code>next start</code>. The suite could not start at all: bare <code>next dev</code> hits Next 16's Turbopack-vs-<code>webpack</code>-config error.</td></tr>
+<tr><td><code>scripts/verify-release.mjs</code></td><td>+40/−2</td><td>Drift guardrail on the packed stylesheet, plus a real bug fix — <code>npm publish --dry-run</code> sets <code>npm_config_dry_run=true</code>, which leaked into the nested <code>npm pack</code> and broke <code>prepublishOnly</code>.</td></tr>
+<tr><td><code>package-lock.json</code></td><td>+5/−11</td><td>Dependency edge only. <b>The one file outside the observer package.</b></td></tr>
+</table>
+
+<h2>3. Difference vs previous versions</h2>
+<table>
+<tr><th></th><th>npm 6.0.0 / 6.0.1 / 6.0.2</th><th>main 6.0.2</th><th>this PR 6.0.3</th></tr>
+<tr><td>Codebase</td><td class="bad">a5c-ai "Compendium Edition"</td><td>your dashboard</td><td>your dashboard</td></tr>
+<tr><td>Compendium tokens in <code>globals.css</code></td><td class="bad">40</td><td class="ok">0</td><td class="ok">0</td></tr>
+<tr><td>Renders</td><td class="bad">broken — overflowing title, <code>0 projects</code></td><td class="ok">correct</td><td class="ok">correct</td></tr>
+<tr><td>Playwright suite</td><td>—</td><td class="bad">cannot start</td><td class="ok">175 passed</td></tr>
+<tr><td>Publishable</td><td>—</td><td class="bad">no (version burned)</td><td class="ok">yes</td></tr>
+</table>
+<p>Your dashboard, <code>main</code>, and your working <code>@yoavmayer/…@0.14.2</code> are byte-identical: <code>md5 57fbb275fa82</code>.</p>
+
+<h2>4. Verification evidence</h2>
+<table>
+<tr><th>Check</th><th>Result</th></tr>
+<tr><td><code>npm run build</code> (<code>next build --webpack</code>)</td><td class="ok">exit 0</td></tr>
+<tr><td><code>tsc --noEmit</code></td><td class="ok">exit 0</td></tr>
+<tr><td><code>vitest run</code></td><td class="ok">1297/1297 (PR1) → 1314/1314 (PR2)</td></tr>
+<tr><td>e2e from a deleted <code>.next</code></td><td class="ok">175 passed, 0 failed, 2.1m</td></tr>
+<tr><td><code>verify-release.mjs</code>, incl. <code>--dry-run</code></td><td class="ok">exit 0</td></tr>
+<tr><td>Guardrail vs the REAL published 6.0.0</td><td class="ok">40 tokens matched — would have failed the release</td></tr>
+<tr><td>Style parity vs your known-good 0.14.2</td><td class="ok">230/230 tokens · 42/42 computed styles · 0% B↔C pixel diff</td></tr>
+</table>
+<p>Three-arm comparison (0.14.2 published / 0.14.2 on Next 16 / candidate) isolates source from toolchain — see <code>playwright-three-arm-comparison.html</code>. Screenshots in <code>observer-release-ready.html</code>.</p>
+
+<h2>5. PR 2 — permanent coverage (17 files, +1107 / −17)</h2>
+<table>
+<tr><th>Check</th><th>Target</th><th>Proven by</th></tr>
+<tr><td>2 · foreign design system</td><td><code>scripts/verify-release-lib.mjs</code> (new, 243 lines)</td><td class="ok">clean exit 0 · one theme's <code>--background</code> → <code>var(--ground-void)</code> exit 1 · tarball with no build exit 1</td></tr>
+<tr><td>3 · theme contract</td><td><code>src/lib/theme-contract.ts</code> + 2 test files</td><td class="ok">adding a <code>"midnight"</code> value with no CSS rule fails 2 tests; revert → 9 passed</td></tr>
+<tr><td>4 · visual baselines</td><td><code>e2e/tests/visual-baselines.spec.ts</code> + 6 PNGs</td><td>first screenshot coverage in the repo</td></tr>
+<tr><td>5 · packaged-artifact e2e</td><td><code>scripts/e2e-against-tarball.mjs</code>, <code>playwright.tarball.config.ts</code></td><td><code>test:e2e:tarball</code> boots the installed tarball</td></tr>
+</table>
+<div class="note">Check 2 as first written compared the packed <code>globals.css</code> against the same file on disk — identical bytes by construction, so it <b>could never fail</b>. It passed its own tests and would have shipped as coverage. Rebuilt to compare source↔compiled token <em>values</em>, normalising minifier rewrites (<code>rgba()</code>→hex, <code>#FFFFFF</code>→<code>#fff</code>, <code>150ms</code>→<code>.15s</code>, <code>#ffd700</code>→<code>gold</code>). A clean build gives exactly zero disagreements, which is what makes one disagreement mean something.</div>
+
+<h2>6. Everything OUTSIDE <code>packages/observer-dashboard/</code></h2>
+<h3>Already in PR 1 — unavoidable</h3>
+<table><tr><th>Path</th><th>Δ</th><th>Why it must be outside</th></tr>
+<tr><td><code>package-lock.json</code></td><td>+5/−11</td><td>Adding a devDependency updates the workspace lockfile at the repo root. Written by npm, never hand-edited.</td></tr></table>
+
+<h3>Required by the remaining checks — deliberately NOT in either PR</h3>
+<table><tr><th>Path</th><th>Size</th><th>What it is needed for</th></tr>
+<tr><td><code>scripts/publish-package-from-tag.mjs</code></td><td>169 lines</td><td><b>Check 1</b> — when the version already exists on npm it just re-tags and exits, never comparing content. This is the exact mechanism that let npm's 6.0.2 and the repo's 6.0.2 be different codebases forever.</td></tr>
+<tr><td><code>.github/workflows/publish.yml</code></td><td>2790 lines</td><td><b>Check 6</b> — no job after <code>publish_staging_foundation</code> verifies the publish happened. That is why a skipped publish was silent.</td></tr>
+<tr><td><code>scripts/fix-broken-latest-tags.mjs</code></td><td>194 lines</td><td><b>Check 7</b> — detects "broken" tags by file-count/size heuristic, not "older than newest stable". All of 6.0.0/6.0.1/6.0.2 are ~515 files / ~14.8 MB, so it would not have caught this.</td></tr>
+<tr><td><code>.github/workflows/ci.yml</code></td><td>369 lines</td><td>Wiring the observer's Playwright suite into CI. It runs Playwright today for <code>genty-web-app</code> and <code>triggers-adapter</code> — the pattern exists, the observer simply is not wired in.</td></tr>
+<tr><td><code>.github/workflows/fix-npm-tags.yml</code></td><td>45 lines</td><td>Only triggers on <code>workflow_dispatch</code>; never runs after a publish.</td></tr>
+</table>
+
+<h3>Pre-existing local dirt — not mine, not committed</h3>
+<ul>
+<li><code>.claude/settings.json</code> — modified before this session started</li>
+<li><code>.claude/observe-autostart.sh</code> — untracked, pre-existing</li>
+<li><code>packages/observer-dashboard/AGENTS.md</code>, <code>CLAUDE.md</code> — regenerated by <code>next dev</code>; their own text says committing them keeps the tree clean. Your call.</li>
+</ul>
+
+<h2>7. What is still unproven</h2>
+<div class="note danger">
+<ul>
+<li><b>CI going green.</b> The one documented failure is fixed; the other 7 jobs in that gate could fail for their own reasons. Only a real run shows it.</li>
+<li><b><code>latest</code> moving to 6.0.3.</b> Tag logic is correct (<code>main</code> → <code>latest</code>), but it was manually rolled backward once, outside CI. Verify with <code>npm view … dist-tags</code> after publishing.</li>
+<li><b>The <code>^6.0.0</code> SDK range.</b> The observer reads babysitter's on-disk format using <em>hand-written</em> fixtures, not SDK-generated ones. An SDK format change breaks the observer with every test still green. This is the next real breakdown.</li>
+<li><b><code>tailwindcss</code> unpinned <code>^4</code>.</b> Three builds of identical source produced three different CSS bytestreams (4.2.1 / 4.3.0 / 4.3.3). Visually inert, but byte-exact CSS can never be asserted at release time.</li>
+</ul>
+</div>
+</div>
