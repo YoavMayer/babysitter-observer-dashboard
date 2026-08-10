@@ -1,0 +1,35 @@
+<title>Message for Tal</title>
+<style>
+:root{--bg:#fbfbfc;--fg:#16181d;--mut:#5b6070;--line:#dcdee5;--card:#f3f4f6;--acc:#0f6f6c}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101114;--fg:#e7e8ec;--mut:#9aa0ae;--line:#2a2d35;--card:#191b20;--acc:#4bc4bd}}
+:root[data-theme="dark"]{--bg:#101114;--fg:#e7e8ec;--mut:#9aa0ae;--line:#2a2d35;--card:#191b20;--acc:#4bc4bd}
+body{background:var(--bg);color:var(--fg);margin:0;padding:2rem 1rem 4rem;font:16px/1.6 ui-sans-serif,system-ui,sans-serif}
+.w{max-width:44rem;margin:0 auto;display:flex;flex-direction:column;gap:1.4rem}
+h1{font-size:1.4rem;margin:0}
+.card{border:1px solid var(--line);border-radius:10px;background:var(--card);overflow:hidden}
+.hd{display:flex;align-items:center;justify-content:space-between;padding:.65rem 1rem;border-bottom:1px solid var(--line)}
+.hd b{font-size:.95rem}
+button{background:var(--acc);color:#fff;border:0;border-radius:6px;padding:.45rem .95rem;font:600 .85rem ui-sans-serif,system-ui;cursor:pointer}
+button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+button.ok{background:#1c6238}
+pre{margin:0;padding:1rem;white-space:pre-wrap;word-wrap:break-word;font:.93rem/1.65 ui-sans-serif,system-ui,sans-serif;unicode-bidi:plaintext;text-align:start}
+</style>
+<div class="w">
+<h1>Message for Tal</h1>
+
+<div class="card">
+<div class="hd"><b>Hebrew intro, English details</b><button onclick="cp(this,'v1')">Copy</button></div>
+<pre id="v1">היי, צריך ממך שני דברים על PR #1695: לאשר את ריצת ה-CI (זה fork, אין לי גישה) ולעשות merge. זה מתקן את ה-observer השבור. הסיבה באנגלית:
+
+Since #1413, Publish fails on every push to main (the observer uses @testing-library/dom without declaring it, breaks only in npm ci). So #1413 never reached npm, and latest still serves the old Compendium Edition observer. Anyone opening the dashboard gets a broken page.
+
+The fix is 3 files: declare the dep, bump 6.0.2 to 6.0.3. 6.0.2 is already taken on npm with the old content, and on an existing version the pipeline skips publish and re-points latest at the old builds. So both commits must go in together.
+
+Heads up: merge publishes all @a5c-ai packages at 6.0.3, there is no per package release. Only the observer needs it, the rest get a new number on code already in main. 6.0.3 is free for all 39, checked. The bot found no code issues, it's only blocked on QA infra that's red everywhere right now.
+
+https://github.com/a5c-ai/babysitter/pull/1695</pre>
+</div>
+</div>
+<script>
+function cp(btn,id){navigator.clipboard.writeText(document.getElementById(id).textContent).then(()=>{const t=btn.textContent;btn.textContent='Copied';btn.classList.add('ok');setTimeout(()=>{btn.textContent=t;btn.classList.remove('ok')},1600)})}
+</script>
